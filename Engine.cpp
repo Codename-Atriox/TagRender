@@ -1,8 +1,14 @@
 #include "Engine.h"
+#include "TagFramework.h"
 
 bool Engine::Initialize(HINSTANCE hInstance, std::string window_title, std::string window_class, int width, int height)
 {
 	timer.Start();
+
+	
+
+	auto _ = Opentag("D:\\T\\__chore\\pc__\\levels\\assets\\hack\\texture_tiles\\wz_rubble\\wz_rubble_concrete_broken_normal{pc}.bitmap", 
+		nullptr);
 
 	if (!this->render_window.Initialize(this, hInstance, window_title, window_class, width, height))
 		return false;
