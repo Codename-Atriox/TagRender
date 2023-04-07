@@ -123,6 +123,9 @@
     <ClCompile Include="Graphics\Light.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Slipspace\TagProcessor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="StringHelper.h">
@@ -229,6 +232,15 @@
     </ClInclude>
     <ClInclude Include="Graphics\Light.h">
       <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Slipspace\TagProcessor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Slipspace\TagStructs\bitm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Slipspace\TagStructs\commons.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

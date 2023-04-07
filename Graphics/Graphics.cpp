@@ -286,10 +286,8 @@ bool Graphics::InitializeShaders()
 	return true;
 }
 
-bool Graphics::InitializeScene()
-{
-	try
-	{
+bool Graphics::InitializeScene(){
+	try{
 		
 		// LOAD TEXTURE
 		HRESULT hr = DirectX::CreateWICTextureFromFile(this->device.Get(), L"Data\\Textures\\pebbles.png", nullptr, grassTexture.GetAddressOf());

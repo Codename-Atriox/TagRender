@@ -195,6 +195,7 @@
     <ClCompile Include="Mouse\MouseClass.cpp" />
     <ClCompile Include="RenderWindow.cpp" />
     <ClCompile Include="Graphics\Shaders.cpp" />
+    <ClCompile Include="Slipspace\TagProcessor.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="StringHelper.cpp" />
     <ClCompile Include="Timer.cpp" />
@@ -231,6 +232,9 @@
     <ClInclude Include="Mouse\MouseEvent.h" />
     <ClInclude Include="RenderWindow.h" />
     <ClInclude Include="Graphics\Shaders.h" />
+    <ClInclude Include="Slipspace\TagProcessor.h" />
+    <ClInclude Include="Slipspace\TagStructs\bitm.h" />
+    <ClInclude Include="Slipspace\TagStructs\commons.h" />
     <ClInclude Include="StringHelper.h" />
     <ClInclude Include="Graphics\Vertex.h" />
     <ClInclude Include="Graphics\VertexBuffer.h" />
