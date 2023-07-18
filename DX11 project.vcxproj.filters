@@ -123,7 +123,16 @@
     <ClCompile Include="Graphics\Light.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Slipspace\TagProcessor.cpp">
+    <ClCompile Include="Slipspace\Tags\TagProcessor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Slipspace\Tags\ModuleLoading\TagLoading\TagFramework.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Slipspace\Tags\ModuleLoading\oodle\oodle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Slipspace\Tags\ModuleLoading\ModuleFramework.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -233,13 +242,28 @@
     <ClInclude Include="Graphics\Light.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Slipspace\TagProcessor.h">
+    <ClInclude Include="Slipspace\Tags\TagProcessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Slipspace\TagStructs\bitm.h">
+    <ClInclude Include="Slipspace\Tags\TagStructs\bitm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Slipspace\TagStructs\commons.h">
+    <ClInclude Include="Slipspace\Tags\TagStructs\commons.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Slipspace\Tags\ModuleLoading\TagLoading\TagFramework.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Slipspace\Tags\ModuleLoading\oodle\oodle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Slipspace\Tags\ModuleLoading\TagLoading\TagStructs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Slipspace\Tags\ModuleLoading\ModuleFramework.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Slipspace\Tags\ModuleLoading\ModuleStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

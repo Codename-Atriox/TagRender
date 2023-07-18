@@ -97,7 +97,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d11.lib;DirectXTK.lib;DXGI.lib;D3DCompiler.lib;assimp-vc140-mt.lib;TagFramework_cpp.lib</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;DirectXTK.lib;DXGI.lib;D3DCompiler.lib;assimp-vc140-mt.lib;TagFramework_cpp.lib;oo2core_8_win64.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(IntDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -120,7 +120,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d11.lib;DirectXTK.lib;DXGI.lib;D3DCompiler.lib;assimp-vc140-mt.lib;TagFramework_cpp.lib</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;DirectXTK.lib;DXGI.lib;D3DCompiler.lib;assimp-vc140-mt.lib;TagFramework_cpp.lib;oo2core_8_win64.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(IntDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -139,7 +139,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d11.lib;DirectXTK.lib;DXGI.lib;D3DCompiler.lib;assimp-vc140-mt.lib;TagFramework_cpp.lib</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;DirectXTK.lib;DXGI.lib;D3DCompiler.lib;assimp-vc140-mt.lib;TagFramework_cpp.lib;oo2core_8_win64.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(IntDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -162,7 +162,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d11.lib;DirectXTK.lib;DXGI.lib;D3DCompiler.lib;assimp-vc140-mt.lib;TagFramework_cpp.lib</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;DirectXTK.lib;DXGI.lib;D3DCompiler.lib;oo2core_8_win64.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(IntDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -195,7 +195,10 @@
     <ClCompile Include="Mouse\MouseClass.cpp" />
     <ClCompile Include="RenderWindow.cpp" />
     <ClCompile Include="Graphics\Shaders.cpp" />
-    <ClCompile Include="Slipspace\TagProcessor.cpp" />
+    <ClCompile Include="Slipspace\Tags\ModuleLoading\ModuleFramework.cpp" />
+    <ClCompile Include="Slipspace\Tags\ModuleLoading\oodle\oodle.cpp" />
+    <ClCompile Include="Slipspace\Tags\ModuleLoading\TagLoading\TagFramework.cpp" />
+    <ClCompile Include="Slipspace\Tags\TagProcessor.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="StringHelper.cpp" />
     <ClCompile Include="Timer.cpp" />
@@ -232,9 +235,14 @@
     <ClInclude Include="Mouse\MouseEvent.h" />
     <ClInclude Include="RenderWindow.h" />
     <ClInclude Include="Graphics\Shaders.h" />
-    <ClInclude Include="Slipspace\TagProcessor.h" />
-    <ClInclude Include="Slipspace\TagStructs\bitm.h" />
-    <ClInclude Include="Slipspace\TagStructs\commons.h" />
+    <ClInclude Include="Slipspace\Tags\ModuleLoading\ModuleFramework.h" />
+    <ClInclude Include="Slipspace\Tags\ModuleLoading\ModuleStructs.h" />
+    <ClInclude Include="Slipspace\Tags\ModuleLoading\oodle\oodle.h" />
+    <ClInclude Include="Slipspace\Tags\ModuleLoading\TagLoading\TagFramework.h" />
+    <ClInclude Include="Slipspace\Tags\ModuleLoading\TagLoading\TagStructs.h" />
+    <ClInclude Include="Slipspace\Tags\TagProcessor.h" />
+    <ClInclude Include="Slipspace\Tags\TagStructs\bitm.h" />
+    <ClInclude Include="Slipspace\Tags\TagStructs\commons.h" />
     <ClInclude Include="StringHelper.h" />
     <ClInclude Include="Graphics\Vertex.h" />
     <ClInclude Include="Graphics\VertexBuffer.h" />
