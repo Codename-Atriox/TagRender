@@ -31,6 +31,14 @@ namespace ModuleStructs{
         int32_t     Unk_0x04C;       //  0
     };
 
+    // // // // FLAGS // // // // 
+    // (these are probably flipped as i was figuring this out straight from the module files)
+    // 0000-0001 <- Uses Compression
+    // 0000-0010 <- has blocks, which means to read the data across several data blocks, otherwise read straight from data offset
+    // 0000-0100 <- is a raw file, meaning it has no tag header
+    char flag_UseCompression = 0b00000001;
+    char flag_UseBlocks      = 0b00000010;
+    char flag_UseRawfile     = 0b00000100;
     struct module_file {
         char        ClassGroup;     //  
         char        Flags;          // refer to flag bits below this struct
@@ -68,11 +76,8 @@ namespace ModuleStructs{
     };
 
 
-    // // // // FLAGS // // // // 
-    // (these are probably flipped as i was figuring this out straight from the module files)
-    // 0000-0001 <- Uses Compression
-    // 0000-0010 <- has blocks, which means to read the data across several data blocks, otherwise read straight from data offset
-    // 0000-0100 <- is a raw file, meaning it has no tag header
+
+
     struct block_header { // sizeof = 0x14
         int32_t    CompressedOffset;
         int32_t    CompressedSize;

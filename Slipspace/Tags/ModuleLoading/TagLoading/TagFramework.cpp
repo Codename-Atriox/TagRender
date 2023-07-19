@@ -63,26 +63,18 @@ uint64_t TagProcessing::resolve_datablock_offset(data_block* datar, tag_loading_
 	_Out_tag = new runtime_tag(tag_data, chunk_resources, struct_resources, cleanup_ptr);
 	return output; // we only input non chunk resources
 } */
-TAG_OBJ_TYPE TagProcessing::Open_ready_tag(char* tag_bytes, long long tag_size, runtime_tag*& _Out_tag){
-	vector<size_pointer>* chunk_resources = new vector<size_pointer>();
-	vector<size_pointer>* struct_resources = new vector<size_pointer>();
-
-	void* tag_data;
-	char* cleanup_ptr;
-	TAG_OBJ_TYPE output = Processtag(tag_bytes, tag_size, tag_data, struct_resources, cleanup_ptr);
-	// then create 
-	_Out_tag = new runtime_tag(tag_data, chunk_resources, struct_resources, cleanup_ptr);
-	return output; // we only input non chunk resources
+void TagProcessing::Open_ready_tag(char* tag_bytes, uint64_t tag_size, char*& _Out_tag, char*& _Out_cleanup_ptr){
+	Processtag(tag_bytes, tag_size, _Out_tag, _Out_cleanup_ptr);
+	delete[] tag_bytes; // cleanup the file read request
 }
-TAG_OBJ_TYPE TagProcessing::Processtag(char* tag_bytes, std::streamsize file_size, void*& _Out_data, vector<size_pointer>* resources, char*& _Out_cleanup_ptr){
+void TagProcessing::Processtag(char* tag_bytes, uint64_t file_size, char*& _Out_data, char*& _Out_cleanup_ptr){
 	uint64_t current_byte_offset = 0;
 	uint32_t current_resource_index = 0;
 
 	// read header from bytes
-	tag_header* header = reinterpret_cast<tag_header*>(&tag_bytes[0]);
+	tag_header* header = (tag_header*)tag_bytes;
 	current_byte_offset += tag_header_size;
-	if (header->Magic != 1752392565) {
-		delete[] tag_bytes;
+	if (header->Magic != 1752392565) { // 'hscu'
 		throw new exception("Incorrect 'Magic'! potential wrong file type!");
 	}
 
@@ -123,7 +115,6 @@ TAG_OBJ_TYPE TagProcessing::Processtag(char* tag_bytes, std::streamsize file_siz
 	// now we note any unmapped data segments in the file
 	
 	if (offsets->data_3_offset + current_byte_offset + header->ActualResoureDataSize != file_size) {
-		delete[] tag_bytes;
 		delete[] runtime_bytes;
 		delete offsets;
 		throw new exception("unaccounted bytes detected in tag file! potential read failure! potential bad struct mappings!");
@@ -144,10 +135,9 @@ TAG_OBJ_TYPE TagProcessing::Processtag(char* tag_bytes, std::streamsize file_siz
 	}
 
 	if (target_group == 0){
-		delete[] tag_bytes;
 		delete[] runtime_bytes;
 		delete offsets;
-		throw new exception("Incorrect 'Magic'! potential wrong file type!");
+		throw new exception("No valid root struct!!!");
 	}
 
 	// lets do runtime fixups on the file now
@@ -167,23 +157,20 @@ TAG_OBJ_TYPE TagProcessing::Processtag(char* tag_bytes, std::streamsize file_siz
 		} else if (current_struct->Type == 2){ // resource
 			// we're not going to read external types right now
 			_basic_resource* resource = reinterpret_cast<_basic_resource*>(&runtime_bytes[resolve_datablock_offset(datar, offsets) + current_struct->FieldOffset]);
-			if (resource->is_chunked_resource == 0){
-				if (!resources->size()){ // this means that there are no entries
-					// this is a critical error
-					throw new exception("no tag resources, but resources were required");
-				}
-				void* resource_struct; // output struct ptr
+			// use the handle as an index to the resource
+			if (resource->runtime_resource_handle != 0) // verify that we didn't mess up the mappings
+				throw new exception("tag has data on runtime_resource_handle! there should be no data here! investigate!!");
+			resource->runtime_resource_handle = current_resource_index;
+
+			if (resource->is_chunked_resource == 0){ // currently nothing is to be done here
+				/*void* resource_struct; // output struct ptr
 				char* new_resource_ptr; 
 				Processtag((*resources)[current_resource_index].content_ptr, (*resources)[current_resource_index].size, resource_struct, nullptr, new_resource_ptr);
 				(*resources)[current_resource_index].content_ptr = new_resource_ptr;
 				(*resources)[current_resource_index].size = 0;
-				resource->content_ptr = resource_struct;
-				// we dont currently support tagblocks
-			}else{
-				if (resources->size()){ // this means that there are entries, there should be none
-					// this is a critical error
-					throw new exception("tag resources present, but non-chunked resource reference was found!");
-				}
+				resource->content_ptr = resource_struct;*/
+
+			}else{ // regular resources also have structs inside the main file that reference them
 				if (current_struct->TargetIndex != -1) {
 					data_block* contained_datar = reinterpret_cast<data_block*> (&tag_bytes[offsets->data_blocks_offset + (current_struct->TargetIndex * data_block_size)]);
 					resource->content_ptr = &runtime_bytes[resolve_datablock_offset(contained_datar, offsets)];
@@ -213,7 +200,7 @@ TAG_OBJ_TYPE TagProcessing::Processtag(char* tag_bytes, std::streamsize file_siz
 
 	}
 	*/
-
+	/*
 	TAG_OBJ_TYPE resulting_group = NONE;
 	switch (target_group){
 	case  1236057003492058159: resulting_group = bitmap;		break;
@@ -221,13 +208,11 @@ TAG_OBJ_TYPE TagProcessing::Processtag(char* tag_bytes, std::streamsize file_siz
 	case 13546876791234752572: resulting_group = render_model;	break;
 	case  9265759122008847170: resulting_group = level;			break;
 	}
-
+	*/
 	// assign the output data
 	data_block* root_datar = reinterpret_cast<data_block*> (&tag_bytes[offsets->data_blocks_offset + (root_struct->TargetIndex * data_block_size)]);
-	_Out_data = reinterpret_cast<void*> (&runtime_bytes[resolve_datablock_offset(root_datar, offsets)]);
+	_Out_data = &runtime_bytes[resolve_datablock_offset(root_datar, offsets)];
 
 	_Out_cleanup_ptr = runtime_bytes;
 	delete offsets;
-	delete[] tag_bytes;
-	return resulting_group;
 }

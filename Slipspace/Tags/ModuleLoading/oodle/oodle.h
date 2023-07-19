@@ -33,7 +33,7 @@ public:
         Selkie,
         Akkorokamui
     };
-    char* decompress(int& DecompressedSize, char* CompressedData, int CompressedSize);
+    void decompress(char* decompress_buffer, int DecompressedSize, char* CompressedData, int CompressedSize);
 private:
     typedef int __stdcall OodleLZ_Decompress_Func(char* buffer, int bufferSize, char* outputBuffer, int outputBufferSize, int a, int b, int c, void* d, void* e, void* f, void* g, void* h, void* i, int threadModule);
 

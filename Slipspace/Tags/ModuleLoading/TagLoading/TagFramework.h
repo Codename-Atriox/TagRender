@@ -15,6 +15,7 @@ using namespace std;
 // this defines the possible data type output from reading a tag file
 // if its none of these, then the data will be discarded as we have no use for it
 // thus returning a nullptr
+/*
 enum TAG_OBJ_TYPE{
 	NONE,
 	bitmap,
@@ -59,29 +60,27 @@ private:
 	char* cleanup_ptr; // call 'delete' on this to clean up the tag
 	vector<size_pointer>* resource_structs_cleanup_ptrs; // used to clean up, each item's size will be listed as 0 when loaded
 };
-
-struct tag_loading_offsets {
-public:
-    uint64_t tag_dependencies_offset;
-    uint64_t data_blocks_offset;
-    uint64_t tag_structs_offset;
-    uint64_t data_references_offset;
-    uint64_t tag_fixup_references_offset;
-    uint64_t string_table_offset;
-    uint64_t zoneset_info_offset;
-    // these three are offsets into the headerless array (so -= header.size)
-    uint64_t header_size;
-    uint64_t data_1_offset; // tag data
-    uint64_t data_2_offset; // resource data
-    uint64_t data_3_offset; // alt resource data
-};
-
+*/
 
 
 static class TagProcessing {
 public:
-    TAG_OBJ_TYPE Open_ready_tag(char* tag_bytes, long long tag_size, runtime_tag*& _Out_tag);
+	static void Open_ready_tag(char* tag_bytes, uint64_t tag_size, char*& _Out_tag, char*& _Out_cleanup_ptr);
 private:
+	static struct tag_loading_offsets {
+		uint64_t tag_dependencies_offset;
+		uint64_t data_blocks_offset;
+		uint64_t tag_structs_offset;
+		uint64_t data_references_offset;
+		uint64_t tag_fixup_references_offset;
+		uint64_t string_table_offset;
+		uint64_t zoneset_info_offset;
+		// these three are offsets into the headerless array (so -= header.size)
+		uint64_t header_size;
+		uint64_t data_1_offset; // tag data
+		uint64_t data_2_offset; // resource data
+		uint64_t data_3_offset; // alt resource data
+	};
     static uint64_t resolve_datablock_offset(TagStructs::data_block* datar, tag_loading_offsets* offsets);
-    TAG_OBJ_TYPE Processtag(char* tag_bytes, std::streamsize file_size, void*& _Out_data, vector<size_pointer>* resources, char*& _Out_cleanup_ptr);
+    static void Processtag(char* tag_bytes, uint64_t file_size, char*& _Out_data, char*& _Out_cleanup_ptr);
 };

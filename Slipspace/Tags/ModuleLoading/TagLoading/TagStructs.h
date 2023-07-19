@@ -97,6 +97,9 @@ namespace TagStructs {
         uint32_t        GlobalID;
         int32_t         StringID;
     };
+
+
+    // actual structs that are contained within the tags
     // basic versions of the structs
     struct _basic_tagblock {
         void* content_ptr; // ptr to more structs
@@ -118,7 +121,7 @@ namespace TagStructs {
     };
     struct _basic_resource {
         void* content_ptr; // ptr to more structs
-        uint32_t runtime_resource_handle;
+        uint32_t runtime_resource_handle; // currently being used as an index
         uint32_t is_chunked_resource;
     };
     #pragma pack(pop)
