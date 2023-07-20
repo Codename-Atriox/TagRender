@@ -11,19 +11,21 @@ module_file* Module::find_tag(uint32_t tagID) {
 }
 
 void Module::GetTagProcessed(uint32_t tagID, char*& output_tag_bytes, char*& output_cleanup_ptr) {
+    module_file* file_ptr = find_tag(tagID);
+    if (file_ptr == 0)
+        throw new exception("failed to find tag in module");
+    GetTagProcessed(file_ptr, output_tag_bytes, output_cleanup_ptr);
+}
+void Module::GetTagProcessed(module_file* file_ptr, char*& output_tag_bytes, char*& output_cleanup_ptr) {
     // read tag from module (ifstream)
     uint32_t output_size = 0;
     char* raw_tag_bytes = 0;
-    GetTagRaw(tagID, raw_tag_bytes, output_size);
+    GetTagRaw(file_ptr, raw_tag_bytes, output_size);
     // process tag to make it usable
     TagProcessing::Open_ready_tag(raw_tag_bytes, output_size, output_tag_bytes, output_cleanup_ptr);
 }
 
-void Module::GetTagRaw(uint32_t tagID, char*& output_bytes, uint32_t& output_size) {
-    // first determine whether tag exists in module
-    module_file* file_ptr = find_tag(tagID);
-    if (file_ptr == 0)
-        throw new exception("failed to find tag in module");
+void Module::GetTagRaw(module_file* file_ptr, char*& output_bytes, uint32_t& output_size) {
 
     // then begin the read
     // we have to map all the data to read, based on the owned datablocks
@@ -124,6 +126,7 @@ Module::Module(string filename) {
     uint32_t file_offset = module_header_size + (module_file_size * header->FileCount) + (4 * header->ResourceCount) + (block_header_size * header->BlockCount);
     module_metadata_size = (file_offset / 0x1000 + 1) * 0x1000; // for some reason 343 aligns the metadata by 0x1000
     
+    file_count = header->FileCount;
 }
 Module::~Module() {
     if (module_reader.is_open())

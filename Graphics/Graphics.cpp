@@ -121,8 +121,12 @@ void Graphics::RenderFrame()
 	ImGui::DragFloat("Dynamic Light Attenuation A", &this->light.attenuation_a, 0.01f, 0.1f, 10.0f);
 	ImGui::DragFloat("Dynamic Light Attenuation B", &this->light.attenuation_b, 0.01f, 0.0f, 10.0f);
 	ImGui::DragFloat("Dynamic Light Attenuation C", &this->light.attenuation_c, 0.01f, 0.0f, 10.0f);
+	ImGui::End();
 
-	
+	ImGui::Begin("Modules");
+	if (ImGui::Button("Open Module")) {
+		throw new std::exception("button pressed");
+	}	
 	ImGui::End();
 	// IM GUI DRAW
 	ImGui::Render();

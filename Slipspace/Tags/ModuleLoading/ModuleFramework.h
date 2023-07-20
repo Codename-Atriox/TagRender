@@ -15,17 +15,20 @@ using namespace ModuleStructs;
 using namespace std;
 
 class Module {
-private:
-	module_file* find_tag(uint32_t tagID);
-	void GetTagRaw(uint32_t tagID, char*& output_bytes, uint32_t& output_size);
 public:
 	Module(string filename);
 	~Module();
+
+	module_file* find_tag(uint32_t tagID);
 	void GetTagProcessed(uint32_t tagID, char*& output_tag_bytes, char*& output_cleanup_ptr);
+	void GetTagProcessed(module_file* file_ptr, char*& output_tag_bytes, char*& output_cleanup_ptr);
 	void ReturnResource(uint32_t tagID, uint32_t index, char*& output_bytes, uint32_t output_size);
+private:
+	void GetTagRaw(module_file* file_ptr, char*& output_bytes, uint32_t& output_size);
 public:
 	const int32_t target_module_version = 53;
 	string filepath;
+	uint32_t file_count;
 private:
 	module_header* header;
 	module_file* files;
@@ -39,13 +42,3 @@ private:
 
 
 
-/*
-class ModuleManager {
-public:
-	void OpenModule(string filename);
-	void CloseModule(string filename);
-	void OpenTag(uint32_t tagID);
-private:
-	vector<Module> loaded_modules;
-};
-*/

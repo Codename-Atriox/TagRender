@@ -2,44 +2,44 @@
 
 #include "ModuleLoading/TagLoading/TagFramework.h"
 #include "TagStructs/bitm.h"
-
-void* handle_tag() // returns the data to the newly constructed object
-{
-
-	runtime_tag* _Out_tag; // we need to cleanup this after converting to another format
-	auto Tag_Result = Opentag("D:\\T\\__chore\\pc__\\levels\\assets\\hack\\texture_tiles\\wz_rubble\\wz_rubble_concrete_broken_normal{pc}.bitmap", _Out_tag);
-
-	switch (Tag_Result)
-	{
-	case bitmap:
-		convert_tag_to_usable_texture(_Out_tag);
-		break;
-	case render_model:
-
-		break;
-	case runtime_geo:
-
-		break;
-	}
-}
-void convert_tag_to_usable_texture(runtime_tag* tag_data)
-{
-	BitmapGroup* bitmap_tag = (BitmapGroup*)tag_data->tag_data;
-    // yes, we're doing it the silly way, would love to have a system that could handle all the lods
-    // but we set this up terribly, maybe if we make a better version that just loads the
-    int biggest_chunk = -1;
-    int largest_chunk_size = -1;
-    for (int c = 0; c < (*tag_data->streaming_chunks); c++)
-    {
-        if ((*tag_data->streaming_chunks)[c].size > largest_chunk_size)
-        {
-            biggest_chunk = c;
-            largest_chunk_size = (*tag_data->streaming_chunks)[c].size;
-        }
-    }
+#include "ModuleLoading/ModuleFramework.h"
 
 
-}
+
+
+class ModuleManager {
+public:
+    struct Tag {
+        Tag(uint32_t _4CC, uint32_t _ID, char* _data, char* _clnup, char** _r, uint32_t _rcnt);
+        ~Tag();
+        uint32_t tag_FourCC;
+        uint32_t tagID;
+        char* tag_data;
+        char* tag_cleanup_ptr;
+        char** resources;
+        uint32_t resource_count;
+        // contain a list of references, so we can wipe them upon tag deletion
+        // contain the file header ptr, so we can tell which child tags to clear
+        // contain a list of parent tags, so when cleaning parents of shared tags, we dont accidently delete anything we're still using
+    };
+public:
+    void OpenModule(string filename);
+    void CloseModule(string filename);
+    Tag* GetTag(uint32_t tagID);
+    Tag* OpenTag(uint32_t tagID);
+    void CloseTag(uint32_t tagID); // WHEN CLOSING TAG WE MUST CLEAR TAGID, SO GAMOBJECTS REALIZE THE TAG IS NON-EXISTANT
+
+    void TagToTexture();
+    void TagToModel();
+private:
+    vector<Module>* loaded_modules = new vector<Module>();
+public:
+    uint32_t open_modules = 0;
+    uint32_t total_tags = 0;
+    vector<Tag>* loaded_tags = new vector<Tag>();
+};
+
+
 
 
 

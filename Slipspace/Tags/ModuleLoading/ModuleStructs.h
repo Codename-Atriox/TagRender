@@ -46,7 +46,7 @@ namespace ModuleStructs{
         uint32_t    BlockIndex;     // "The index of the first block in the file. Only valid if the HasBlocks flag is set"
         uint32_t    ResourceIndex;  // "Index of the first resource in the module's resource list that this file owns"
 
-        int32_t     ClassId;        // this is the tag group, should be a string right?
+        uint32_t    ClassId;        // this is the tag group, should be a string right?
 
         uint32_t    DataOffset;     // for now just read as a long // wow we were not infact reading this a long
         uint32_t    Unk_0x14;       // we will now need to double check each file to make sure if this number is ever anything // its used in the very big files

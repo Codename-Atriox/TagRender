@@ -123,9 +123,6 @@
     <ClCompile Include="Graphics\Light.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Slipspace\Tags\TagProcessor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Slipspace\Tags\ModuleLoading\TagLoading\TagFramework.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -133,6 +130,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Slipspace\Tags\ModuleLoading\ModuleFramework.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Slipspace\Tags\TagProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
