@@ -125,6 +125,13 @@ void Graphics::RenderFrame()
 
 	ImGui::Begin("Modules");
 	if (ImGui::Button("Open Module")) {
+		const TCHAR szFilter[] = _T("CSV Files (*.csv)|*.csv|All Files (*.*)|*.*||");
+		CFileDialog dlg(FALSE, _T("csv"), NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, szFilter, this);
+		if (dlg.DoModal() == IDOK)
+		{
+			CString sFilePath = dlg.GetPathName();
+			m_FilePathEditBox.SetWindowText(sFilePath);
+		}
 		throw new std::exception("button pressed");
 	}	
 	ImGui::End();

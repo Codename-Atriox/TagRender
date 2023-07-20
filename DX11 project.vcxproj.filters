@@ -135,6 +135,9 @@
     <ClCompile Include="Slipspace\Tags\TagProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\utilities\NFD\NFD.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="StringHelper.h">
@@ -264,6 +267,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Slipspace\Tags\ModuleLoading\ModuleStructs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\utilities\FileDialogue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\utilities\NFD\common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\utilities\NFD\NFD.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
