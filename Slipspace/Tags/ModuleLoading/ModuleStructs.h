@@ -36,9 +36,9 @@ namespace ModuleStructs{
     // 0000-0001 <- Uses Compression
     // 0000-0010 <- has blocks, which means to read the data across several data blocks, otherwise read straight from data offset
     // 0000-0100 <- is a raw file, meaning it has no tag header
-    char flag_UseCompression = 0b00000001;
-    char flag_UseBlocks      = 0b00000010;
-    char flag_UseRawfile     = 0b00000100;
+    const char flag_UseCompression = 0b00000001;
+    const char flag_UseBlocks      = 0b00000010;
+    const char flag_UseRawfile     = 0b00000100;
     struct module_file {
         char        ClassGroup;     //  
         char        Flags;          // refer to flag bits below this struct

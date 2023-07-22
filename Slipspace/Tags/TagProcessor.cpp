@@ -21,7 +21,7 @@ void ModuleManager::OpenModule(string filename){
 
 	try{
 		Module* new_module = new Module(filename);
-		loaded_modules->push_back(*new_module);
+		loaded_modules->push_back(new_module);
 		open_modules++;
 		total_tags += new_module->file_count;
 	} catch (exception ex) {
@@ -30,13 +30,19 @@ void ModuleManager::OpenModule(string filename){
 }
 
 void ModuleManager::CloseModule(string filename){
+	/*
 	for (int c = 0; c < loaded_modules->size(); c++) {
+		Module* curr_module = (*loaded_modules)[c];
+		if (curr_module->filepath != filename) continue;
+
 		open_modules--;
-		total_tags -= (*loaded_modules)[c].file_count;
-		std::vector<Module>& vec = *loaded_modules;
+		total_tags -= curr_module->file_count;
+		std::vector<Module*>& vec = *loaded_modules;
 		vec.erase(std::remove(vec.begin(), vec.end(), c), vec.end());
+		delete curr_module; // destroy it
 		return;
 	}
+	*/
 }
 
 ModuleManager::Tag* ModuleManager::GetTag(uint32_t tagID) {
@@ -51,7 +57,7 @@ ModuleManager::Tag* ModuleManager::OpenTag(uint32_t tagID){
 	if (new_tag != (Tag*)0) return new_tag;
 
 	for (int c = 0; c < loaded_modules->size(); c++) {
-		Module* module_ptr = &(*loaded_modules)[c];
+		Module* module_ptr = (*loaded_modules)[c];
 
 		module_file* file_ptr = module_ptr->find_tag(tagID);
 		if (file_ptr == 0)
@@ -70,5 +76,12 @@ ModuleManager::Tag* ModuleManager::OpenTag(uint32_t tagID){
 		return new_tag;
 	}
 	throw new exception("tag with specified tagID was not found in any loaded modules");
+}
+
+Module* ModuleManager::GetModule_AtIndex(uint32_t index){
+	if (index >= loaded_modules->size())
+		throw new exception("attempted to fetch module from invalid index");
+
+	return (*loaded_modules)[index];
 }
 

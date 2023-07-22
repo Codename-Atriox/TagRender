@@ -25,6 +25,13 @@ void Module::GetTagProcessed(module_file* file_ptr, char*& output_tag_bytes, cha
     TagProcessing::Open_ready_tag(raw_tag_bytes, output_size, output_tag_bytes, output_cleanup_ptr);
 }
 
+module_file* Module::GetTagHeader_AtIndex(uint32_t index){
+    if (index >= file_count)
+        throw new exception("attempted to fetch module from invalid index");
+
+    return &files[index];
+}
+
 void Module::GetTagRaw(module_file* file_ptr, char*& output_bytes, uint32_t& output_size) {
 
     // then begin the read
@@ -106,7 +113,7 @@ Module::Module(string filename) {
     module_reader.read((char*)header, module_header_size);
 
     // module file verification
-    if (header->Head != 0x6D6F6864)  // 'mohd'
+    if (header->Head != 0x64686F6D)  // 'mohd', but backwards
         throw new exception("target file does not appear to be module file");
     if (header->Version != target_module_version) 
         throw new exception("module version does not match target version");

@@ -196,6 +196,7 @@
     <ClCompile Include="Mouse\MouseClass.cpp" />
     <ClCompile Include="RenderWindow.cpp" />
     <ClCompile Include="Graphics\Shaders.cpp" />
+    <ClCompile Include="Slipspace\Scene\SlipScene.cpp" />
     <ClCompile Include="Slipspace\Tags\ModuleLoading\ModuleFramework.cpp" />
     <ClCompile Include="Slipspace\Tags\ModuleLoading\oodle\oodle.cpp" />
     <ClCompile Include="Slipspace\Tags\ModuleLoading\TagLoading\TagFramework.cpp" />
@@ -227,7 +228,6 @@
     <ClInclude Include="Graphics\IndexBuffer.h" />
     <ClInclude Include="Graphics\RenderableGameObject.h" />
     <ClInclude Include="Graphics\Texture.h" />
-    <ClInclude Include="Graphics\utilities\NFD\common.h" />
     <ClInclude Include="Graphics\utilities\FileDialogue.h" />
     <ClInclude Include="Graphics\utilities\NFD\NFD.h" />
     <ClInclude Include="Keyboard\KeybaordEvent.h" />
@@ -239,6 +239,7 @@
     <ClInclude Include="Mouse\MouseEvent.h" />
     <ClInclude Include="RenderWindow.h" />
     <ClInclude Include="Graphics\Shaders.h" />
+    <ClInclude Include="Slipspace\Scene\SlipScene.h" />
     <ClInclude Include="Slipspace\Tags\ModuleLoading\ModuleFramework.h" />
     <ClInclude Include="Slipspace\Tags\ModuleLoading\ModuleStructs.h" />
     <ClInclude Include="Slipspace\Tags\ModuleLoading\oodle\oodle.h" />

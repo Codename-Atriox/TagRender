@@ -138,6 +138,9 @@
     <ClCompile Include="Graphics\utilities\NFD\NFD.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Slipspace\Scene\SlipScene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="StringHelper.h">
@@ -272,10 +275,10 @@
     <ClInclude Include="Graphics\utilities\FileDialogue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\utilities\NFD\common.h">
+    <ClInclude Include="Graphics\utilities\NFD\NFD.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\utilities\NFD\NFD.h">
+    <ClInclude Include="Slipspace\Scene\SlipScene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -13,6 +13,9 @@
 #include "RenderableGameObject.h"
 #include "Light.h"
 
+#include "utilities/NFD/NFD.h"
+#include "../Slipspace/Tags/TagProcessor.h"
+
 class Graphics
 {
 public:
@@ -42,6 +45,7 @@ private:
 	// Microsoft::WRL::ComPtr <ID3D10Blob> vertex_shader_buffer;
 	//Microsoft::WRL::ComPtr<ID3D11Buffer> constantBuffer;
 
+	ModuleManager Modules;
 
 
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> depthStencilView;

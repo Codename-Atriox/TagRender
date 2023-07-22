@@ -23,6 +23,8 @@ public:
 	void GetTagProcessed(uint32_t tagID, char*& output_tag_bytes, char*& output_cleanup_ptr);
 	void GetTagProcessed(module_file* file_ptr, char*& output_tag_bytes, char*& output_cleanup_ptr);
 	void ReturnResource(uint32_t tagID, uint32_t index, char*& output_bytes, uint32_t output_size);
+
+	module_file* GetTagHeader_AtIndex(uint32_t index);
 private:
 	void GetTagRaw(module_file* file_ptr, char*& output_bytes, uint32_t& output_size);
 public:

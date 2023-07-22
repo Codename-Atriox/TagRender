@@ -125,15 +125,32 @@ void Graphics::RenderFrame()
 
 	ImGui::Begin("Modules");
 	if (ImGui::Button("Open Module")) {
-		const TCHAR szFilter[] = _T("CSV Files (*.csv)|*.csv|All Files (*.*)|*.*||");
-		CFileDialog dlg(FALSE, _T("csv"), NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, szFilter, this);
-		if (dlg.DoModal() == IDOK)
-		{
-			CString sFilePath = dlg.GetPathName();
-			m_FilePathEditBox.SetWindowText(sFilePath);
+
+		std::string test;
+		if (NativeFileDialogue::NFD_OpenDialog(test)) {
+			Modules.OpenModule(test);
+			//throw new std::exception("button pressed");
 		}
-		throw new std::exception("button pressed");
+
 	}	
+	// loaded modules display
+	ImGui::Text("Active tags [%d]", Modules.loaded_tags->size());
+	ImGui::Text("Indexed tags: %d", Modules.total_tags);
+	ImGui::BeginChild("TagScroll");
+	for (int i = 0; i < Modules.loaded_tags->size(); i++) {
+		ImGui::Text("tag [%d]", (*Modules.loaded_tags)[i].tagID);
+	}
+	ImGui::EndChild();
+
+
+	ImGui::Text("Active Modules [%d]", Modules.open_modules);
+	ImGui::BeginChild("ModuleScroll");
+	/*for (int i = 0; i < Modules.open_modules; i++) {
+		ImGui::Text("tag [%d]", Modules.);
+	}*/
+	ImGui::EndChild();
+
+
 	ImGui::End();
 	// IM GUI DRAW
 	ImGui::Render();
@@ -299,7 +316,9 @@ bool Graphics::InitializeShaders()
 
 bool Graphics::InitializeScene(){
 	try{
-		
+		// SETUP SLIPSACE MODULE MANAGER
+		Modules = *(new ModuleManager());
+
 		// LOAD TEXTURE
 		HRESULT hr = DirectX::CreateWICTextureFromFile(this->device.Get(), L"Data\\Textures\\pebbles.png", nullptr, grassTexture.GetAddressOf());
 		COM_ERROR_IF_FAILED(hr, "Failed to create wic texture from file");

@@ -29,10 +29,12 @@ public:
     Tag* OpenTag(uint32_t tagID);
     void CloseTag(uint32_t tagID); // WHEN CLOSING TAG WE MUST CLEAR TAGID, SO GAMOBJECTS REALIZE THE TAG IS NON-EXISTANT
 
+    Module* GetModule_AtIndex(uint32_t index);
+
     void TagToTexture();
     void TagToModel();
 private:
-    vector<Module>* loaded_modules = new vector<Module>();
+    vector<Module*>* loaded_modules = new vector<Module*>();
 public:
     uint32_t open_modules = 0;
     uint32_t total_tags = 0;
@@ -47,7 +49,7 @@ public:
 
 
 
-
+/*
 // note: 4 byte "DDS_" magic comes before these
 struct DDS_HEADER
 {
@@ -82,3 +84,4 @@ struct DDS_HEADER_DXT10
     uint32_t        arraySize;
     uint32_t        miscFlags2; // see DDS_MISC_FLAGS2
 };
+*/
