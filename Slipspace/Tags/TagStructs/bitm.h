@@ -4,7 +4,7 @@
 ; SOURCE TIMESTAMP: [EXAMPLE]
 ; SOURCE GAME VERSION: [EXAMPLE]
 ; SOURCE PLUGIN: bitm
-; GENERATED TIMESTAMP: 02/04/2023 -> 6:55:03 PM
+; GENERATED TIMESTAMP: 23/07/2023 -> 4:00:44 PM
 */
 
 #include "commons.h"
@@ -91,12 +91,12 @@ struct BitmapDataResourceFlags {
 // ENUM REFERENCES //
 // /////////////// //
 
-enum BitmapGroup__CurveOverride : uint8_t {
+enum class BitmapGroup__CurveOverride : uint8_t {
 	choose_best = 0,
 	force_FAST = 1,
 	force_PRETTY = 2,
 };
-enum BitmapUsage__BitmapForcedFormat : uint16_t {
+enum class BitmapUsage__BitmapForcedFormat : uint16_t {
 	Use_Default__defined_by_usage_ = 0,
 	Best_Compressed_Color_Format = 1,
 	Best_Uncompressed_Color_Format = 2,
@@ -157,14 +157,14 @@ enum BitmapUsage__BitmapForcedFormat : uint16_t {
 	_32_bit_Normals = 57,
 	_8_bit_4_channel_Vector = 58,
 };
-enum BitmapGroup__SignedDistanceFieldMethod : uint8_t {
+enum class BitmapGroup__SignedDistanceFieldMethod : uint8_t {
 	Neighbors__Multithreaded_ = 0,
 	Neighbors = 1,
 	Cached_Euclidean__Multithreaded_ = 2,
 	Cached_Euclidean = 3,
 	_8SSEDT = 4,
 };
-enum BitmapCurve : uint8_t {
+enum class BitmapCurve : uint8_t {
 	unknown = 0,
 	xRGB__gamma_about_2_0_ = 1,
 	gamma_2_0 = 2,
@@ -173,26 +173,26 @@ enum BitmapCurve : uint8_t {
 	sRGB__gamma_2_2_ = 5,
 	Rec709__gamma_2_2_ = 6,
 };
-enum BitmapUsage__BitmapSlicer : uint8_t {
+enum class BitmapUsage__BitmapSlicer : uint8_t {
 	Automatically_Determine_Slicer = 0,
 	No_Slicing__each_source_bitmap_generates_one_element_ = 1,
 	Color_Plate_Slicer = 2,
 	Cube_Map_Slicer = 3,
 	Color_Grading_Slicer = 4,
 };
-enum BitmapUsage__BitmapPacker : uint8_t {
+enum class BitmapUsage__BitmapPacker : uint8_t {
 	No_packing = 0,
 	Sprite_Pack__packs_elements_into_as_few_bitmaps_as_possible_ = 1,
 	Sprite_Pack_if_needed__packs_elements_into_as_few_bitmaps_as_possible_ = 2,
 	_3D_Pack__packs_elements_into_a_3D_bitmap_ = 3,
 };
-enum BitmapType : uint8_t {
+enum class BitmapType : uint8_t {
 	_2D_texture = 0,
 	_3D_texture = 1,
 	cube_map = 2,
 	array = 3,
 };
-enum BitmapUsage__BitmapSmallestMip : uint8_t {
+enum class BitmapUsage__BitmapSmallestMip : uint8_t {
 	_1_pixel = 0,
 	_2_pixel = 1,
 	_4_pixel = 2,
@@ -205,7 +205,7 @@ enum BitmapUsage__BitmapSmallestMip : uint8_t {
 	_512_pixel = 9,
 	_1024_pixel = 10,
 };
-enum BitmapUsage__BitmapDownsampleFilter : uint8_t {
+enum class BitmapUsage__BitmapDownsampleFilter : uint8_t {
 	Point_Sampled = 0,
 	Box_Filter = 1,
 	Blackman_Filter = 2,
@@ -217,7 +217,7 @@ enum BitmapUsage__BitmapDownsampleFilter : uint8_t {
 	Extreme_Filter = 8,
 	Min_Filter = 9,
 };
-enum Floatmap__Swizzle : uint8_t {
+enum class Floatmap__Swizzle : uint8_t {
 	Default = 0,
 	Source_Red_Channel = 1,
 	Source_Green_Channel = 2,
@@ -236,26 +236,26 @@ enum Floatmap__Swizzle : uint8_t {
 	Negative_Source_Blue_Channel = 15,
 	Negative_Source_Alpha_Channel = 16,
 };
-enum BitmapColorSpace : uint8_t {
+enum class BitmapColorSpace : uint8_t {
 	Automatic = 0,
 	Rec709 = 1,
 	DCI_P3 = 2,
 	Rec2020 = 3,
 };
-enum BitmapFormat : uint16_t {
+enum class BitmapFormat : uint16_t {
 	a8_unorm__000A_ = 0,
 	r8_unorm_rrr1__RRR1_ = 1,
 	r8_unorm_rrrr__RRRR_ = 2,
 	r8g8_unorm_rrrg__RRRG_ = 3,
 	unused1 = 4,
-	_unused2 = 5,
+	unused2 = 5,
 	b5g6r5_unorm = 6,
-	_unused3 = 7,
+	unused3 = 7,
 	b5g6r5a1_unorm = 8,
 	b4g4r4a4_unorm = 9,
 	b8g8r8x8_unorm = 10,
 	b8g8r8a8_unorm = 11,
-	_unused4 = 12,
+	unused4 = 12,
 	DEPRECATED_dxt5_bias_alpha = 13,
 	bc1_unorm__dxt1_ = 14,
 	bc2_unorm__dxt3_ = 15,
@@ -395,7 +395,7 @@ struct AnyTag_struct_definition {
 	s_anyTagGuts internal_struct;
 };
 struct BitmapGroup {
-	AnyTag_struct_definition BLANK;
+	AnyTag_struct_definition AnyTag;
 	uint32_t Usage;
 	uint32_t UsageId;
 	uint32_t Package;

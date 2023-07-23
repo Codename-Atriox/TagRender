@@ -93,7 +93,7 @@ void TagProcessing::Processtag(char* tag_bytes, uint64_t file_size, char*& _Out_
 	current_byte_offset += static_cast<uint64_t>(header->DataReferenceCount) * data_reference_size;
 
 	offsets->tag_fixup_references_offset = current_byte_offset;
-	current_byte_offset += static_cast<uint64_t>(header->DataReferenceCount) * data_reference_size;
+	current_byte_offset += static_cast<uint64_t>(header->TagReferenceCount) * tag_fixup_reference_size;
 
 	offsets->string_table_offset = current_byte_offset;
 	current_byte_offset += header->StringTableSize;
@@ -148,13 +148,14 @@ void TagProcessing::Processtag(char* tag_bytes, uint64_t file_size, char*& _Out_
 		data_block* datar = reinterpret_cast<data_block*> (&tag_bytes[offsets->data_blocks_offset + (current_struct->FieldBlock * data_block_size)]);
 
 		// we have to write the offset differently, depending on what type of struct this is
-		if (current_struct->Type == 1 || current_struct->Type == 3){ // struct or custom?
+		if (current_struct->Type == 1){ // struct or custom?
 			_basic_tagblock* tagblock = reinterpret_cast<_basic_tagblock*>(&runtime_bytes[resolve_datablock_offset(datar, offsets) + current_struct->FieldOffset]);
 			if (current_struct->TargetIndex != -1){
 				data_block* contained_datar = reinterpret_cast<data_block*> (&tag_bytes[offsets->data_blocks_offset + (current_struct->TargetIndex * data_block_size)]);
 				tagblock->content_ptr = &runtime_bytes[resolve_datablock_offset(contained_datar, offsets)];
 			} else tagblock->content_ptr = nullptr;
-		} else if (current_struct->Type == 2){ // resource
+		}
+		else if (current_struct->Type == 2 || current_struct->Type == 3) { // resource // not sure why we previously had type 3 as tagblock??
 			// we're not going to read external types right now
 			_basic_resource* resource = reinterpret_cast<_basic_resource*>(&runtime_bytes[resolve_datablock_offset(datar, offsets) + current_struct->FieldOffset]);
 			// use the handle as an index to the resource
@@ -162,24 +163,25 @@ void TagProcessing::Processtag(char* tag_bytes, uint64_t file_size, char*& _Out_
 				throw new exception("tag has data on runtime_resource_handle! there should be no data here! investigate!!");
 			resource->runtime_resource_handle = current_resource_index;
 
-			if (resource->is_chunked_resource == 0){ // currently nothing is to be done here
+			if (resource->is_chunked_resource == 0) { // currently nothing is to be done here
 				/*void* resource_struct; // output struct ptr
-				char* new_resource_ptr; 
+				char* new_resource_ptr;
 				Processtag((*resources)[current_resource_index].content_ptr, (*resources)[current_resource_index].size, resource_struct, nullptr, new_resource_ptr);
 				(*resources)[current_resource_index].content_ptr = new_resource_ptr;
 				(*resources)[current_resource_index].size = 0;
 				resource->content_ptr = resource_struct;*/
 
-			}else{ // regular resources also have structs inside the main file that reference them
+			}
+			else { // regular resources also have structs inside the main file that reference them
 				if (current_struct->TargetIndex != -1) {
 					data_block* contained_datar = reinterpret_cast<data_block*> (&tag_bytes[offsets->data_blocks_offset + (current_struct->TargetIndex * data_block_size)]);
 					resource->content_ptr = &runtime_bytes[resolve_datablock_offset(contained_datar, offsets)];
-				} else resource->content_ptr = nullptr;
+				}
+				else resource->content_ptr = nullptr;
 			}
 			current_resource_index++;
 		}else{ // unknown
-			
-
+			throw new exception("unknown type thing!!");
 	}}
 	// fixup data references
 	for (uint32_t c = 0; c < header->DataReferenceCount; c++){
@@ -211,8 +213,8 @@ void TagProcessing::Processtag(char* tag_bytes, uint64_t file_size, char*& _Out_
 	*/
 	// assign the output data
 	data_block* root_datar = reinterpret_cast<data_block*> (&tag_bytes[offsets->data_blocks_offset + (root_struct->TargetIndex * data_block_size)]);
-	_Out_data = &runtime_bytes[resolve_datablock_offset(root_datar, offsets)];
 
-	_Out_cleanup_ptr = &runtime_bytes[0];
+	_Out_data = &runtime_bytes[resolve_datablock_offset(root_datar, offsets)];
+	_Out_cleanup_ptr = runtime_bytes; // how is this outputting a number thats 0x28 larger than the previous
 	delete offsets;
 }
