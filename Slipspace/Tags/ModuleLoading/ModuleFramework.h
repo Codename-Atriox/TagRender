@@ -16,7 +16,7 @@ using namespace std;
 
 class Module {
 public:
-	Module(string filename);
+	Module(string filename, Oodle* oodler);
 	~Module();
 
 	module_file* find_tag(uint32_t tagID);

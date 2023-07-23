@@ -134,21 +134,32 @@ void Graphics::RenderFrame()
 
 	}	
 	// loaded modules display
-	ImGui::Text("Active tags [%d]", Modules.loaded_tags->size());
 	ImGui::Text("Indexed tags: %d", Modules.total_tags);
-	ImGui::BeginChild("TagScroll");
-	for (int i = 0; i < Modules.loaded_tags->size(); i++) {
-		ImGui::Text("tag [%d]", (*Modules.loaded_tags)[i].tagID);
-	}
-	ImGui::EndChild();
-
-
 	ImGui::Text("Active Modules [%d]", Modules.open_modules);
-	ImGui::BeginChild("ModuleScroll");
-	/*for (int i = 0; i < Modules.open_modules; i++) {
-		ImGui::Text("tag [%d]", Modules.);
-	}*/
-	ImGui::EndChild();
+
+	static int preview_active_module = 0;
+	ImGui::DragInt("Selected Module", &preview_active_module, 0.1f, 0, Modules.open_modules-1);
+	if (preview_active_module < Modules.open_modules) {
+		Module* menu_active_module = Modules.GetModule_AtIndex(preview_active_module);
+		ImGui::Text("Path: ", menu_active_module->filepath);
+		ImGui::Text("Tags: %d", menu_active_module->file_count);
+
+		static int preview_active_tag = 0;
+		ImGui::DragInt("Selected tag", &preview_active_tag, 0.1f, 0, menu_active_module->file_count);
+		if (preview_active_tag < menu_active_module->file_count) {
+			module_file* menu_active_tag = menu_active_module->GetTagHeader_AtIndex(preview_active_tag);
+
+			ImGui::Text("ID: %d", menu_active_tag->GlobalTagId);
+			ImGui::Text("Group: %s", (char*)& menu_active_tag->ClassId);
+			ImGui::Text("Parent: %d", menu_active_tag->ParentIndex);
+			ImGui::Text("Bytes: %d", menu_active_tag->TotalUncompressedSize);
+			if (ImGui::Button("Open")) {
+				Modules.OpenTag(menu_active_tag->GlobalTagId);
+			}
+		}
+
+	}
+
 
 
 	ImGui::End();

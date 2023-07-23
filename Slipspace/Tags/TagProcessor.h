@@ -23,6 +23,8 @@ public:
         // contain a list of parent tags, so when cleaning parents of shared tags, we dont accidently delete anything we're still using
     };
 public:
+    ModuleManager();
+
     void OpenModule(string filename);
     void CloseModule(string filename);
     Tag* GetTag(uint32_t tagID);
@@ -35,10 +37,11 @@ public:
     void TagToModel();
 private:
     vector<Module*>* loaded_modules = new vector<Module*>();
+    Oodle* unpacker; // so we dont reconfigure this for each module
 public:
     uint32_t open_modules = 0;
     uint32_t total_tags = 0;
-    vector<Tag>* loaded_tags = new vector<Tag>();
+    vector<Tag*>* loaded_tags = new vector<Tag*>();
 };
 
 

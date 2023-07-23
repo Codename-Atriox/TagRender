@@ -11,16 +11,25 @@ ModuleManager::Tag::Tag(uint32_t _4CC, uint32_t _ID, char* _data, char* _clnup, 
 }
 ModuleManager::Tag::~Tag() {
 	delete[] tag_cleanup_ptr;
-	for (int i = 0; i < resource_count; i++)
-		delete[] resources[i];
+	// DEBUG COMMENTED 
+	for (int i = 0; i < resource_count; i++){
+		char* resource_ptr = resources[i];
+		if (resource_ptr != 0)
+			delete[] resources[i];
+	}
 	delete[] resources;
+}
+
+ModuleManager::ModuleManager()
+{
+	unpacker = new Oodle();
 }
 
 void ModuleManager::OpenModule(string filename){
 	CloseModule(filename); // if this module is already open, reopen it
 
 	try{
-		Module* new_module = new Module(filename);
+		Module* new_module = new Module(filename, unpacker);
 		loaded_modules->push_back(new_module);
 		open_modules++;
 		total_tags += new_module->file_count;
@@ -47,8 +56,8 @@ void ModuleManager::CloseModule(string filename){
 
 ModuleManager::Tag* ModuleManager::GetTag(uint32_t tagID) {
 	for (int i = 0; i < loaded_tags->size(); i++)
-		if ((*loaded_tags)[i].tagID == tagID)
-			return &(*loaded_tags)[i];
+		if ((*loaded_tags)[i]->tagID == tagID)
+			return (*loaded_tags)[i];
 	return (Tag*)0;
 }
 ModuleManager::Tag* ModuleManager::OpenTag(uint32_t tagID){
@@ -72,7 +81,7 @@ ModuleManager::Tag* ModuleManager::OpenTag(uint32_t tagID){
 			tag_resources[i] = (char*)0; // null each pointer in the resource array
 
 		Tag* new_tag = new Tag(file_ptr->ClassId, file_ptr->GlobalTagId, output_tag_bytes, output_cleanup_ptr, tag_resources, file_ptr->ResourceCount);
-		loaded_tags->push_back(*new_tag);
+		loaded_tags->push_back(new_tag);
 		return new_tag;
 	}
 	throw new exception("tag with specified tagID was not found in any loaded modules");

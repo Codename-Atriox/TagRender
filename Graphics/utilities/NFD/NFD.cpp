@@ -2,13 +2,13 @@
 #include "NFD.h"
 
 bool NativeFileDialogue::NFD_OpenDialog(std::string& outPath) {
-    HRESULT coResult = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
-    if (!SUCCEEDED(coResult))
+    HRESULT result = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+    if (!SUCCEEDED(result))
         return false;
 
     // Create dialog
-    ::IFileOpenDialog* fileOpenDialog(NULL);
-    HRESULT result = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileOpenDialog, reinterpret_cast<void**>(&fileOpenDialog));
+    IFileOpenDialog* fileOpenDialog(NULL);
+    result = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileOpenDialog, reinterpret_cast<void**>(&fileOpenDialog));
     if (!SUCCEEDED(result)) {
         CoUninitialize();
         return false;
@@ -23,7 +23,7 @@ bool NativeFileDialogue::NFD_OpenDialog(std::string& outPath) {
     }
 
     // Get the file name
-    ::IShellItem* shellItem(NULL);
+    IShellItem* shellItem(NULL);
     result = fileOpenDialog->GetResult(&shellItem);
     if (!SUCCEEDED(result)) {
         fileOpenDialog->Release();

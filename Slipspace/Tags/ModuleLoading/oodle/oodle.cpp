@@ -8,10 +8,10 @@
         throw std::exception("uncompressed data the wrong size, could cause logic errors");
 }
 void Oodle::load_dll() {
-    HINSTANCE mod = LoadLibrary(StringHelper::StringToWide("oo2core_8_win64.dll").c_str());
-    if (mod == (HINSTANCE)0)
+    HINSTANCE mod = LoadLibrary(L"oo2core_8_win64.dll");
+    if (!mod)
         throw new std::exception("oodle module failed to load");
 
-    OodleLZ_Decompress_Func* g_OodleDecompressFunc = (OodleLZ_Decompress_Func*)GetProcAddress(mod, "OodleLZ_Decompress");
+    g_OodleDecompressFunc = (OodleLZ_Decompress_Func*)GetProcAddress(mod, "OodleLZ_Decompress");
     IsDllLoaded = true;
 }

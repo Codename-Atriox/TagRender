@@ -91,9 +91,10 @@ void Module::GetTagRaw(module_file* file_ptr, char*& output_bytes, uint32_t& out
     output_size = file_ptr->TotalUncompressedSize;
 }
 
-Module::Module(string filename) {
+Module::Module(string filename, Oodle* oodler) {
     // configure oodle
-    unpacker = new Oodle();
+    unpacker = oodler;
+    filepath = filename;
 
     // open module file
     module_reader.open(filename, ios::binary | ios::ate);

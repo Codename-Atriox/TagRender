@@ -101,7 +101,7 @@ void TagProcessing::Processtag(char* tag_bytes, uint64_t file_size, char*& _Out_
 	offsets->zoneset_info_offset = current_byte_offset;
 	current_byte_offset += header->ZoneSetDataSize; // unsure if this includes the header or just all the elements
 	// current offset now marks the entirety of the header, so we can create a new array excluding (current_offset) bytes
-
+	offsets->header_size = file_size - current_byte_offset;
 
 	char* runtime_bytes = new char[file_size-current_byte_offset];
 	std::copy(tag_bytes+current_byte_offset, tag_bytes+file_size, runtime_bytes);
@@ -158,7 +158,7 @@ void TagProcessing::Processtag(char* tag_bytes, uint64_t file_size, char*& _Out_
 			// we're not going to read external types right now
 			_basic_resource* resource = reinterpret_cast<_basic_resource*>(&runtime_bytes[resolve_datablock_offset(datar, offsets) + current_struct->FieldOffset]);
 			// use the handle as an index to the resource
-			if (resource->runtime_resource_handle != 0) // verify that we didn't mess up the mappings
+			if (resource->runtime_resource_handle != 0 && resource->runtime_resource_handle != 0xBCBCBCBC) // verify that we didn't mess up the mappings
 				throw new exception("tag has data on runtime_resource_handle! there should be no data here! investigate!!");
 			resource->runtime_resource_handle = current_resource_index;
 
@@ -213,6 +213,6 @@ void TagProcessing::Processtag(char* tag_bytes, uint64_t file_size, char*& _Out_
 	data_block* root_datar = reinterpret_cast<data_block*> (&tag_bytes[offsets->data_blocks_offset + (root_struct->TargetIndex * data_block_size)]);
 	_Out_data = &runtime_bytes[resolve_datablock_offset(root_datar, offsets)];
 
-	_Out_cleanup_ptr = runtime_bytes;
+	_Out_cleanup_ptr = &runtime_bytes[0];
 	delete offsets;
 }
