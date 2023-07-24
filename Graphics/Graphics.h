@@ -3,7 +3,7 @@
 #include "Shaders.h"
 #include <SpriteBatch.h>
 #include <SpriteFont.h>
-#include <WICTextureLoader.h>
+//#include <WICTextureLoader.h>
 #include "Camera.h"
 #include "..\\Timer.h"
 #include "ImGui\\imgui.h"

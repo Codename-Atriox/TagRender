@@ -3,6 +3,7 @@
 #include "ModuleLoading/TagLoading/TagFramework.h"
 #include "TagStructs/bitm.h"
 #include "ModuleLoading/ModuleFramework.h"
+#include "BitmToDDS.h"
 // #include "../DirectXTex-main/DirectXTex-main/DirectXTex/DirectXTex.h" // we need to fix this
 
 

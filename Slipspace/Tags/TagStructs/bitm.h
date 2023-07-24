@@ -6,7 +6,7 @@
 ; SOURCE PLUGIN: bitm
 ; GENERATED TIMESTAMP: 23/07/2023 -> 4:00:44 PM
 */
-
+#pragma once
 #include "commons.h"
 #pragma pack(push, 1)
 

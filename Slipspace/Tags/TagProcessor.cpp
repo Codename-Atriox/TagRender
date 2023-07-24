@@ -82,6 +82,8 @@ ModuleManager::Tag* ModuleManager::OpenTag(uint32_t tagID){
 
 		Tag* new_tag = new Tag(file_ptr->ClassId, file_ptr->GlobalTagId, output_tag_bytes, output_cleanup_ptr, tag_resources, file_ptr->ResourceCount);
 		loaded_tags->push_back(new_tag);
+
+		TagToTexture(new_tag);
 		return new_tag;
 	}
 	throw new exception("tag with specified tagID was not found in any loaded modules");
@@ -96,10 +98,9 @@ Module* ModuleManager::GetModule_AtIndex(uint32_t index){
 
 void ModuleManager::TagToTexture(Tag* tag)
 {
-	if (tag->tag_FourCC != 0x6D746962) // 'bitm'
+	if (tag->tag_FourCC != 0x6269746D) // 'bitm'
 		return;
 
-
-
+	ConvertBITMtoDDS((BitmapGroup*)tag->tag_data);
 }
 

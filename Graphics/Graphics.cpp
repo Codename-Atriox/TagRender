@@ -329,7 +329,7 @@ bool Graphics::InitializeScene(){
 	try{
 		// SETUP SLIPSACE MODULE MANAGER
 		Modules = *(new ModuleManager());
-
+		/*
 		// LOAD TEXTURE
 		HRESULT hr = DirectX::CreateWICTextureFromFile(this->device.Get(), L"Data\\Textures\\pebbles.png", nullptr, grassTexture.GetAddressOf());
 		COM_ERROR_IF_FAILED(hr, "Failed to create wic texture from file");
@@ -359,7 +359,7 @@ bool Graphics::InitializeScene(){
 
 		if (!light.Initialize(this->device.Get(), this->deviceContext.Get(), cb_vs_vertexshader))
 			return false;
-
+		*/
 
 		camera.SetPosition(0.0f, 0.0f, -2.0f);
 		camera.SetProjectionValues(
