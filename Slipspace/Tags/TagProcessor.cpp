@@ -94,3 +94,12 @@ Module* ModuleManager::GetModule_AtIndex(uint32_t index){
 	return (*loaded_modules)[index];
 }
 
+void ModuleManager::TagToTexture(Tag* tag)
+{
+	if (tag->tag_FourCC != 0x6D746962) // 'bitm'
+		return;
+
+
+
+}
+

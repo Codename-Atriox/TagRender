@@ -172,13 +172,23 @@ void ConvertBITMtoDDS(BitmapGroup* bitm) {
     if (extended_header)
         image = new DX10struct();
     else 
-        image = new DX10struct(); // it looks like we just use this format either way??
-        //image = (DX10struct*)(new DDSstruct());
+        //image = new DX10struct(); // it looks like we just use this format either way??
+        image = (DX10struct*)(new DDSstruct());
 
     if (selected_bitmap->type != BitmapType::_2D_texture) {
         throw new exception("unsupported image type");
     }
+    TexMetadata* meta = new TexMetadata();
+    meta->width = selected_bitmap->height;
+    meta->height = selected_bitmap->width;
+    meta->depth = selected_bitmap->depth;
+    meta->arraySize = 1; // no support for array types yet
+    meta->mipLevels = selected_bitmap->mipmap_count;
+    meta->miscFlags = 0;
+    meta->miscFlags2 = 0;
+    meta->dimension = (TEX_DIMENSION)3; // TEX_DIMENSION_TEXTURE2D
 
+    /*
     image->header.size = 124;
     image->header.flags = 0x1 + 0x2 + 0x4 + 0x1000 + 0x8; // ?? what are all these for
     image->header.height = selected_bitmap->height;
@@ -190,9 +200,9 @@ void ConvertBITMtoDDS(BitmapGroup* bitm) {
     image->header.ddspf.flags = 0x1; // alpha, will |= it later
     image->header.ddspf.fourCC = 0; // dont set this yet?
     image->header.ddspf.RGBBitCount = 32;
-    image->header.ddspf.RBitMask = 0xFF;
-    image->header.ddspf.GBitMask = 0xFF00;
-    image->header.ddspf.BBitMask = 0xFF0000;
+    image->header.ddspf.RBitMask = 0x000000FF;
+    image->header.ddspf.GBitMask = 0x0000FF00;
+    image->header.ddspf.BBitMask = 0x00FF0000;
     image->header.ddspf.ABitMask = 0xFF000000;
 
     image->header.caps = 0x1000;
@@ -211,14 +221,33 @@ void ConvertBITMtoDDS(BitmapGroup* bitm) {
         image->extra.miscFlags2 = 0;
     }else{
         image->header.ddspf.flags |= 0x40;
-        image->extra.miscFlag = 0;
-        image->extra.arraySize = 1;
-        image->extra.miscFlags2 = 0x1;
+        //image->extra.miscFlag = 0;
+        //image->extra.arraySize = 1;
+        //image->extra.miscFlags2 = 0x1;
     }
-
+    */
 }
 
 #pragma pack(push, 1)
+enum TEX_DIMENSION // Subset here matches D3D10_RESOURCE_DIMENSION and D3D11_RESOURCE_DIMENSION
+{
+    TEX_DIMENSION_TEXTURE1D = 2,
+    TEX_DIMENSION_TEXTURE2D = 3,
+    TEX_DIMENSION_TEXTURE3D = 4,
+};
+struct TexMetadata
+{
+    size_t          width;
+    size_t          height;     // Should be 1 for 1D textures
+    size_t          depth;      // Should be 1 for 1D or 2D textures
+    size_t          arraySize;  // For cubemap, this is a multiple of 6
+    size_t          mipLevels;
+    uint32_t        miscFlags;
+    uint32_t        miscFlags2;
+    DXGI_FORMAT     format;
+    TEX_DIMENSION   dimension;
+};
+
 struct DDSstruct {
     uint32_t magic = 0x20534444; // ' DDS'
     DDS_HEADER header;
@@ -240,7 +269,7 @@ struct DDS_PIXELFORMAT{
     uint32_t    ABitMask;
 };
 struct DDS_HEADER{
-    uint32_t        size; // = 124 maybe 86?
+    uint32_t        size; // = 124
     uint32_t        flags;
     uint32_t        height;
     uint32_t        width;
