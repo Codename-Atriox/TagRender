@@ -9,6 +9,14 @@ module_file* Module::find_tag(uint32_t tagID) {
     }
     return (module_file*)0;
 }
+int32_t Module::find_tag_index(uint32_t tagID) {
+    for (int32_t i = 0; i < header->FileCount; i++) {
+        module_file* curr_file = &(files[i]);
+        if (curr_file->GlobalTagId == tagID)
+            return i;
+    }
+    return -1;
+}
 
 void Module::GetTagProcessed(uint32_t tagID, char*& output_tag_bytes, char*& output_cleanup_ptr) {
     module_file* file_ptr = find_tag(tagID);
@@ -18,11 +26,34 @@ void Module::GetTagProcessed(uint32_t tagID, char*& output_tag_bytes, char*& out
 }
 void Module::GetTagProcessed(module_file* file_ptr, char*& output_tag_bytes, char*& output_cleanup_ptr) {
     // read tag from module (ifstream)
-    uint32_t output_size = 0;
-    char* raw_tag_bytes = 0;
-    GetTagRaw(file_ptr, raw_tag_bytes, output_size);
+    char* raw_tag_bytes = new char[file_ptr->TotalUncompressedSize];
+    GetTagRaw(file_ptr, raw_tag_bytes);
     // process tag to make it usable
-    TagProcessing::Open_ready_tag(raw_tag_bytes, output_size, output_tag_bytes, output_cleanup_ptr);
+    TagProcessing::Open_ready_tag(raw_tag_bytes, file_ptr->TotalUncompressedSize, output_tag_bytes, output_cleanup_ptr);
+}
+
+void Module::ReturnResource(uint32_t tag_index, uint32_t index, char* output_buffer, uint32_t output_size){
+    module_file* target_tag = GetTagHeader_AtIndex(tag_index);
+
+    if (index >= target_tag->ResourceCount)
+        throw new exception("Attemtped to access out of bounds tag resource index");
+
+    uint32_t resource_index = target_tag->ResourceIndex + index;
+    if (resource_index >= header->ResourceCount)
+        throw new exception("Attemtped to access out of bounds module file resource index");
+
+    // get the resources
+    module_file* resource_tag = GetTagHeader_AtIndex(resource_indexes[resource_index]);
+    if (resource_tag->GlobalTagId != -1 || resource_tag->ClassId != -1)
+        throw new exception("indexed resource file is not a resource file");
+
+    if (resource_tag->Flags & flag_UseRawfile == 0)
+        throw new exception("resource files with tagdata content are not currently supported");
+
+    if (resource_tag->TotalUncompressedSize > output_size)
+        throw new exception("not enough room allocated to fit indexed resource");
+
+    GetTagRaw(resource_tag, output_buffer);
 }
 
 module_file* Module::GetTagHeader_AtIndex(uint32_t index){
@@ -31,9 +62,10 @@ module_file* Module::GetTagHeader_AtIndex(uint32_t index){
 
     return &files[index];
 }
-
-void Module::GetTagRaw(module_file* file_ptr, char*& output_bytes, uint32_t& output_size) {
-
+// output bytes NEEDS to already be allocated
+void Module::GetTagRaw(module_file* file_ptr, char* output_bytes) {
+    if (output_bytes == 0)
+        throw new exception("tag output buffer was not preallocated");
     // then begin the read
     // we have to map all the data to read, based on the owned datablocks
 
@@ -45,7 +77,6 @@ void Module::GetTagRaw(module_file* file_ptr, char*& output_bytes, uint32_t& out
     if (file_ptr->TotalUncompressedSize == 0)
         throw new exception("module file was empty");
 
-    char* decompressed_data = new char[file_ptr->TotalUncompressedSize];
     long data_Address = module_metadata_size + file_ptr->DataOffset;
 
     if (reading_separate_blocks) {
@@ -58,16 +89,16 @@ void Module::GetTagRaw(module_file* file_ptr, char*& output_bytes, uint32_t& out
                 char* raw_bytes = new char[bloc.CompressedSize];
                 module_reader.read(raw_bytes, bloc.CompressedSize);
 
-                try{unpacker->decompress(decompressed_data + bloc.UncompressedOffset, bloc.UncompressedSize, raw_bytes, bloc.CompressedSize);
+                try{unpacker->decompress(output_bytes + bloc.UncompressedOffset, bloc.UncompressedSize, raw_bytes, bloc.CompressedSize);
                 }catch(exception ex){
                     delete[] raw_bytes;
-                    delete[] decompressed_data;
-                    throw new exception("fallback error, decompressed block size not the same size as specified");
+                    delete[] output_bytes;
+                    throw ex;
                 }
                 delete[] raw_bytes;
             }else{ // uncompressed
                 module_reader.seekg(data_Address + bloc.UncompressedOffset, ios::beg);
-                module_reader.read(decompressed_data + bloc.UncompressedOffset, bloc.UncompressedSize);
+                module_reader.read(output_bytes + bloc.UncompressedOffset, bloc.UncompressedSize);
             }
         }
     }else{  // is the manifest thingo, aka raw file, read data based off compressed and uncompressed length
@@ -76,19 +107,16 @@ void Module::GetTagRaw(module_file* file_ptr, char*& output_bytes, uint32_t& out
             char* raw_bytes = new char[file_ptr->TotalCompressedSize];
             module_reader.read(raw_bytes, file_ptr->TotalCompressedSize);
 
-            try{unpacker->decompress(decompressed_data, file_ptr->TotalUncompressedSize, raw_bytes, file_ptr->TotalCompressedSize);
+            try{unpacker->decompress(output_bytes, file_ptr->TotalUncompressedSize, raw_bytes, file_ptr->TotalCompressedSize);
             }catch (exception ex) {
                 delete[] raw_bytes;
-                delete[] decompressed_data;
-                throw new exception("fallback error, decompressed block size not the same size as specified");
+                delete[] output_bytes;
+                throw ex;
             }
             delete[] raw_bytes;
         }else 
-            module_reader.read(decompressed_data, file_ptr->TotalUncompressedSize);
+            module_reader.read(output_bytes, file_ptr->TotalUncompressedSize);
     }
-
-    output_bytes = decompressed_data;
-    output_size = file_ptr->TotalUncompressedSize;
 }
 
 Module::Module(string filename, Oodle* oodler) {
