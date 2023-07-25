@@ -3,8 +3,8 @@
 #include "TagStructs/bitm.h"
 //#include "../DirectXTex-main/DirectXTex-main/DirectXTex/DirectXTex.h"
 //#include "../DirectXTex-main/DirectXTex-main/DirectXTex/DDS.h"
-#include "../DirectXTex-main/DirectXTex-main/DirectXTex/DirectXTexDDS.cpp"
-
+//#include "../DirectXTex-main/DirectXTex-main/DirectXTex/DirectXTexDDS.cpp"
+#include <DirectXTex.h>
 
 
 // we need to create this function in the tag processor cod , because we need to access the tag reousrces and beable to call up the resources
@@ -17,7 +17,7 @@ static void ConvertBITMtoDDS(BitmapGroup* bitm) {
     if (selected_bitmap->type != BitmapType::_2D_texture) {
         throw new exception("unsupported image type");
     }
-    DirectXTex::TexMetadata* meta = new DirectXTex::TexMetadata();
+    DirectX::TexMetadata* meta = new DirectX::TexMetadata();
 
     // figure out if this texture is using internal data, or resource data
     if (bitmap_details->pixels.data_size != 0) { // use pixel data
@@ -43,16 +43,19 @@ static void ConvertBITMtoDDS(BitmapGroup* bitm) {
     meta->miscFlags = 0; // the only flag seems to be TEX_MISC_TEXTURECUBE = 0x4
     meta->miscFlags2 = 0;
     meta->format = (DXGI_FORMAT)bitmap_details->format;
-    meta->dimension = (DirectXTex::TEX_DIMENSION)3; // TEX_DIMENSION_TEXTURE2D
+    meta->dimension = (DirectX::TEX_DIMENSION)3; // TEX_DIMENSION_TEXTURE2D
 
 
-    size_t header_size = sizeof(uint32_t) + sizeof(DirectXTex::DDS_HEADER);
-    if (DirectXTex::IsCompressed(meta->format)) header_size += sizeof(DirectXTex::DDS_HEADER_DXT10);
+    size_t header_size = sizeof(uint32_t) + 124; // sizeof(DirectX::DDS_HEADER);
+    if (DirectX::IsCompressed(meta->format)) header_size += 20; // sizeof(DirectX::DDS_HEADER_DXT10);
 
     char* DDSheader_dest = new char[header_size];
 
     size_t output_size = 0;
-    EncodeDDSHeader(*meta, DirectXTex::DDS_FLAGS_NONE, (void*)DDSheader_dest, header_size, output_size);
+    HRESULT hr = EncodeDDSHeader(*meta, DirectX::DDS_FLAGS_NONE, (void*)DDSheader_dest, header_size, output_size);
+    if (!SUCCEEDED(hr))
+        throw new exception("image failed to generate DDS header");
+
 
     if (header_size != output_size)
         throw new exception("header size was incorrectly assumed! must investigate this image format!!!");
@@ -97,3 +100,4 @@ static void ConvertBITMtoDDS(BitmapGroup* bitm) {
     }
     */
 }
+

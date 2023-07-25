@@ -22,8 +22,8 @@ public:
 	bool Initialize(HWND hwnd, int width, int height);
 	void RenderFrame();
 	Camera camera;
-	RenderableGameObject gameObject;
-	Light light;
+	//RenderableGameObject gameObject;
+	//Light light;
 
 private:
 	bool InitializeDirectX(HWND hwnd);

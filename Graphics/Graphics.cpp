@@ -33,12 +33,12 @@ void Graphics::RenderFrame()
 
 
 	// SETUP LIGHTING
-	this->cb_ps_light.data.dynamicLightColor = light.lightColor;
-	this->cb_ps_light.data.dynamicLightStrength = light.lightStrength;
-	this->cb_ps_light.data.dynamicLightPosition = light.GetPositionFloat3();
-	this->cb_ps_light.data.dynamicLightAttenuation_a = light.attenuation_a;
-	this->cb_ps_light.data.dynamicLightAttenuation_b = light.attenuation_b;
-	this->cb_ps_light.data.dynamicLightAttenuation_c = light.attenuation_c;
+	//this->cb_ps_light.data.dynamicLightColor = light.lightColor;
+	//this->cb_ps_light.data.dynamicLightStrength = light.lightStrength;
+	//this->cb_ps_light.data.dynamicLightPosition = light.GetPositionFloat3();
+	//this->cb_ps_light.data.dynamicLightAttenuation_a = light.attenuation_a;
+	//this->cb_ps_light.data.dynamicLightAttenuation_b = light.attenuation_b;
+	//this->cb_ps_light.data.dynamicLightAttenuation_c = light.attenuation_c;
 
 	this->cb_ps_light.ApplyChanges();
 	this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_light.GetAddressOf());
@@ -63,7 +63,7 @@ void Graphics::RenderFrame()
 	//static float alpha = 0.5f;
 	{ // 
 		
-		this->gameObject.Draw(camera.GetViewMatrix() * camera.GetProjectionMatrix());
+		//this->gameObject.Draw(camera.GetViewMatrix() * camera.GetProjectionMatrix());
 
 		// PIXEL SHADER
 		//this->cb_vs_pixelshader.data.alpha = 1.0f;
@@ -74,7 +74,7 @@ void Graphics::RenderFrame()
 	{
 
 		this->deviceContext->PSSetShader(pixelshader_nolight.GetShader(), NULL, 0);
-		this->light.Draw(camera.GetViewMatrix() * camera.GetProjectionMatrix());
+		//this->light.Draw(camera.GetViewMatrix() * camera.GetProjectionMatrix());
 
 	}
 
@@ -116,11 +116,11 @@ void Graphics::RenderFrame()
 	ImGui::DragFloat("Directional Light Strength", &this->cb_ps_light.data.directionalLightStrength, 0.01f, 0.0f, 10.0f);
 	ImGui::DragFloat3("Directional Light Direction", &this->cb_ps_light.data.directionalLightDirection.x, 0.01f, 0.0f, 1.0f);
 	ImGui::NewLine();
-	ImGui::DragFloat3("Dynamic Light Color", &this->light.lightColor.x, 0.01f, 0.0f, 10.0f);
-	ImGui::DragFloat("Dynamic Light Strength", &this->light.lightStrength, 0.01f, 0.0f, 10.0f);
-	ImGui::DragFloat("Dynamic Light Attenuation A", &this->light.attenuation_a, 0.01f, 0.1f, 10.0f);
-	ImGui::DragFloat("Dynamic Light Attenuation B", &this->light.attenuation_b, 0.01f, 0.0f, 10.0f);
-	ImGui::DragFloat("Dynamic Light Attenuation C", &this->light.attenuation_c, 0.01f, 0.0f, 10.0f);
+	//ImGui::DragFloat3("Dynamic Light Color", &this->light.lightColor.x, 0.01f, 0.0f, 10.0f);
+	//ImGui::DragFloat("Dynamic Light Strength", &this->light.lightStrength, 0.01f, 0.0f, 10.0f);
+	//ImGui::DragFloat("Dynamic Light Attenuation A", &this->light.attenuation_a, 0.01f, 0.1f, 10.0f);
+	//ImGui::DragFloat("Dynamic Light Attenuation B", &this->light.attenuation_b, 0.01f, 0.0f, 10.0f);
+	//ImGui::DragFloat("Dynamic Light Attenuation C", &this->light.attenuation_c, 0.01f, 0.0f, 10.0f);
 	ImGui::End();
 
 	ImGui::Begin("Modules");
@@ -337,9 +337,9 @@ bool Graphics::InitializeScene(){
 		// LOAD 2nd TEXTURE
 		hr = DirectX::CreateWICTextureFromFile(this->device.Get(), L"Data\\Textures\\pink.png", nullptr, pinkTexture.GetAddressOf());
 		COM_ERROR_IF_FAILED(hr, "Failed to create wic texture from file");
-
+		*/
 		// SETUP CONSTANT BUFFERS
-		hr = this->cb_vs_vertexshader.Initialize(this->device.Get(), this->deviceContext.Get()); //device->CreateBuffer(&desc, 0, constantBuffer.GetAddressOf());
+		HRESULT hr = this->cb_vs_vertexshader.Initialize(this->device.Get(), this->deviceContext.Get()); //device->CreateBuffer(&desc, 0, constantBuffer.GetAddressOf());
 		COM_ERROR_IF_FAILED(hr, "Failed to initiate vertexshader");
 
 		hr = this->cb_ps_light.Initialize(this->device.Get(), this->deviceContext.Get()); //device->CreateBuffer(&desc, 0, constantBuffer.GetAddressOf());
@@ -353,6 +353,7 @@ bool Graphics::InitializeScene(){
 		this->cb_ps_light.data.directionalLightDirection = XMFLOAT3(0.0f, 1.0f, 0.0f);
 
 
+		/*
 		// SETUP MODELS
 		if (!gameObject.Initialize("Data\\Objects\\custom\\hydra launcher4.obj", this->device.Get(), this->deviceContext.Get(), cb_vs_vertexshader))
 			return false;

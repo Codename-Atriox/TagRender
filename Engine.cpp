@@ -50,7 +50,7 @@ void Engine::Update()
 		}
 	}
 
-	this->gfx.gameObject.AdjustRotation(0.0f, 0.001f*DeltaTime, 0.0f);
+	//this->gfx.gameObject.AdjustRotation(0.0f, 0.001f*DeltaTime, 0.0f);
 
 	 // translate key inputs to camera movement
 	float cameraSpeed = 0.008f;
@@ -92,8 +92,8 @@ void Engine::Update()
 	{
 		XMVECTOR lightPosition = this->gfx.camera.GetPositionVector();
 		lightPosition += this->gfx.camera.GetForwardVector();
-		this->gfx.light.SetPosition(lightPosition);
-		this->gfx.light.SetRotation(this->gfx.camera.GetRotationFloat3());
+		//this->gfx.light.SetPosition(lightPosition);
+		//this->gfx.light.SetRotation(this->gfx.camera.GetRotationFloat3());
 	}
 }
 
