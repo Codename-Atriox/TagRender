@@ -1,4 +1,5 @@
 #include "Graphics.h"
+//#include <WICTextureLoader.h>
 
 
 bool Graphics::Initialize(HWND hwnd, int width, int height)
@@ -156,8 +157,14 @@ void Graphics::RenderFrame()
 			if (ImGui::Button("Open")) {
 				Modules.OpenTag(menu_active_tag->GlobalTagId);
 			}
+			
 		}
 
+	}
+	if (Modules.loaded_tags->size() > 0) {
+		ID3D11ShaderResourceView* last_loaded_image = Modules.BITM_GetTexture(Modules.loaded_tags->at(Modules.loaded_tags->size() - 1), device.Get());
+		if (last_loaded_image != nullptr)
+			ImGui::Image((void*)last_loaded_image, ImVec2(512, 512));
 	}
 
 
@@ -338,6 +345,8 @@ bool Graphics::InitializeScene(){
 		hr = DirectX::CreateWICTextureFromFile(this->device.Get(), L"Data\\Textures\\pink.png", nullptr, pinkTexture.GetAddressOf());
 		COM_ERROR_IF_FAILED(hr, "Failed to create wic texture from file");
 		*/
+		//HRESULT hr = DirectX::CreateWICTextureFromFile(this->device.Get(), L"Data\\Textures\\pink.png", nullptr, pinkTexture.GetAddressOf());
+
 		// SETUP CONSTANT BUFFERS
 		HRESULT hr = this->cb_vs_vertexshader.Initialize(this->device.Get(), this->deviceContext.Get()); //device->CreateBuffer(&desc, 0, constantBuffer.GetAddressOf());
 		COM_ERROR_IF_FAILED(hr, "Failed to initiate vertexshader");

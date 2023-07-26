@@ -6,6 +6,7 @@
 
 #include "TagStructs/bitm.h"
 #include <DirectXTex.h>
+#include "CTList.h"
 // #include "../DirectXTex-main/DirectXTex-main/DirectXTex/DirectXTex.h" // we need to fix this
 
 
@@ -13,14 +14,13 @@
 class ModuleManager {
 public:
     struct Tag {
-        Tag(uint32_t _4CC, uint32_t _ID, char* _data, char* _clnup, char** _r, uint32_t _rcnt, std::string smod, uint32_t sind);
+        Tag(uint32_t _4CC, uint32_t _ID, char* _data, char* _clnup, std::string smod, uint32_t sind);
         ~Tag();
         uint32_t tag_FourCC;
         uint32_t tagID;
         char* tag_data;
         char* tag_cleanup_ptr;
-        char** resources; // this resource list will be used to actually store the final compiled resources, not to act as a buffer to write from module files
-        uint32_t resource_count;
+        CTList<ID3D11ShaderResourceView> resources;
         // source data, so fetching resources doesn't require us refinding the tag each time
         std::string source_module;
         uint32_t source_tag_index;
@@ -40,7 +40,7 @@ public:
 
     Module* GetModule_AtIndex(uint32_t index);
 
-    void TagToTexture(Tag* tag);
+    ID3D11ShaderResourceView* BITM_GetTexture(Tag* tag, ID3D11Device* device);
     void TagToModel(Tag* tag);
     void OpenTagResource(Tag* tag, uint32_t resource_index, char* resource_out_buffer, uint32_t buffer_size);
 private:

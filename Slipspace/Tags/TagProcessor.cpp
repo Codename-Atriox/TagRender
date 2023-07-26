@@ -1,25 +1,18 @@
 #include "TagProcessor.h"
 
 
-ModuleManager::Tag::Tag(uint32_t _4CC, uint32_t _ID, char* _data, char* _clnup, char** _r, uint32_t _rcnt, std::string smod, uint32_t sind) {
+ModuleManager::Tag::Tag(uint32_t _4CC, uint32_t _ID, char* _data, char* _clnup, std::string smod, uint32_t sind) {
 	tag_FourCC = _4CC;
 	tagID = _ID;
 	tag_data = _data;
 	tag_cleanup_ptr = _clnup;
-	resources = _r;
-	resource_count = _rcnt;
 	source_module = smod;
 	source_tag_index = sind;
+    resources = *new CTList<ID3D11ShaderResourceView>();
 }
 ModuleManager::Tag::~Tag() {
 	delete[] tag_cleanup_ptr;
-	// DEBUG COMMENTED 
-	for (int i = 0; i < resource_count; i++){
-		char* resource_ptr = resources[i];
-		if (resource_ptr != 0)
-			delete[] resources[i];
-	}
-	delete[] resources;
+	
 }
 
 ModuleManager::ModuleManager()
@@ -79,16 +72,10 @@ ModuleManager::Tag* ModuleManager::OpenTag(uint32_t tagID){
 		char* output_cleanup_ptr;
 		module_ptr->GetTagProcessed(file_ptr, output_tag_bytes, output_cleanup_ptr);
 
-		// there is virtually no way to tell whether a resource is a chunk or whole resource, so we just assume that all resources are non-chunked
-		// and thus all require a special place for us to append their processed data (aka processing an image's bitmap into usable DDS image)
-		char** tag_resources = (char**)(new char[file_ptr->ResourceCount]); // only create the base level
-		for (int i = 0; i < file_ptr->ResourceCount; i++)
-			tag_resources[i] = (char*)0; // null each pointer in the resource array
-
-		Tag* new_tag = new Tag(file_ptr->ClassId, file_ptr->GlobalTagId, output_tag_bytes, output_cleanup_ptr, tag_resources, file_ptr->ResourceCount, module_ptr->filepath, tag_index);
+		Tag* new_tag = new Tag(file_ptr->ClassId, file_ptr->GlobalTagId, output_tag_bytes, output_cleanup_ptr, module_ptr->filepath, tag_index);
 		loaded_tags->push_back(new_tag);
 
-		TagToTexture(new_tag);
+		// TagToTexture(new_tag);
 		return new_tag;
 	}
 	throw new exception("tag with specified tagID was not found in any loaded modules");
@@ -115,10 +102,28 @@ void ModuleManager::OpenTagResource(Tag* tag, uint32_t resource_index, char* res
 	parent_module->ReturnResource(tag->source_tag_index, resource_index, resource_out_buffer, buffer_size);
 }
 
+/*
+void BITM_bitmap_count()
+{
 
-void ModuleManager::TagToTexture(Tag* tag) {
+}
+void BITM_bitmap_is_chunked() {
+
+}
+//void BITM_bitmap_is; */
+
+
+
+
+ID3D11ShaderResourceView* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device* device) {
 	if (tag->tag_FourCC != 0x6269746D) // 'bitm'
-		return;
+		return nullptr;
+
+    // DEBUG TEMP CODE //
+    // check to see if this tag already has an image loaded
+    if (tag->resources.Size() > 0)
+        return tag->resources[0];
+
 
     // pseudo select-best-image code here
     // aka select the first one, because if theres more, then why???
@@ -207,7 +212,13 @@ void ModuleManager::TagToTexture(Tag* tag) {
         throw new exception("failed to save DDS to local file");
     //Image& image, _In_ DDS_FLAGS flags, _In_z_ const wchar_t*
 
-    return;
+    ID3D11ShaderResourceView* image_resource = nullptr;
+    hr = DirectX::CreateShaderResourceView(device, DDS_image->GetImages(), DDS_image->GetImageCount(), DDS_image->GetMetadata(), &image_resource);
+    if (FAILED(hr))
+        throw new exception("failed to get shader view from texture");
+    tag->resources.Append(image_resource);
+
+    return image_resource;
     /*
     image->header.size = 124;
     image->header.flags = 0x1 + 0x2 + 0x4 + 0x1000 + 0x8; // ?? what are all these for
