@@ -14,8 +14,9 @@
 class ModuleManager {
 public:
     struct Tag {
-        Tag(uint32_t _4CC, uint32_t _ID, char* _data, char* _clnup, std::string smod, uint32_t sind);
+        Tag(std::string name, uint32_t _4CC, uint32_t _ID, char* _data, char* _clnup, std::string smod, uint32_t sind);
         ~Tag();
+        std::string tagname;
         uint32_t tag_FourCC;
         uint32_t tagID;
         char* tag_data;

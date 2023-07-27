@@ -48,7 +48,7 @@ namespace ModuleStructs{
 
         uint32_t    ClassId;        // this is the tag group, should be a string right?
 
-        uint32_t    DataOffset;     // for now just read as a long // wow we were not infact reading this a long
+        uint32_t    DataOffset;     //how is this not a long???? surely theres no way a uint32_t could actually offset far enough in most files
         uint32_t    Unk_0x14;       // we will now need to double check each file to make sure if this number is ever anything // its used in the very big files
 
         int32_t     TotalCompressedSize;    // "The total size of compressed data."

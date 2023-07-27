@@ -250,6 +250,11 @@
     <ClInclude Include="Slipspace\Tags\TagProcessor.h" />
     <ClInclude Include="Slipspace\Tags\TagStructs\bitm.h" />
     <ClInclude Include="Slipspace\Tags\TagStructs\commons.h" />
+    <ClInclude Include="Slipspace\UI\Utilities\UI_Bitmap.h" />
+    <ClInclude Include="Slipspace\UI\UI_Manager.h" />
+    <ClInclude Include="Slipspace\UI\Utilities\UI_Model.h" />
+    <ClInclude Include="Slipspace\UI\Utilities\UI_Modules.h" />
+    <ClInclude Include="Slipspace\UI\Utilities\UI_Tags.h" />
     <ClInclude Include="StringHelper.h" />
     <ClInclude Include="Graphics\Vertex.h" />
     <ClInclude Include="Graphics\VertexBuffer.h" />

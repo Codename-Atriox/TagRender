@@ -32,6 +32,8 @@ public:
 	const int32_t target_module_version = 53;
 	string filepath;
 	uint32_t file_count;
+	// UI implementation
+	int32_t selected_tag; // NOTE: maximum tag count is limited to int32
 private:
 	module_header* header;
 	module_file* files;

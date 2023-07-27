@@ -19,12 +19,15 @@
 class Graphics
 {
 public:
-	bool Initialize(HWND hwnd, int width, int height);
-	void RenderFrame();
-	Camera camera;
 	//RenderableGameObject gameObject;
 	//Light light;
-
+	Camera camera;
+	bool Initialize(HWND hwnd, int width, int height);
+	void RenderFrame();
+private:
+	void RenderModulesGUI();
+	void RenderTagsGUI();
+	void RenderBitmGUI();
 private:
 	bool InitializeDirectX(HWND hwnd);
 	bool InitializeShaders();

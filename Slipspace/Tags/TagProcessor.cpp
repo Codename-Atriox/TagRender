@@ -1,7 +1,8 @@
 #include "TagProcessor.h"
 
 
-ModuleManager::Tag::Tag(uint32_t _4CC, uint32_t _ID, char* _data, char* _clnup, std::string smod, uint32_t sind) {
+ModuleManager::Tag::Tag(std::string name, uint32_t _4CC, uint32_t _ID, char* _data, char* _clnup, std::string smod, uint32_t sind) {
+    tagname = name;
 	tag_FourCC = _4CC;
 	tagID = _ID;
 	tag_data = _data;
@@ -72,7 +73,7 @@ ModuleManager::Tag* ModuleManager::OpenTag(uint32_t tagID){
 		char* output_cleanup_ptr;
 		module_ptr->GetTagProcessed(file_ptr, output_tag_bytes, output_cleanup_ptr);
 
-		Tag* new_tag = new Tag(file_ptr->ClassId, file_ptr->GlobalTagId, output_tag_bytes, output_cleanup_ptr, module_ptr->filepath, tag_index);
+		Tag* new_tag = new Tag(std::string("UNIMPLEMENTED"), file_ptr->ClassId, file_ptr->GlobalTagId, output_tag_bytes, output_cleanup_ptr, module_ptr->filepath, tag_index);
 		loaded_tags->push_back(new_tag);
 
 		// TagToTexture(new_tag);
@@ -112,7 +113,51 @@ void BITM_bitmap_is_chunked() {
 }
 //void BITM_bitmap_is; */
 
-
+bool is_short_header(DXGI_FORMAT format) {
+    switch (format) {
+    case DXGI_FORMAT_R8G8B8A8_UNORM:
+    case DXGI_FORMAT_R16G16_UNORM:
+    case DXGI_FORMAT_R8G8_UNORM:
+    case DXGI_FORMAT_R16_UNORM:
+    case DXGI_FORMAT_R8_UNORM:
+    case DXGI_FORMAT_A8_UNORM:
+    case DXGI_FORMAT_R8G8_B8G8_UNORM:
+    case DXGI_FORMAT_G8R8_G8B8_UNORM:
+    case DXGI_FORMAT_BC1_UNORM:
+    case DXGI_FORMAT_BC2_UNORM:
+    case DXGI_FORMAT_BC3_UNORM:
+    case DXGI_FORMAT_BC4_SNORM:
+    case DXGI_FORMAT_BC5_SNORM:
+    case DXGI_FORMAT_B5G6R5_UNORM:
+    case DXGI_FORMAT_B5G5R5A1_UNORM:
+    case DXGI_FORMAT_R8G8_SNORM:
+    case DXGI_FORMAT_R8G8B8A8_SNORM:
+    case DXGI_FORMAT_R16G16_SNORM:
+    case DXGI_FORMAT_B8G8R8A8_UNORM:
+    case DXGI_FORMAT_B8G8R8X8_UNORM:
+    case DXGI_FORMAT_B4G4R4A4_UNORM:
+    case DXGI_FORMAT_YUY2:
+    case DXGI_FORMAT_R32G32B32A32_FLOAT:
+    case DXGI_FORMAT_R16G16B16A16_FLOAT:
+    case DXGI_FORMAT_R16G16B16A16_UNORM:
+    case DXGI_FORMAT_R16G16B16A16_SNORM:
+    case DXGI_FORMAT_R32G32_FLOAT:
+    case DXGI_FORMAT_R16G16_FLOAT:
+    case DXGI_FORMAT_R32_FLOAT:
+    case DXGI_FORMAT_R16_FLOAT:
+    case DXGI_FORMAT_R10G10B10A2_UNORM:
+    case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+    case DXGI_FORMAT_BC1_UNORM_SRGB:
+    case DXGI_FORMAT_BC2_UNORM_SRGB:
+    case DXGI_FORMAT_BC3_UNORM_SRGB:
+    case DXGI_FORMAT_BC4_UNORM:
+    case DXGI_FORMAT_BC5_UNORM:
+    case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+    case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB:
+        return true;
+    }
+    return false;
+}
 
 
 ID3D11ShaderResourceView* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device* device) {
@@ -154,7 +199,9 @@ ID3D11ShaderResourceView* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device*
 
 
     size_t header_size = sizeof(uint32_t) + 124; // sizeof(DirectX::DDS_HEADER);
-    if (DirectX::IsCompressed(meta->format)) header_size += 20; // sizeof(DirectX::DDS_HEADER_DXT10);
+
+
+    if (!is_short_header(meta->format)) header_size += 20; // sizeof(DirectX::DDS_HEADER_DXT10);
 
     size_t image_data_size;
     uint8_t resource_index;
@@ -164,8 +211,7 @@ ID3D11ShaderResourceView* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device*
         meta->width = selected_bitmap->height;
         meta->height = selected_bitmap->width;
         image_data_size = bitmap_details->pixels.data_size;
-    }
-    else { // use streaming data
+    }else { // use streaming data
         if (bitmap_details->streamingData.count == 0)
             throw new exception("no streaming data or pixel data");
 
@@ -191,7 +237,7 @@ ID3D11ShaderResourceView* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device*
     if (!SUCCEEDED(hr))
         throw new exception("image failed to generate DDS header");
     if (header_size != output_size)
-        // DXGI_FORMAT_BC3_UNORM (77) is incorrectly assumed?
+        // DXGI_FORMAT_BC1_UNORM_SRGB (72) is actually long header? // TODO??
         throw new exception("header size was incorrectly assumed! must investigate this image format!!!");
 
     // then write the bitmap data
@@ -258,4 +304,7 @@ ID3D11ShaderResourceView* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device*
     }
     */
 }
+
+
+
 

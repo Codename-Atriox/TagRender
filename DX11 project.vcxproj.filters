@@ -287,6 +287,21 @@
     <ClInclude Include="Slipspace\Tags\CTList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Slipspace\UI\Utilities\UI_Modules.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Slipspace\UI\Utilities\UI_Tags.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Slipspace\UI\Utilities\UI_Bitmap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Slipspace\UI\Utilities\UI_Model.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Slipspace\UI\UI_Manager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="vertexshader.hlsl">

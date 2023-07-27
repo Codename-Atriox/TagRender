@@ -28,155 +28,6 @@ bool Graphics::Initialize(HWND hwnd, int width, int height)
 	return true;
 }
 
-void Graphics::RenderFrame()
-{
-	this->cb_vs_vertexshader.data.camera_position = camera.GetPositionFloat3();
-
-
-	// SETUP LIGHTING
-	//this->cb_ps_light.data.dynamicLightColor = light.lightColor;
-	//this->cb_ps_light.data.dynamicLightStrength = light.lightStrength;
-	//this->cb_ps_light.data.dynamicLightPosition = light.GetPositionFloat3();
-	//this->cb_ps_light.data.dynamicLightAttenuation_a = light.attenuation_a;
-	//this->cb_ps_light.data.dynamicLightAttenuation_b = light.attenuation_b;
-	//this->cb_ps_light.data.dynamicLightAttenuation_c = light.attenuation_c;
-
-	this->cb_ps_light.ApplyChanges();
-	this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_light.GetAddressOf());
-
-
-
-	// setup background stuff
-	float bgcolor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	this->deviceContext->ClearRenderTargetView(this->renderTargetView.Get(), bgcolor);
-	this->deviceContext->ClearDepthStencilView(this->depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-	this->deviceContext->IASetInputLayout(this->vertexshader.GetInputLayout());
-	this->deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	this->deviceContext->RSSetState(this->rasterizerState.Get());
-	this->deviceContext->OMSetDepthStencilState(this->depthStencilState.Get(), 0);
-	this->deviceContext->OMSetBlendState(NULL, NULL, 0xFFFFFFFF);
-	//this->deviceContext->OMSetBlendState(this->blendState.Get(), NULL, 0xFFFFFFFF);
-	this->deviceContext->PSSetSamplers(0, 1, this->samplerState.GetAddressOf());
-	this->deviceContext->VSSetShader(vertexshader.GetShader(), NULL, 0);
-	this->deviceContext->PSSetShader(pixelshader.GetShader(), NULL, 0);
-
-	//static float alpha = 0.5f;
-	{ // 
-		
-		//this->gameObject.Draw(camera.GetViewMatrix() * camera.GetProjectionMatrix());
-
-		// PIXEL SHADER
-		//this->cb_vs_pixelshader.data.alpha = 1.0f;
-		//this->cb_vs_pixelshader.ApplyChanges();
-		//this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_vs_pixelshader.GetAddressOf());
-
-	}
-	{
-
-		this->deviceContext->PSSetShader(pixelshader_nolight.GetShader(), NULL, 0);
-		//this->light.Draw(camera.GetViewMatrix() * camera.GetProjectionMatrix());
-
-	}
-
-
-
-	// SETUP FPS COUNTER
-	static int fpsCoutner = 0;
-	static std::string fpsString = "FPS: null";
-	fpsCoutner += 1;
-	if (fpsTimer.GetMilisecondsElapsed() > 1000.0)
-	{
-		fpsString = "FPS: " + std::to_string(fpsCoutner);
-		fpsCoutner = 0;
-		fpsTimer.Restart();
-	}
-	// SETUP TEXT SPRITES
-	spriteBatch->Begin();
-	spriteFont->DrawString(spriteBatch.get(),
-		StringHelper::StringToWide(fpsString).c_str(), // text 
-		DirectX::XMFLOAT2(0, 0), // position 
-		DirectX::Colors::White, // color
-		0.0f, // rotation
-		DirectX::XMFLOAT2(0.0f, 0.0f), // origin
-		DirectX::XMFLOAT2(1.0f, 1.0f)); // scale
-	spriteBatch->End();
-
-
-	static int counter = 0;
-	// IMGUI SETUP
-	ImGui_ImplDX11_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-	ImGui::NewFrame();
-	// IMGUI UI CONFIGURATION
-	ImGui::Begin("Light Controls");
-	ImGui::DragFloat3("Ambient Light Color", &this->cb_ps_light.data.ambientLightColor.x, 0.01f, 0.0f, 1.0f);
-	ImGui::DragFloat("Ambient Light Strength", &this->cb_ps_light.data.ambientLightStrenght, 0.0f, 0.0f, 1.0f);
-	ImGui::NewLine();
-	ImGui::DragFloat3("Directional Light Color", &this->cb_ps_light.data.directionalLightColor.x, 0.01f, 0.0f, 10.0f);
-	ImGui::DragFloat("Directional Light Strength", &this->cb_ps_light.data.directionalLightStrength, 0.01f, 0.0f, 10.0f);
-	ImGui::DragFloat3("Directional Light Direction", &this->cb_ps_light.data.directionalLightDirection.x, 0.01f, 0.0f, 1.0f);
-	ImGui::NewLine();
-	//ImGui::DragFloat3("Dynamic Light Color", &this->light.lightColor.x, 0.01f, 0.0f, 10.0f);
-	//ImGui::DragFloat("Dynamic Light Strength", &this->light.lightStrength, 0.01f, 0.0f, 10.0f);
-	//ImGui::DragFloat("Dynamic Light Attenuation A", &this->light.attenuation_a, 0.01f, 0.1f, 10.0f);
-	//ImGui::DragFloat("Dynamic Light Attenuation B", &this->light.attenuation_b, 0.01f, 0.0f, 10.0f);
-	//ImGui::DragFloat("Dynamic Light Attenuation C", &this->light.attenuation_c, 0.01f, 0.0f, 10.0f);
-	ImGui::End();
-
-	ImGui::Begin("Modules");
-	if (ImGui::Button("Open Module")) {
-
-		std::string test;
-		if (NativeFileDialogue::NFD_OpenDialog(test)) {
-			Modules.OpenModule(test);
-			//throw new std::exception("button pressed");
-		}
-
-	}	
-	// loaded modules display
-	ImGui::Text("Indexed tags: %d", Modules.total_tags);
-	ImGui::Text("Active Modules [%d]", Modules.open_modules);
-
-	static int preview_active_module = 0;
-	ImGui::DragInt("Selected Module", &preview_active_module, 0.1f, 0, Modules.open_modules-1);
-	if (preview_active_module < Modules.open_modules) {
-		Module* menu_active_module = Modules.GetModule_AtIndex(preview_active_module);
-		ImGui::Text("Path: ", menu_active_module->filepath);
-		ImGui::Text("Tags: %d", menu_active_module->file_count);
-
-		static int preview_active_tag = 0;
-		ImGui::DragInt("Selected tag", &preview_active_tag, 0.1f, 0, menu_active_module->file_count);
-		if (preview_active_tag < menu_active_module->file_count) {
-			module_file* menu_active_tag = menu_active_module->GetTagHeader_AtIndex(preview_active_tag);
-
-			ImGui::Text("ID: %d", menu_active_tag->GlobalTagId);
-			ImGui::Text("Group: %s", (char*)& menu_active_tag->ClassId);
-			ImGui::Text("Parent: %d", menu_active_tag->ParentIndex);
-			ImGui::Text("Bytes: %d", menu_active_tag->TotalUncompressedSize);
-			if (ImGui::Button("Open")) {
-				Modules.OpenTag(menu_active_tag->GlobalTagId);
-			}
-			
-		}
-
-	}
-	if (Modules.loaded_tags->size() > 0) {
-		ID3D11ShaderResourceView* last_loaded_image = Modules.BITM_GetTexture(Modules.loaded_tags->at(Modules.loaded_tags->size() - 1), device.Get());
-		if (last_loaded_image != nullptr)
-			ImGui::Image((void*)last_loaded_image, ImVec2(512, 512));
-	}
-
-
-
-	ImGui::End();
-	// IM GUI DRAW
-	ImGui::Render();
-	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-
-	this->swapchain->Present(1, NULL); // 0 for no VSYNC, 1 for VSYNC
-}
-
 bool Graphics::InitializeDirectX(HWND hwnd)
 {
 	try
@@ -384,4 +235,199 @@ bool Graphics::InitializeScene(){
 		return false;
 	}
 	return true;
+}
+
+void Graphics::RenderFrame()
+{
+	this->cb_vs_vertexshader.data.camera_position = camera.GetPositionFloat3();
+
+
+	// SETUP LIGHTING
+	//this->cb_ps_light.data.dynamicLightColor = light.lightColor;
+	//this->cb_ps_light.data.dynamicLightStrength = light.lightStrength;
+	//this->cb_ps_light.data.dynamicLightPosition = light.GetPositionFloat3();
+	//this->cb_ps_light.data.dynamicLightAttenuation_a = light.attenuation_a;
+	//this->cb_ps_light.data.dynamicLightAttenuation_b = light.attenuation_b;
+	//this->cb_ps_light.data.dynamicLightAttenuation_c = light.attenuation_c;
+
+	this->cb_ps_light.ApplyChanges();
+	this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_light.GetAddressOf());
+
+
+
+	// setup background stuff
+	float bgcolor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	this->deviceContext->ClearRenderTargetView(this->renderTargetView.Get(), bgcolor);
+	this->deviceContext->ClearDepthStencilView(this->depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	this->deviceContext->IASetInputLayout(this->vertexshader.GetInputLayout());
+	this->deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	this->deviceContext->RSSetState(this->rasterizerState.Get());
+	this->deviceContext->OMSetDepthStencilState(this->depthStencilState.Get(), 0);
+	this->deviceContext->OMSetBlendState(NULL, NULL, 0xFFFFFFFF);
+	//this->deviceContext->OMSetBlendState(this->blendState.Get(), NULL, 0xFFFFFFFF);
+	this->deviceContext->PSSetSamplers(0, 1, this->samplerState.GetAddressOf());
+	this->deviceContext->VSSetShader(vertexshader.GetShader(), NULL, 0);
+	this->deviceContext->PSSetShader(pixelshader.GetShader(), NULL, 0);
+
+	//static float alpha = 0.5f;
+	{ // 
+
+		//this->gameObject.Draw(camera.GetViewMatrix() * camera.GetProjectionMatrix());
+
+		// PIXEL SHADER
+		//this->cb_vs_pixelshader.data.alpha = 1.0f;
+		//this->cb_vs_pixelshader.ApplyChanges();
+		//this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_vs_pixelshader.GetAddressOf());
+
+	}
+	{
+
+		this->deviceContext->PSSetShader(pixelshader_nolight.GetShader(), NULL, 0);
+		//this->light.Draw(camera.GetViewMatrix() * camera.GetProjectionMatrix());
+
+	}
+
+
+
+	// SETUP FPS COUNTER
+	static int fpsCoutner = 0;
+	static std::string fpsString = "FPS: null";
+	fpsCoutner += 1;
+	if (fpsTimer.GetMilisecondsElapsed() > 1000.0)
+	{
+		fpsString = "FPS: " + std::to_string(fpsCoutner);
+		fpsCoutner = 0;
+		fpsTimer.Restart();
+	}
+	// SETUP TEXT SPRITES
+	spriteBatch->Begin();
+	spriteFont->DrawString(spriteBatch.get(),
+		StringHelper::StringToWide(fpsString).c_str(), // text 
+		DirectX::XMFLOAT2(0, 0), // position 
+		DirectX::Colors::White, // color
+		0.0f, // rotation
+		DirectX::XMFLOAT2(0.0f, 0.0f), // origin
+		DirectX::XMFLOAT2(1.0f, 1.0f)); // scale
+	spriteBatch->End();
+
+
+	// IMGUI SETUP
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+	// IMGUI UI CONFIGURATION
+	ImGui::Begin("Light Controls");
+	ImGui::DragFloat3("Ambient Light Color", &this->cb_ps_light.data.ambientLightColor.x, 0.01f, 0.0f, 1.0f);
+	ImGui::DragFloat("Ambient Light Strength", &this->cb_ps_light.data.ambientLightStrenght, 0.0f, 0.0f, 1.0f);
+	ImGui::NewLine();
+	ImGui::DragFloat3("Directional Light Color", &this->cb_ps_light.data.directionalLightColor.x, 0.01f, 0.0f, 10.0f);
+	ImGui::DragFloat("Directional Light Strength", &this->cb_ps_light.data.directionalLightStrength, 0.01f, 0.0f, 10.0f);
+	ImGui::DragFloat3("Directional Light Direction", &this->cb_ps_light.data.directionalLightDirection.x, 0.01f, 0.0f, 1.0f);
+	ImGui::NewLine();
+	//ImGui::DragFloat3("Dynamic Light Color", &this->light.lightColor.x, 0.01f, 0.0f, 10.0f);
+	//ImGui::DragFloat("Dynamic Light Strength", &this->light.lightStrength, 0.01f, 0.0f, 10.0f);
+	//ImGui::DragFloat("Dynamic Light Attenuation A", &this->light.attenuation_a, 0.01f, 0.1f, 10.0f);
+	//ImGui::DragFloat("Dynamic Light Attenuation B", &this->light.attenuation_b, 0.01f, 0.0f, 10.0f);
+	//ImGui::DragFloat("Dynamic Light Attenuation C", &this->light.attenuation_c, 0.01f, 0.0f, 10.0f);
+	ImGui::End();
+
+	RenderModulesGUI();
+	
+	// IM GUI DRAW
+	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+	this->swapchain->Present(1, NULL); // 0 for no VSYNC, 1 for VSYNC
+}
+
+
+// display how many tags at a time?
+const uint32_t max_tags_onscreen_count = 5;
+char* tag_UI_groups_buffer = new char[5* max_tags_onscreen_count]; // 5 bytes allocated per tag group (4 chars, 1 null terminator)
+// TODO: create the array during constructor, we need to clear the mem to 00's !!
+// else we have to set the 5th byte of each group to 00 each time
+
+void write_tag_group(uint32_t index, uint32_t tag_group) {
+	tag_UI_groups_buffer[index * 5    ] = tag_group >> 24 & 0xff;
+	tag_UI_groups_buffer[index * 5 + 1] = tag_group >> 16 & 0xff;
+	tag_UI_groups_buffer[index * 5 + 2] = tag_group >> 8  & 0xff;
+	tag_UI_groups_buffer[index * 5 + 3] = tag_group       & 0xff;
+	tag_UI_groups_buffer[index * 5 + 4] = 0; // null terminator
+}
+
+void Graphics::RenderModulesGUI() {
+	ImGui::Begin("Modules");
+	if (ImGui::Button("Open Module")) {
+
+		std::string test;
+		if (NativeFileDialogue::NFD_OpenDialog(test)) {
+			Modules.OpenModule(test);
+			//throw new std::exception("button pressed");
+		}
+
+	}
+
+
+	int tag_ui_item_index = 0; // used to assign identifiers
+	// loaded modules display
+	ImGui::Text("Indexed tags [%d]", Modules.total_tags);
+	ImGui::Text("Active Modules [%d]", Modules.open_modules);
+
+	for (int i = 0; i < Modules.open_modules; i++){
+		Module* menu_active_module = Modules.GetModule_AtIndex(i);
+
+		ImGui::PushID(i); // need this id and the next level one, because none of these items are actually in a container
+		if (ImGui::CollapsingHeader(menu_active_module->filepath.c_str())) {
+			ImGui::DragInt("Selected tag", &menu_active_module->selected_tag, 0.1f, 0, menu_active_module->file_count);
+			// then populate with individual tag views
+			for (uint32_t tag_ind = 0; tag_ind < max_tags_onscreen_count; tag_ind++){
+				// make sure we are keeping the same id for a tagUI even if we "scroll" the list (how tf are we going to scroll) 
+				uint32_t tag_moduleindex = tag_ind + menu_active_module->selected_tag;
+
+				ImGui::PushID(tag_moduleindex);
+				if (tag_moduleindex < menu_active_module->file_count) {
+					module_file* menu_active_tag = menu_active_module->GetTagHeader_AtIndex(tag_moduleindex);
+					write_tag_group(tag_ind, menu_active_tag->ClassId);
+					// convert bytes to string format
+					ImGui::Text("%s", tag_UI_groups_buffer + tag_ind * 5);
+					ImGui::SameLine();
+					ImGui::Text("ID: %d", menu_active_tag->GlobalTagId);
+					ImGui::SameLine();
+					// figure out size of byte
+					if (menu_active_tag->TotalUncompressedSize >= 1000)
+						ImGui::Text("%d%s", menu_active_tag->TotalUncompressedSize / 1000, "kb");
+					else if (menu_active_tag->TotalUncompressedSize >= 1000000)
+						ImGui::Text("%d%s", menu_active_tag->TotalUncompressedSize / 1000000, "mb");
+					else ImGui::Text("%d%s", menu_active_tag->TotalUncompressedSize, "b");
+
+					ImGui::SameLine();
+					if (ImGui::Button("Open")) {
+						Modules.OpenTag(menu_active_tag->GlobalTagId);
+					}
+
+				} ImGui::PopID();
+			}
+
+		} 
+		ImGui::PopID();
+	}
+
+
+
+	if (Modules.loaded_tags->size() > 0) {
+		ID3D11ShaderResourceView* last_loaded_image = Modules.BITM_GetTexture(Modules.loaded_tags->at(Modules.loaded_tags->size() - 1), device.Get());
+		if (last_loaded_image != nullptr)
+			ImGui::Image((void*)last_loaded_image, ImVec2(256, 256));
+	}
+
+
+
+	ImGui::End();
+}
+void Graphics::RenderTagsGUI() {
+
+}
+void Graphics::RenderBitmGUI() {
+
 }

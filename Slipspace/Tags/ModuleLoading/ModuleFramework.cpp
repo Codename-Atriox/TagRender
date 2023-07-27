@@ -77,7 +77,9 @@ void Module::GetTagRaw(module_file* file_ptr, char* output_bytes) {
     if (file_ptr->TotalUncompressedSize == 0)
         throw new exception("module file was empty");
 
-    long data_Address = module_metadata_size + file_ptr->DataOffset;
+    // god dammit, mf 'long' how about you take a long trip down to the bottom of the ocean
+    // please someone for the love of god make the long 64 bits, and not just literally an int
+    uint64_t data_Address = module_metadata_size + file_ptr->DataOffset;
 
     if (reading_separate_blocks) {
         for (int i = 0; i < file_ptr->BlockCount; i++) {
@@ -110,7 +112,7 @@ void Module::GetTagRaw(module_file* file_ptr, char* output_bytes) {
             try{unpacker->decompress(output_bytes, file_ptr->TotalUncompressedSize, raw_bytes, file_ptr->TotalCompressedSize);
             }catch (exception ex) {
                 delete[] raw_bytes;
-                delete[] output_bytes;
+                // delete[] output_bytes; // NOTE: THIS HAS TO BE CLEANED UP MANUALLY
                 throw ex;
             }
             delete[] raw_bytes;
