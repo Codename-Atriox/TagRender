@@ -341,6 +341,13 @@ void Graphics::RenderFrame()
 	this->swapchain->Present(1, NULL); // 0 for no VSYNC, 1 for VSYNC
 }
 
+void pushnextConsole() {
+
+}
+void PrintConsoleQueue() {
+
+}
+
 
 // display how many tags at a time?
 const uint32_t max_tags_onscreen_count = 5;
@@ -390,15 +397,15 @@ void Graphics::RenderModulesGUI() {
 					module_file* menu_active_tag = menu_active_module->GetTagHeader_AtIndex(tag_moduleindex);
 					write_tag_group(tag_ind, menu_active_tag->ClassId);
 					// convert bytes to string format
-					ImGui::Text("%s", tag_UI_groups_buffer + tag_ind * 5);
+					ImGui::Text("[%d] %s", tag_moduleindex, tag_UI_groups_buffer + tag_ind * 5);
 					ImGui::SameLine();
-					ImGui::Text("ID: %d", menu_active_tag->GlobalTagId);
+					ImGui::Text("ID: %08X", menu_active_tag->GlobalTagId);
 					ImGui::SameLine();
 					// figure out size of byte
-					if (menu_active_tag->TotalUncompressedSize >= 1000)
-						ImGui::Text("%d%s", menu_active_tag->TotalUncompressedSize / 1000, "kb");
-					else if (menu_active_tag->TotalUncompressedSize >= 1000000)
+					if (menu_active_tag->TotalUncompressedSize >= 1000000)
 						ImGui::Text("%d%s", menu_active_tag->TotalUncompressedSize / 1000000, "mb");
+					else if (menu_active_tag->TotalUncompressedSize >= 1000)
+						ImGui::Text("%d%s", menu_active_tag->TotalUncompressedSize / 1000, "kb");
 					else ImGui::Text("%d%s", menu_active_tag->TotalUncompressedSize, "b");
 
 					ImGui::SameLine();

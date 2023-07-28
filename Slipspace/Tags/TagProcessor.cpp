@@ -145,6 +145,7 @@ bool is_short_header(DXGI_FORMAT format) {
     case DXGI_FORMAT_R16G16_FLOAT:
     case DXGI_FORMAT_R32_FLOAT:
     case DXGI_FORMAT_R16_FLOAT:
+   /*  // only short header if conversion flag 'DDS_FLAGS_FORCE_DX9_LEGACY' 
     case DXGI_FORMAT_R10G10B10A2_UNORM:
     case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
     case DXGI_FORMAT_BC1_UNORM_SRGB:
@@ -153,7 +154,7 @@ bool is_short_header(DXGI_FORMAT format) {
     case DXGI_FORMAT_BC4_UNORM:
     case DXGI_FORMAT_BC5_UNORM:
     case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
-    case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB:
+    case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB: */
         return true;
     }
     return false;
@@ -227,6 +228,9 @@ ID3D11ShaderResourceView* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device*
         resource_index = index; // apparently that number is the opposite of what it should be (bitmap_details->streamingData[index]->chunkInfo >> 16) & 0xFF; // push 2 backs back, and ignore first byte
         // we should also load the image here // negative, no point writing image just yet if it has a chance of failing
     }
+    // if its a 1x1 pixel, then clear mip map levels?
+    if (meta->width == 1 || meta->height == 1)
+        meta->mipLevels = 1; // i dont think this will fix it
 
 
 
@@ -262,6 +266,7 @@ ID3D11ShaderResourceView* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device*
     hr = DirectX::CreateShaderResourceView(device, DDS_image->GetImages(), DDS_image->GetImageCount(), DDS_image->GetMetadata(), &image_resource);
     if (FAILED(hr))
         throw new exception("failed to get shader view from texture");
+
     tag->resources.Append(image_resource);
 
     return image_resource;
