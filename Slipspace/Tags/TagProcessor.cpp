@@ -209,8 +209,8 @@ ID3D11ShaderResourceView* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device*
     // figure out if this texture is using internal data, or resource data
     const bool is_using_pixel_data = (bitmap_details->pixels.data_size != 0);
     if (is_using_pixel_data) { // use pixel data
-        meta->width = selected_bitmap->height;
-        meta->height = selected_bitmap->width;
+        meta->width = selected_bitmap->width;
+        meta->height = selected_bitmap->height;
         image_data_size = bitmap_details->pixels.data_size;
     }else { // use streaming data
         if (bitmap_details->streamingData.count == 0)
