@@ -1,9 +1,16 @@
 #pragma once
+#include "../../Utilities/CTList.h"
 
+struct bitmap_window {
+	int resource_index;
+	unsigned int tagID;
+};
 
 class UI {
 public:
-	void render_frame() {
+
+public:
+	void render_UI() {
 
 	}
 	void render_module_window() {

@@ -21,7 +21,7 @@ int32_t Module::find_tag_index(uint32_t tagID) {
 void Module::GetTagProcessed(uint32_t tagID, char*& output_tag_bytes, char*& output_cleanup_ptr) {
     module_file* file_ptr = find_tag(tagID);
     if (file_ptr == 0)
-        throw new exception("failed to find tag in module");
+        throw exception("failed to find tag in module");
     GetTagProcessed(file_ptr, output_tag_bytes, output_cleanup_ptr);
 }
 void Module::GetTagProcessed(module_file* file_ptr, char*& output_tag_bytes, char*& output_cleanup_ptr) {
@@ -36,36 +36,36 @@ void Module::ReturnResource(uint32_t tag_index, uint32_t index, char* output_buf
     module_file* target_tag = GetTagHeader_AtIndex(tag_index);
 
     if (index >= target_tag->ResourceCount)
-        throw new exception("Attemtped to access out of bounds tag resource index");
+        throw exception("Attemtped to access out of bounds tag resource index");
 
     uint32_t resource_index = target_tag->ResourceIndex + index;
     if (resource_index >= header->ResourceCount)
-        throw new exception("Attemtped to access out of bounds module file resource index");
+        throw exception("Attemtped to access out of bounds module file resource index");
 
     // get the resources
     module_file* resource_tag = GetTagHeader_AtIndex(resource_indexes[resource_index]);
     if (resource_tag->GlobalTagId != -1 || resource_tag->ClassId != -1)
-        throw new exception("indexed resource file is not a resource file");
+        throw exception("indexed resource file is not a resource file");
 
     if (resource_tag->Flags & flag_UseRawfile == 0)
-        throw new exception("resource files with tagdata content are not currently supported");
+        throw exception("resource files with tagdata content are not currently supported");
 
     if (resource_tag->TotalUncompressedSize > output_size)
-        throw new exception("not enough room allocated to fit indexed resource");
+        throw exception("not enough room allocated to fit indexed resource");
 
     GetTagRaw(resource_tag, output_buffer);
 }
 
 module_file* Module::GetTagHeader_AtIndex(uint32_t index){
     if (index >= file_count)
-        throw new exception("attempted to fetch module from invalid index");
+        throw exception("attempted to fetch module from invalid index");
 
     return &files[index];
 }
 // output bytes NEEDS to already be allocated
 void Module::GetTagRaw(module_file* file_ptr, char* output_bytes) {
     if (output_bytes == 0)
-        throw new exception("tag output buffer was not preallocated");
+        throw exception("tag output buffer was not preallocated");
     // then begin the read
     // we have to map all the data to read, based on the owned datablocks
 
@@ -75,7 +75,7 @@ void Module::GetTagRaw(module_file* file_ptr, char* output_bytes) {
     bool reading_raw_file        = (file_ptr->Flags & flag_UseRawfile) != 0;
 
     if (file_ptr->TotalUncompressedSize == 0)
-        throw new exception("module file was empty");
+        throw exception("module file was empty");
 
     // god dammit, mf 'long' how about you take a long trip down to the bottom of the ocean
     // please someone for the love of god make the long 64 bits, and not just literally an int
@@ -129,11 +129,11 @@ Module::Module(string filename, Oodle* oodler) {
     // open module file
     module_reader.open(filename, ios::binary | ios::ate);
     if (!module_reader.is_open()) {
-        throw new exception("failed to open filestream");
+        throw exception("failed to open filestream");
     }
     streamsize file_size = module_reader.tellg();
     if (file_size < module_header_size) {
-        throw new exception("filestream too small");
+        throw exception("filestream too small");
     }
     module_reader.seekg(0, ios::beg);
 
@@ -145,9 +145,9 @@ Module::Module(string filename, Oodle* oodler) {
 
     // module file verification
     if (header->Head != 0x64686F6D)  // 'mohd', but backwards
-        throw new exception("target file does not appear to be module file");
+        throw exception("target file does not appear to be module file");
     if (header->Version != target_module_version) 
-        throw new exception("module version does not match target version");
+        throw exception("module version does not match target version");
     
     // read file partition
     files = new module_file[header->FileCount];

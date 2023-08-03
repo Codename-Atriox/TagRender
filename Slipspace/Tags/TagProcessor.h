@@ -6,7 +6,7 @@
 
 #include "TagStructs/bitm.h"
 #include <DirectXTex.h>
-#include "CTList.h"
+#include "../../Utilities/CTList.h"
 // #include "../DirectXTex-main/DirectXTex-main/DirectXTex/DirectXTex.h" // we need to fix this
 
 
@@ -37,7 +37,7 @@ public:
     void CloseModule(string filename);
     Tag* GetTag(uint32_t tagID); // gets from already open tags
     Tag* OpenTag(uint32_t tagID); // opens from open modules
-    void CloseTag(uint32_t tagID); // WHEN CLOSING TAG WE MUST CLEAR TAGID, SO GAMOBJECTS REALIZE THE TAG IS NON-EXISTANT
+    void CloseTag(uint32_t tagID); // WHEN CLOSING TAG WE MUST CLEAR TAGID, SO GAMOBJECTS REALIZE THE TAG IS NON-EXISTANT // terrible idea
 
     Module* GetModule_AtIndex(uint32_t index);
 

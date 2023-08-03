@@ -370,7 +370,7 @@ void Graphics::RenderModulesGUI() {
 		std::string test;
 		if (NativeFileDialogue::NFD_OpenDialog(test)) {
 			Modules.OpenModule(test);
-			//throw new std::exception("button pressed");
+			//throw std::exception("button pressed");
 		}
 
 	}

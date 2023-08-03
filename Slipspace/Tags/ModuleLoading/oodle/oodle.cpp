@@ -12,7 +12,7 @@
 void Oodle::load_dll() {
     HINSTANCE mod = LoadLibrary(L"oo2core_8_win64.dll");
     if (!mod)
-        throw new std::exception("oodle module failed to load");
+        throw std::exception("oodle module failed to load");
 
     g_OodleDecompressFunc = (OodleLZ_Decompress_Func*)GetProcAddress(mod, "OodleLZ_Decompress");
     IsDllLoaded = true;

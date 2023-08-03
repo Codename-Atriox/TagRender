@@ -21,7 +21,7 @@ public:
 	}
 	T* operator[] (uint64_t index) {
 		if (index >= count)
-			throw new std::exception("out of bounds CTList index");
+			throw std::exception("out of bounds CTList index");
 		return content_ptr[index];
 	}
 	uint64_t Size() {
@@ -48,13 +48,14 @@ public:
 	}
 	void RemoveAt(uint64_t index) {
 		if (index >= count)
-			throw new std::exception("out of bounds CList removal index");
-		ShiftBack(index);
+			throw std::exception("out of bounds CList removal index");
+		//ShiftBack(index);
+		QuickRemove(index); // this should be much more efficient with managing many simutaneous assets, although this would only be usefuly in the scenario that we have a very large list
 	}
 	void Alloc(uint64_t extra_size) {
 		allocated_count += extra_size;
 		if (allocated_count < extra_size)
-			throw new std::exception("CTList buffer size overflow (size > uint64_MAX)"); // virtually impossible
+			throw std::exception("CTList buffer size overflow (size > uint64_MAX)"); // virtually impossible
 
 		T** new_array = (T**)new void* [allocated_count];
 
@@ -90,6 +91,12 @@ private:
 		for (uint64_t i = index; i < count-1; i++)
 			write_index(i, content_ptr[i+1]);
 		write_index(count-1, (T*)0);
+		count--; // since we cleared the last one
+	}
+	void QuickRemove(uint64_t index) {
+		delete content_ptr[index]; // call destructor
+		write_index(index, content_ptr[count - 1]);
+		write_index(count - 1, nullptr);
 		count--; // since we cleared the last one
 	}
 private:

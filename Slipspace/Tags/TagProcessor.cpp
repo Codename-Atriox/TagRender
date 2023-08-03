@@ -12,6 +12,7 @@ ModuleManager::Tag::Tag(std::string name, uint32_t _4CC, uint32_t _ID, char* _da
     resources = *new CTList<ID3D11ShaderResourceView>();
 }
 ModuleManager::Tag::~Tag() {
+    tagID = 0; 
 	delete[] tag_cleanup_ptr;
 	
 }
@@ -30,7 +31,7 @@ void ModuleManager::OpenModule(string filename){
 		open_modules++;
 		total_tags += new_module->file_count;
 	} catch (exception ex) {
-		throw new exception("failed to open module");
+		throw exception("failed to open module");
 	}
 }
 
@@ -79,12 +80,12 @@ ModuleManager::Tag* ModuleManager::OpenTag(uint32_t tagID){
 		// TagToTexture(new_tag);
 		return new_tag;
 	}
-	throw new exception("tag with specified tagID was not found in any loaded modules");
+	throw exception("tag with specified tagID was not found in any loaded modules");
 }
 
 Module* ModuleManager::GetModule_AtIndex(uint32_t index){
 	if (index >= loaded_modules->size())
-		throw new exception("attempted to fetch module from invalid index");
+		throw exception("attempted to fetch module from invalid index");
 
 	return (*loaded_modules)[index];
 }
@@ -98,7 +99,7 @@ void ModuleManager::OpenTagResource(Tag* tag, uint32_t resource_index, char* res
 			break;
 	}}
 	if (parent_module == 0)
-		throw new exception("tag has no parent module!! was it deallocated?");
+		throw exception("tag has no parent module!! was it deallocated?");
 	// attempt write resource to buffer
 	parent_module->ReturnResource(tag->source_tag_index, resource_index, resource_out_buffer, buffer_size);
 }
@@ -177,11 +178,11 @@ ID3D11ShaderResourceView* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device*
     BitmapData* selected_bitmap = bitm_tag->bitmaps[0];
 
     if (selected_bitmap->type != BitmapType::_2D_texture)
-        throw new exception("unsupported image type");
+        throw exception("unsupported image type");
     if (selected_bitmap->bitmap_resource_handle.content_ptr == 0)
-        throw new exception("image data not present?!!");
+        throw exception("image data not present?!!");
     if (selected_bitmap->bitmap_resource_handle.is_chunked_resource == 0)
-        throw new exception("images with non-chunked/streamable data are not supported!!");
+        throw exception("images with non-chunked/streamable data are not supported!!");
 
     BitmapDataResource* bitmap_details = selected_bitmap->bitmap_resource_handle.content_ptr;
 
@@ -214,11 +215,11 @@ ID3D11ShaderResourceView* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device*
         image_data_size = bitmap_details->pixels.data_size;
     }else { // use streaming data
         if (bitmap_details->streamingData.count == 0)
-            throw new exception("no streaming data or pixel data");
+            throw exception("no streaming data or pixel data");
 
         uint32_t index = 0; // probably the lowest quality // select the image that we want to be using
         if (index >= bitmap_details->streamingData.count)
-            throw new exception("out of bounds index for streaming texture array");
+            throw exception("out of bounds index for streaming texture array");
 
         meta->width = bitmap_details->streamingData[index]->dimensions & 0x0000FFFF;
         meta->height = (bitmap_details->streamingData[index]->dimensions >> 16) & 0x0000FFFF;
@@ -239,10 +240,10 @@ ID3D11ShaderResourceView* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device*
     size_t output_size = 0;
     HRESULT hr = EncodeDDSHeader(*meta, DirectX::DDS_FLAGS_NONE, (void*)DDSheader_dest, header_size, output_size);
     if (!SUCCEEDED(hr))
-        throw new exception("image failed to generate DDS header");
+        throw exception("image failed to generate DDS header");
     if (header_size != output_size)
         // DXGI_FORMAT_BC1_UNORM_SRGB (72) is actually long header? // TODO??
-        throw new exception("header size was incorrectly assumed! must investigate this image format!!!");
+        throw exception("header size was incorrectly assumed! must investigate this image format!!!");
 
     // then write the bitmap data
     if (is_using_pixel_data)  // non-resource pixel array
@@ -255,17 +256,18 @@ ID3D11ShaderResourceView* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device*
     DirectX::ScratchImage* DDS_image = new DirectX::ScratchImage();
     hr = DirectX::LoadFromDDSMemory(DDSheader_dest, header_size + image_data_size,  (DirectX::DDS_FLAGS)0, nullptr, *DDS_image);
     if (FAILED(hr))
-        throw new exception("failed to load DDS from memory");
+        throw exception("failed to load DDS from memory");
     const wchar_t* export_file_path = L"C:\\Users\\Joe bingle\\Downloads\\test\\test.dds";
     hr = DirectX::SaveToDDSFile(*DDS_image->GetImage(0,0,0), (DirectX::DDS_FLAGS)0, export_file_path);
     if (FAILED(hr))
-        throw new exception("failed to save DDS to local file");
+        throw exception("failed to save DDS to local file");
     //Image& image, _In_ DDS_FLAGS flags, _In_z_ const wchar_t*
+    //hr = DirectX::SaveToWICFile(*DDS_image->GetImage(0, 0, 0), (DirectX::DDS_FLAGS)0, export_file_path);
 
     ID3D11ShaderResourceView* image_resource = nullptr;
     hr = DirectX::CreateShaderResourceView(device, DDS_image->GetImages(), DDS_image->GetImageCount(), DDS_image->GetMetadata(), &image_resource);
     if (FAILED(hr))
-        throw new exception("failed to get shader view from texture");
+        throw exception("failed to get shader view from texture");
 
     tag->resources.Append(image_resource);
 

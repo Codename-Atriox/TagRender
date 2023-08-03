@@ -65,7 +65,7 @@ struct _s_tagblock {
     int64_t structure_ptr;
     int32_t count;
     T* operator[] (uint32_t index) {
-        if (index >= count) throw new exception ("attempted to access out of bounds _s_tagblock index");
+        if (index >= count) throw exception ("attempted to access out of bounds _s_tagblock index");
         return content_ptr + index; // * sizeof(T); // apparently this will be automatically calculated
     }
 };
@@ -82,7 +82,7 @@ struct _s_data {
     uint32_t compiled_unk;
     uint32_t data_size;
     char operator[] (uint32_t index){ // why did we put this here? i dont think we'd ever need to index the _s_data
-        if (index >= data_size) throw new exception("attempted to access out of bounds _s_data index");
+        if (index >= data_size) throw exception("attempted to access out of bounds _s_data index");
         return *(content_ptr + index);
     }
 };
