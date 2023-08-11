@@ -9,6 +9,8 @@ public:
 		render_loaded_tags_window(Modules);
 		render_bitmap_window(Modules);
 
+
+
 		if (Modules->loaded_tags->size() > 0) {
 			ID3D11ShaderResourceView* last_loaded_image = Modules->BITM_GetTexture(Modules->loaded_tags->at(Modules->loaded_tags->size() - 1), device);
 			if (last_loaded_image != nullptr)
@@ -112,6 +114,7 @@ public:
 
 
 				ImGui::Text("ID: %08X", active_tag->tagID);
+				ImGui::SameLine();
 				switch (active_tag->tag_FourCC) {
 				case 1651078253:
 					ImGui::Text("Bitmap");
@@ -123,6 +126,7 @@ public:
 					ImGui::Text("Model");
 					break;
 				default:
+					ImGui::Text("Tag");
 					break;
 				}
 
