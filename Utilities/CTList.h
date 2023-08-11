@@ -100,7 +100,7 @@ private:
 		count--; // since we cleared the last one
 	}
 private:
-	T** content_ptr;
+	T** content_ptr = 0;
 	uint64_t count = 0;
 	uint64_t allocated_count = 0;
 	const static uint64_t block_alloc_count = 8; // thats 64 byte blocks

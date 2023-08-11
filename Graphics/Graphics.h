@@ -15,6 +15,7 @@
 
 #include "utilities/NFD/NFD.h"
 #include "../Slipspace/Tags/TagProcessor.h"
+#include "../Slipspace/UI/UI_Manager.h"
 
 class Graphics
 {
@@ -49,7 +50,7 @@ private:
 	//Microsoft::WRL::ComPtr<ID3D11Buffer> constantBuffer;
 
 	ModuleManager Modules;
-
+	UI ui;
 
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> depthStencilView;
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> depthStencilBuffer;

@@ -302,6 +302,9 @@
     <ClInclude Include="Slipspace\UI\Utilities\UI_Bitmap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Slipspace\Tags\TagContainers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="vertexshader.hlsl">

@@ -241,6 +241,7 @@
     <ClInclude Include="Graphics\Shaders.h" />
     <ClInclude Include="Slipspace\Scene\SlipScene.h" />
     <ClInclude Include="Slipspace\Tags\BitmToDDS.h" />
+    <ClInclude Include="Slipspace\Tags\TagContainers.h" />
     <ClInclude Include="Utilities\CTList.h" />
     <ClInclude Include="Slipspace\Tags\ModuleLoading\ModuleFramework.h" />
     <ClInclude Include="Slipspace\Tags\ModuleLoading\ModuleStructs.h" />

@@ -2,34 +2,20 @@
 
 #include "ModuleLoading/TagLoading/TagFramework.h"
 #include "ModuleLoading/ModuleFramework.h"
-
+#include "TagContainers.h"
 
 #include "TagStructs/bitm.h"
 #include <DirectXTex.h>
 #include "../../Utilities/CTList.h"
+
+
 // #include "../DirectXTex-main/DirectXTex-main/DirectXTex/DirectXTex.h" // we need to fix this
 
 
 
 class ModuleManager {
 public:
-    struct Tag {
-        Tag(std::string name, uint32_t _4CC, uint32_t _ID, char* _data, char* _clnup, std::string smod, uint32_t sind);
-        ~Tag();
-        std::string tagname;
-        uint32_t tag_FourCC;
-        uint32_t tagID;
-        char* tag_data;
-        char* tag_cleanup_ptr;
-        CTList<ID3D11ShaderResourceView> resources;
-        // source data, so fetching resources doesn't require us refinding the tag each time
-        std::string source_module;
-        uint32_t source_tag_index;
-        // contain a list of references, so we can wipe them upon tag deletion
-        // contain the file header ptr, so we can tell which child tags to clear
-        // contain a list of parent tags, so when cleaning parents of shared tags, we dont accidently delete anything we're still using
-        // alternatively, a use counter, so we can track how many tags are still relying on this one
-    };
+
 public:
     ModuleManager();
 

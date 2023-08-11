@@ -1,21 +1,7 @@
 #include "TagProcessor.h"
 
 
-ModuleManager::Tag::Tag(std::string name, uint32_t _4CC, uint32_t _ID, char* _data, char* _clnup, std::string smod, uint32_t sind) {
-    tagname = name;
-	tag_FourCC = _4CC;
-	tagID = _ID;
-	tag_data = _data;
-	tag_cleanup_ptr = _clnup;
-	source_module = smod;
-	source_tag_index = sind;
-    resources = *new CTList<ID3D11ShaderResourceView>();
-}
-ModuleManager::Tag::~Tag() {
-    tagID = 0; 
-	delete[] tag_cleanup_ptr;
-	
-}
+
 
 ModuleManager::ModuleManager()
 {
@@ -51,13 +37,13 @@ void ModuleManager::CloseModule(string filename){
 	*/
 }
 
-ModuleManager::Tag* ModuleManager::GetTag(uint32_t tagID) {
+Tag* ModuleManager::GetTag(uint32_t tagID) {
 	for (int i = 0; i < loaded_tags->size(); i++)
 		if ((*loaded_tags)[i]->tagID == tagID)
 			return (*loaded_tags)[i];
 	return (Tag*)0;
 }
-ModuleManager::Tag* ModuleManager::OpenTag(uint32_t tagID){
+Tag* ModuleManager::OpenTag(uint32_t tagID){
 	// first check if the tag already exists
 	Tag* new_tag = GetTag(tagID);
 	if (new_tag != (Tag*)0) return new_tag;
@@ -169,7 +155,7 @@ ID3D11ShaderResourceView* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device*
     // DEBUG TEMP CODE //
     // check to see if this tag already has an image loaded
     if (tag->resources.Size() > 0)
-        return tag->resources[0];
+        return (ID3D11ShaderResourceView*)tag->resources[0];
 
 
     // pseudo select-best-image code here

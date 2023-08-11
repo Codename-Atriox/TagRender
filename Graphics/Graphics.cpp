@@ -332,7 +332,7 @@ void Graphics::RenderFrame()
 	//ImGui::DragFloat("Dynamic Light Attenuation C", &this->light.attenuation_c, 0.01f, 0.0f, 10.0f);
 	ImGui::End();
 
-	RenderModulesGUI();
+	ui.render_UI(&Modules, device.Get()); // call to handle our Slipspace interface UI
 	
 	// IM GUI DRAW
 	ImGui::Render();
@@ -345,96 +345,5 @@ void pushnextConsole() {
 
 }
 void PrintConsoleQueue() {
-
-}
-
-
-// display how many tags at a time?
-const uint32_t max_tags_onscreen_count = 5;
-char* tag_UI_groups_buffer = new char[5* max_tags_onscreen_count]; // 5 bytes allocated per tag group (4 chars, 1 null terminator)
-// TODO: create the array during constructor, we need to clear the mem to 00's !!
-// else we have to set the 5th byte of each group to 00 each time
-
-void write_tag_group(uint32_t index, uint32_t tag_group) {
-	tag_UI_groups_buffer[index * 5    ] = tag_group >> 24 & 0xff;
-	tag_UI_groups_buffer[index * 5 + 1] = tag_group >> 16 & 0xff;
-	tag_UI_groups_buffer[index * 5 + 2] = tag_group >> 8  & 0xff;
-	tag_UI_groups_buffer[index * 5 + 3] = tag_group       & 0xff;
-	tag_UI_groups_buffer[index * 5 + 4] = 0; // null terminator
-}
-
-void Graphics::RenderModulesGUI() {
-	ImGui::Begin("Modules");
-	if (ImGui::Button("Open Module")) {
-
-		std::string test;
-		if (NativeFileDialogue::NFD_OpenDialog(test)) {
-			Modules.OpenModule(test);
-			//throw std::exception("button pressed");
-		}
-
-	}
-
-
-	int tag_ui_item_index = 0; // used to assign identifiers
-	// loaded modules display
-	ImGui::Text("Indexed tags [%d]", Modules.total_tags);
-	ImGui::Text("Active Modules [%d]", Modules.open_modules);
-
-	for (int i = 0; i < Modules.open_modules; i++){
-		Module* menu_active_module = Modules.GetModule_AtIndex(i);
-
-		ImGui::PushID(i); // need this id and the next level one, because none of these items are actually in a container
-		if (ImGui::CollapsingHeader(menu_active_module->filepath.c_str())) {
-			ImGui::DragInt("Selected tag", &menu_active_module->selected_tag, 0.1f, 0, menu_active_module->file_count);
-			// then populate with individual tag views
-			for (uint32_t tag_ind = 0; tag_ind < max_tags_onscreen_count; tag_ind++){
-				// make sure we are keeping the same id for a tagUI even if we "scroll" the list (how tf are we going to scroll) 
-				uint32_t tag_moduleindex = tag_ind + menu_active_module->selected_tag;
-
-				ImGui::PushID(tag_moduleindex);
-				if (tag_moduleindex < menu_active_module->file_count) {
-					module_file* menu_active_tag = menu_active_module->GetTagHeader_AtIndex(tag_moduleindex);
-					write_tag_group(tag_ind, menu_active_tag->ClassId);
-					// convert bytes to string format
-					ImGui::Text("[%d] %s", tag_moduleindex, tag_UI_groups_buffer + tag_ind * 5);
-					ImGui::SameLine();
-					ImGui::Text("ID: %08X", menu_active_tag->GlobalTagId);
-					ImGui::SameLine();
-					// figure out size of byte
-					if (menu_active_tag->TotalUncompressedSize >= 1000000)
-						ImGui::Text("%d%s", menu_active_tag->TotalUncompressedSize / 1000000, "mb");
-					else if (menu_active_tag->TotalUncompressedSize >= 1000)
-						ImGui::Text("%d%s", menu_active_tag->TotalUncompressedSize / 1000, "kb");
-					else ImGui::Text("%d%s", menu_active_tag->TotalUncompressedSize, "b");
-
-					ImGui::SameLine();
-					if (ImGui::Button("Open")) {
-						Modules.OpenTag(menu_active_tag->GlobalTagId);
-					}
-
-				} ImGui::PopID();
-			}
-
-		} 
-		ImGui::PopID();
-	}
-
-
-
-	if (Modules.loaded_tags->size() > 0) {
-		ID3D11ShaderResourceView* last_loaded_image = Modules.BITM_GetTexture(Modules.loaded_tags->at(Modules.loaded_tags->size() - 1), device.Get());
-		if (last_loaded_image != nullptr)
-			ImGui::Image((void*)last_loaded_image, ImVec2(256, 256));
-	}
-
-
-
-	ImGui::End();
-}
-void Graphics::RenderTagsGUI() {
-
-}
-void Graphics::RenderBitmGUI() {
 
 }
