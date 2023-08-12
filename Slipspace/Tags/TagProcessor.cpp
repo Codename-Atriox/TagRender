@@ -13,7 +13,7 @@ void ModuleManager::OpenModule(string filename){
 
 	try{
 		Module* new_module = new Module(filename, unpacker);
-		loaded_modules->push_back(new_module);
+		loaded_modules.push_back(new_module);
 		open_modules++;
 		total_tags += new_module->file_count;
 	} catch (exception ex) {
@@ -23,7 +23,7 @@ void ModuleManager::OpenModule(string filename){
 
 void ModuleManager::CloseModule(string filename){
 	/*
-	for (int c = 0; c < loaded_modules->size(); c++) {
+	for (int c = 0; c < loaded_modules.size(); c++) {
 		Module* curr_module = (*loaded_modules)[c];
 		if (curr_module->filepath != filename) continue;
 
@@ -38,9 +38,9 @@ void ModuleManager::CloseModule(string filename){
 }
 
 Tag* ModuleManager::GetTag(uint32_t tagID) {
-	for (int i = 0; i < loaded_tags->size(); i++)
-		if ((*loaded_tags)[i]->tagID == tagID)
-			return (*loaded_tags)[i];
+	for (int i = 0; i < loaded_tags.size(); i++)
+		if (loaded_tags[i]->tagID == tagID)
+			return loaded_tags[i];
 	return (Tag*)0;
 }
 Tag* ModuleManager::OpenTag(uint32_t tagID){
@@ -48,8 +48,8 @@ Tag* ModuleManager::OpenTag(uint32_t tagID){
 	Tag* new_tag = GetTag(tagID);
 	if (new_tag != (Tag*)0) return new_tag;
 
-	for (int c = 0; c < loaded_modules->size(); c++) {
-		Module* module_ptr = (*loaded_modules)[c];
+	for (int c = 0; c < loaded_modules.size(); c++) {
+		Module* module_ptr = loaded_modules[c];
 
 		int32_t tag_index = module_ptr->find_tag_index(tagID);
 		if (tag_index == -1) continue; // this module does not contain the tag
@@ -60,8 +60,9 @@ Tag* ModuleManager::OpenTag(uint32_t tagID){
 		char* output_cleanup_ptr;
 		module_ptr->GetTagProcessed(file_ptr, output_tag_bytes, output_cleanup_ptr);
 
-		Tag* new_tag = new Tag(std::string("UNIMPLEMENTED"), file_ptr->ClassId, file_ptr->GlobalTagId, output_tag_bytes, output_cleanup_ptr, module_ptr->filepath, tag_index);
-		loaded_tags->push_back(new_tag);
+
+		Tag* new_tag = new Tag(TagnameProcessor.GetTagname(file_ptr->GlobalTagId), file_ptr->ClassId, file_ptr->GlobalTagId, output_tag_bytes, output_cleanup_ptr, module_ptr->filepath, tag_index);
+		loaded_tags.push_back(new_tag);
 
 		// TagToTexture(new_tag);
 		return new_tag;
@@ -70,18 +71,18 @@ Tag* ModuleManager::OpenTag(uint32_t tagID){
 }
 
 Module* ModuleManager::GetModule_AtIndex(uint32_t index){
-	if (index >= loaded_modules->size())
+	if (index >= loaded_modules.size())
 		throw exception("attempted to fetch module from invalid index");
 
-	return (*loaded_modules)[index];
+	return loaded_modules[index];
 }
 
 void ModuleManager::OpenTagResource(Tag* tag, uint32_t resource_index, char* resource_out_buffer, uint32_t buffer_size){
 	// figure out which module this belongs to
 	Module* parent_module = 0;
-	for (uint32_t c = 0; c < loaded_modules->size(); c++) {
-		if ((*loaded_modules)[c]->filepath == tag->source_module){
-			parent_module = (*loaded_modules)[c];
+	for (uint32_t c = 0; c < loaded_modules.size(); c++) {
+		if (loaded_modules[c]->filepath == tag->source_module){
+			parent_module = loaded_modules[c];
 			break;
 	}}
 	if (parent_module == 0)

@@ -3,6 +3,7 @@
 #include "ModuleLoading/TagLoading/TagFramework.h"
 #include "ModuleLoading/ModuleFramework.h"
 #include "TagContainers.h"
+#include "TagnameFetcher.h"
 
 #include "TagStructs/bitm.h"
 #include <DirectXTex.h>
@@ -31,12 +32,13 @@ public:
     void TagToModel(Tag* tag);
     void OpenTagResource(Tag* tag, uint32_t resource_index, char* resource_out_buffer, uint32_t buffer_size);
 private:
-    vector<Module*>* loaded_modules = new vector<Module*>();
+    vector<Module*> loaded_modules;
     Oodle* unpacker; // so we dont reconfigure this for each module
+    Tagnames TagnameProcessor;
 public:
     uint32_t open_modules = 0;
     uint32_t total_tags = 0;
-    vector<Tag*>* loaded_tags = new vector<Tag*>();
+    vector<Tag*> loaded_tags;
 };
 
 

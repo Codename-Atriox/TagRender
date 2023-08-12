@@ -46,11 +46,11 @@ public:
 
 		ShiftForward(index, item);
 	}
-	void RemoveAt(uint64_t index) {
+	void RemoveAt(uint64_t index, bool destruct = true) {
 		if (index >= count)
 			throw std::exception("out of bounds CList removal index");
 		//ShiftBack(index);
-		QuickRemove(index); // this should be much more efficient with managing many simutaneous assets, although this would only be usefuly in the scenario that we have a very large list
+		QuickRemove(index, destruct); // this should be much more efficient with managing many simutaneous assets, although this would only be usefuly in the scenario that we have a very large list
 	}
 	void Alloc(uint64_t extra_size) {
 		allocated_count += extra_size;
@@ -93,8 +93,9 @@ private:
 		write_index(count-1, (T*)0);
 		count--; // since we cleared the last one
 	}
-	void QuickRemove(uint64_t index) {
-		delete content_ptr[index]; // call destructor
+	void QuickRemove(uint64_t index, bool destruct) {
+		if (destruct)
+			delete content_ptr[index]; // call destructor
 		write_index(index, content_ptr[count - 1]);
 		write_index(count - 1, nullptr);
 		count--; // since we cleared the last one

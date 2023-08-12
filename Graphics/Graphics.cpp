@@ -186,7 +186,7 @@ bool Graphics::InitializeShaders()
 bool Graphics::InitializeScene(){
 	try{
 		// SETUP SLIPSACE MODULE MANAGER
-		Modules = *(new ModuleManager());
+		// Modules = *(new ModuleManager()); // it is already setup
 		/*
 		// LOAD TEXTURE
 		HRESULT hr = DirectX::CreateWICTextureFromFile(this->device.Get(), L"Data\\Textures\\pebbles.png", nullptr, grassTexture.GetAddressOf());

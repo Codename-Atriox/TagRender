@@ -242,6 +242,7 @@
     <ClInclude Include="Slipspace\Scene\SlipScene.h" />
     <ClInclude Include="Slipspace\Tags\BitmToDDS.h" />
     <ClInclude Include="Slipspace\Tags\TagContainers.h" />
+    <ClInclude Include="Slipspace\Tags\TagnameFetcher.h" />
     <ClInclude Include="Utilities\CTList.h" />
     <ClInclude Include="Slipspace\Tags\ModuleLoading\ModuleFramework.h" />
     <ClInclude Include="Slipspace\Tags\ModuleLoading\ModuleStructs.h" />
@@ -284,6 +285,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Data\Slipspace\tagnamesSLIM.txt">
+      <DeploymentContent>true</DeploymentContent>
+    </Text>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
