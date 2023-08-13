@@ -47,7 +47,7 @@ public:
 			Module* menu_active_module = Modules->GetModule_AtIndex(i);
 
 			ImGui::PushID(i); // need this id and the next level one, because none of these items are actually in a container
-			if (ImGui::CollapsingHeader(menu_active_module->filepath.c_str())) {
+			if (ImGui::CollapsingHeader(menu_active_module->filename.c_str())) {
 				ImGui::DragInt("Selected File", &menu_active_module->selected_tag, 0.1f, 0, menu_active_module->file_count);
 				// then populate with individual tag views
 				for (uint32_t tag_ind = 0; tag_ind < max_files_onscreen_count; tag_ind++) {
@@ -109,6 +109,8 @@ public:
 
 				ImGui::Text("ID: %08X", active_tag->tagID);
 				ImGui::SameLine();
+				ImGui::Text("%s", active_tag->tagname.c_str());
+				ImGui::SameLine();
 				switch (active_tag->tag_FourCC) {
 				case 1651078253:{
 					ImGui::Text("Bitmap");
@@ -156,7 +158,7 @@ public:
 			ImGui::PushID(open_bitmap->tagID);
 			ImGui::Begin(open_bitmap->tagname.c_str()); // use name of the tag?
 			if (ImGui::Button("Close")){
-				OpenTags.RemoveAt(i, false); 
+				OpenTags.RemoveAt(i); 
 				i--;
 				ImGui::End();
 				ImGui::PopID();

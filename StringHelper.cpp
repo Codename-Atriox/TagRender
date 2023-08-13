@@ -24,6 +24,14 @@ std::string StringHelper::GetDirectoryFromFilePath(const std::string& filepath)
 	}
 	return filepath.substr(0, std::max(off1, off2));
 }
+std::string StringHelper::GetFileNameFromPath(const std::string& filepath) {
+	size_t off = filepath.find_last_of('\\');
+	if (off == std::string::npos)
+		return filepath;
+	if (off + 1 >= filepath.length())
+		return "";
+	return filepath.substr(off+1);
+}
 
 std::string StringHelper::GetFileExtension(const std::string& filename)
 {

@@ -3,10 +3,12 @@
 #include <string>
 #include <vector>
 #include "../../Utilities/CTList.h"
+#include "../../StringHelper.h"
 
 struct Tag {
     Tag(std::string name, uint32_t _4CC, uint32_t _ID, char* _data, char* _clnup, std::string smod, uint32_t sind) {
-        tagname = name;
+        tagname = StringHelper::GetFileNameFromPath(name);
+        tagpath = name;
         tag_FourCC = _4CC;
         tagID = _ID;
         tag_data = _data;
@@ -18,6 +20,7 @@ struct Tag {
         delete[] tag_cleanup_ptr;
     }
     std::string tagname;
+    std::string tagpath;
     uint32_t tag_FourCC;
     uint32_t tagID;
     char* tag_data;

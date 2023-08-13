@@ -46,11 +46,11 @@ public:
 
 		ShiftForward(index, item);
 	}
-	void RemoveAt(uint64_t index, bool destruct = true) {
+	void RemoveAt(uint64_t index) {
 		if (index >= count)
 			throw std::exception("out of bounds CList removal index");
 		//ShiftBack(index);
-		QuickRemove(index, destruct); // this should be much more efficient with managing many simutaneous assets, although this would only be usefuly in the scenario that we have a very large list
+		QuickRemove(index); // this should be much more efficient with managing many simutaneous assets, although this would only be usefuly in the scenario that we have a very large list
 	}
 	void Alloc(uint64_t extra_size) {
 		allocated_count += extra_size;
@@ -67,8 +67,8 @@ public:
 	void ClearBuffer() {
 		if (content_ptr == 0) return; // nothing to delete
 		// call destructor of each object
-		for (uint64_t i = 0; i < count; i++)
-			delete content_ptr[i];
+		//for (uint64_t i = 0; i < count; i++)
+		//	delete content_ptr[i];
 		// then delete the array
 		delete[] content_ptr;
 		content_ptr = 0;
@@ -86,16 +86,15 @@ private:
 	}
 	void ShiftBack(uint64_t index) {
 		// make sure we call the destructor of the one we're removing
-		delete content_ptr[index];
+		//delete content_ptr[index];
 		// start from the start of the array
 		for (uint64_t i = index; i < count-1; i++)
 			write_index(i, content_ptr[i+1]);
 		write_index(count-1, (T*)0);
 		count--; // since we cleared the last one
 	}
-	void QuickRemove(uint64_t index, bool destruct) {
-		if (destruct)
-			delete content_ptr[index]; // call destructor
+	void QuickRemove(uint64_t index) {
+		//delete content_ptr[index]; // call destructor
 		write_index(index, content_ptr[count - 1]);
 		write_index(count - 1, nullptr);
 		count--; // since we cleared the last one

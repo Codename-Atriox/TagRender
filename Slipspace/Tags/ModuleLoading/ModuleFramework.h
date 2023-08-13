@@ -11,6 +11,9 @@
 #include "ModuleStructs.h"
 #include "oodle/oodle.h"
 #include "TagLoading/TagFramework.h"
+
+#include "../../../StringHelper.h"
+
 using namespace ModuleStructs;
 using namespace std;
 
@@ -30,6 +33,7 @@ private:
 	void GetTagRaw(module_file* file_ptr, char* output_bytes);
 public:
 	const int32_t target_module_version = 53;
+	string filename;
 	string filepath;
 	uint32_t file_count;
 	// UI implementation

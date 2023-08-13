@@ -121,13 +121,14 @@ void Module::GetTagRaw(module_file* file_ptr, char* output_bytes) {
     }
 }
 
-Module::Module(string filename, Oodle* oodler) {
+Module::Module(string path, Oodle* oodler) {
     // configure oodle
     unpacker = oodler;
-    filepath = filename;
+    filepath = path;
+    filename = StringHelper::GetFileNameFromPath(path);
 
     // open module file
-    module_reader.open(filename, ios::binary | ios::ate);
+    module_reader.open(path, ios::binary | ios::ate);
     if (!module_reader.is_open()) {
         throw exception("failed to open filestream");
     }
