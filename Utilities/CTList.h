@@ -46,6 +46,13 @@ public:
 
 		ShiftForward(index, item);
 	}
+	void Remove(T* item) {
+		// no breaks so that it can remove as many instances as there are
+		for (uint64_t i = 0; i < count; i++) {
+			if (content_ptr[i] == item) {
+				RemoveAt(i);
+				i--;
+	}}}
 	void RemoveAt(uint64_t index) {
 		if (index >= count)
 			throw std::exception("out of bounds CList removal index");

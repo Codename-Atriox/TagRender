@@ -9,5 +9,6 @@ public:
 	static std::wstring StringToWide(std::string str);
 	static std::string GetDirectoryFromFilePath(const std::string& filepath);
 	static std::string GetFileNameFromPath(const std::string& filepath);
+	static std::string GetFileWithoutExtension(const std::string& filename);
 	static std::string GetFileExtension(const std::string& filename);
 };

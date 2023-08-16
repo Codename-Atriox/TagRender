@@ -33,6 +33,15 @@ std::string StringHelper::GetFileNameFromPath(const std::string& filepath) {
 	return filepath.substr(off+1);
 }
 
+std::string StringHelper::GetFileWithoutExtension(const std::string& filename) {
+	size_t off = filename.find_first_of('.');
+	if (off == std::string::npos)
+	{
+		return {};
+	}
+	return std::string(filename.substr(0, off));
+}
+
 std::string StringHelper::GetFileExtension(const std::string& filename)
 {
 	size_t off = filename.find_first_of('.');

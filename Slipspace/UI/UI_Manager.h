@@ -107,8 +107,7 @@ public:
 				Tag* active_tag = Modules->loaded_tags[tagindex];
 
 
-				ImGui::Text("ID: %08X", active_tag->tagID);
-				ImGui::SameLine();
+				//ImGui::Text("ID: %08X", active_tag->tagID);
 				ImGui::Text("%s", active_tag->tagname.c_str());
 				ImGui::SameLine();
 				switch (active_tag->tag_FourCC) {
@@ -116,16 +115,18 @@ public:
 					ImGui::Text("Bitmap");
 					// check whether bitmap is opened
 					bool is_opened = false;
-					for (int i = 0; i < OpenTags.Size(); i++) {
-						if (OpenTags[i] == active_tag) {
+					for (int i = 0; i < OpenBitmaps.Size(); i++) {
+						if (OpenBitmaps[i] == active_tag) {
 							is_opened = true;
 							break;
 					}}
 					ImGui::SameLine();
 					if (!is_opened) {
 						if (ImGui::Button("View"))
-							OpenTags.Append(active_tag);
-					} else ImGui::Text("(Open)");
+							OpenBitmaps.Append(active_tag);
+					}
+					else if (ImGui::Button("Close"))
+						OpenBitmaps.Remove(active_tag);
 					} break;
 				case 1:
 					ImGui::Text("Runtime Geo");
@@ -138,6 +139,7 @@ public:
 					break;
 				}
 
+				//ImGui::SameLine();
 
 			}
 			ImGui::PopID();
@@ -150,15 +152,15 @@ public:
 	// ////////////// //
 	// BITMAP WINDOW //
 	// //////////// //
-	CTList<Tag> OpenTags;
+	CTList<Tag> OpenBitmaps;
 	void render_bitmap_window(ModuleManager* Modules, ID3D11Device* device) {
 		// create each window
-		for (uint32_t i = 0; i < OpenTags.Size(); i++) {
-			Tag* open_bitmap = OpenTags[i];
+		for (uint32_t i = 0; i < OpenBitmaps.Size(); i++) {
+			Tag* open_bitmap = OpenBitmaps[i];
 			ImGui::PushID(open_bitmap->tagID);
 			ImGui::Begin(open_bitmap->tagname.c_str()); // use name of the tag?
 			if (ImGui::Button("Close")){
-				OpenTags.RemoveAt(i); 
+				OpenBitmaps.RemoveAt(i); 
 				i--;
 				ImGui::End();
 				ImGui::PopID();
