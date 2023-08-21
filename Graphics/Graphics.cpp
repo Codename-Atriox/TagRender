@@ -250,8 +250,8 @@ void Graphics::RenderFrame()
 	//this->cb_ps_light.data.dynamicLightAttenuation_b = light.attenuation_b;
 	//this->cb_ps_light.data.dynamicLightAttenuation_c = light.attenuation_c;
 
-	this->cb_ps_light.ApplyChanges();
-	this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_light.GetAddressOf());
+	//this->cb_ps_light.ApplyChanges();
+	//this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_light.GetAddressOf());
 
 
 
@@ -283,7 +283,7 @@ void Graphics::RenderFrame()
 	}
 	{
 
-		this->deviceContext->PSSetShader(pixelshader_nolight.GetShader(), NULL, 0);
+		//this->deviceContext->PSSetShader(pixelshader_nolight.GetShader(), NULL, 0);
 		//this->light.Draw(camera.GetViewMatrix() * camera.GetProjectionMatrix());
 
 	}

@@ -47,7 +47,7 @@ void Module::ReturnResource(uint32_t tag_index, uint32_t index, char* output_buf
     if (resource_tag->GlobalTagId != -1 || resource_tag->ClassId != -1)
         throw exception("indexed resource file is not a resource file");
 
-    if (resource_tag->Flags & flag_UseRawfile == 0)
+    if ((resource_tag->Flags & flag_UseRawfile) == 0)
         throw exception("resource files with tagdata content are not currently supported");
 
     if (resource_tag->TotalUncompressedSize > output_size)

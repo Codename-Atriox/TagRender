@@ -31,8 +31,8 @@ struct Tag {
     // source data, so fetching resources doesn't require us refinding the tag each time
     std::string source_module;
     uint32_t source_tag_index;
-};/*
-struct BitmapResource {
+};
+class BitmapResource {
     ~BitmapResource() {
         delete bitmap;
     }
@@ -40,8 +40,8 @@ struct BitmapResource {
     uint32_t X;
     uint32_t Y;
     ID3D11ShaderResourceView* bitmap;
-};*/
-struct ModelResource {
+};
+class ModelResource {
     vector<float> verticies;
     vector<uint64_t> triangle_indicies; // should be an array of struct or something idk
 };

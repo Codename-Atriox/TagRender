@@ -207,6 +207,11 @@
     <ClCompile Include="WindowContainer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="C:\Users\Joe bingle\Downloads\plguins_cpp\levl.h" />
+    <ClInclude Include="C:\Users\Joe bingle\Downloads\plguins_cpp\mat .h" />
+    <ClInclude Include="C:\Users\Joe bingle\Downloads\plguins_cpp\mode.h" />
+    <ClInclude Include="C:\Users\Joe bingle\Downloads\plguins_cpp\rtgo.h" />
+    <ClInclude Include="C:\Users\Joe bingle\Downloads\plguins_cpp\sbsp.h" />
     <ClInclude Include="Graphics\Color.h" />
     <ClInclude Include="COMException.h" />
     <ClInclude Include="Graphics\GameObject.h" />
@@ -243,6 +248,11 @@
     <ClInclude Include="Slipspace\Tags\BitmToDDS.h" />
     <ClInclude Include="Slipspace\Tags\TagContainers.h" />
     <ClInclude Include="Slipspace\Tags\TagnameFetcher.h" />
+    <ClInclude Include="Slipspace\Tags\TagStructs\levl.h" />
+    <ClInclude Include="Slipspace\Tags\TagStructs\mat .h" />
+    <ClInclude Include="Slipspace\Tags\TagStructs\mode.h" />
+    <ClInclude Include="Slipspace\Tags\TagStructs\rtgo.h" />
+    <ClInclude Include="Slipspace\Tags\TagStructs\sbsp.h" />
     <ClInclude Include="Utilities\CTList.h" />
     <ClInclude Include="Slipspace\Tags\ModuleLoading\ModuleFramework.h" />
     <ClInclude Include="Slipspace\Tags\ModuleLoading\ModuleStructs.h" />
