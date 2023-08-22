@@ -1,12 +1,13 @@
 #pragma once
 
+#include <DirectXTex.h>
+
 #include "ModuleLoading/TagLoading/TagFramework.h"
 #include "ModuleLoading/ModuleFramework.h"
 #include "TagContainers.h"
 #include "TagnameFetcher.h"
 
 #include "TagStructs/bitm.h"
-#include <DirectXTex.h>
 #include "../../Utilities/CTList.h"
 
 
@@ -27,10 +28,12 @@ public:
     void CloseTag(uint32_t tagID); // WHEN CLOSING TAG WE MUST CLEAR TAGID, SO GAMOBJECTS REALIZE THE TAG IS NON-EXISTANT // terrible idea
 
     Module* GetModule_AtIndex(uint32_t index);
+    Module* GetModule_FromTag(Tag* tag);
 
-    ID3D11ShaderResourceView* BITM_GetTexture(Tag* tag, ID3D11Device* device);
+    BitmapResource* BITM_GetTexture(Tag* tag, ID3D11Device* device, int target_resource = -1);
     void TagToModel(Tag* tag);
-    void OpenTagResource(Tag* tag, uint32_t resource_index, char* resource_out_buffer, uint32_t buffer_size);
+    HRESULT OpenTagResource(Tag* tag, uint32_t resource_index, char* resource_out_buffer, uint32_t buffer_size);
+    bool IsTagResourceHd1(Tag* tag, uint32_t resource_index);
 private:
     vector<Module*> loaded_modules;
     Oodle* unpacker; // so we dont reconfigure this for each module

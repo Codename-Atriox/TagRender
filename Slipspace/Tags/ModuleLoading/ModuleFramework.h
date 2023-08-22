@@ -26,11 +26,13 @@ public:
 	int32_t find_tag_index(uint32_t tagID);
 	void GetTagProcessed(uint32_t tagID, char*& output_tag_bytes, char*& output_cleanup_ptr);
 	void GetTagProcessed(module_file* file_ptr, char*& output_tag_bytes, char*& output_cleanup_ptr);
-	void ReturnResource(uint32_t tag_index, uint32_t index, char* output_buffer, uint32_t output_size);
+
+	module_file* ReturnResourceHeader(uint32_t tag_index, uint32_t index);
+	HRESULT ReturnResource(uint32_t tag_index, uint32_t index, char* output_buffer, uint32_t output_size);
 
 	module_file* GetTagHeader_AtIndex(uint32_t index);
 private:
-	void GetTagRaw(module_file* file_ptr, char* output_bytes);
+	HRESULT GetTagRaw(module_file* file_ptr, char* output_bytes);
 public:
 	const int32_t target_module_version = 53;
 	string filename;

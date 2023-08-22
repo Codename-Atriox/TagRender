@@ -200,19 +200,22 @@ public:
 					}
 
 					BitmapDataResource* bitm_resource = curr_bitmap->bitmap_resource_handle.content_ptr;
-					ImGui::Text("Format [%d]", bitm_resource->hardware_format);
+					ImGui::Text("Format [%d]", bitm_resource->format);
 
 					uint32_t lods = 0;
 					if (bitm_resource->pixels.content_ptr != 0)
 						lods = 1;
 					lods += bitm_resource->streamingData.count;
 					ImGui::Text("LODs [%d]", lods);
-
+					ImGui::DragInt("Active LOD", &open_bitmap->preview_1, 0.1f, 0, lods-1);
 					// then present the actual image
 					if (curr_bitmap->type == BitmapType::_2D_texture) {
-						ID3D11ShaderResourceView* last_loaded_image = Modules->BITM_GetTexture(open_bitmap, device);
+						BitmapResource* last_loaded_image = Modules->BITM_GetTexture(open_bitmap, device, open_bitmap->preview_1);
 						if (last_loaded_image != nullptr)
-							ImGui::Image((void*)last_loaded_image, ImVec2(256, 256));
+							ImGui::Image((void*)last_loaded_image->image_view, ImVec2(256, 256));
+					} 
+					else {
+						ImGui::Text("Incompatible Image!");
 					}
 
 				}

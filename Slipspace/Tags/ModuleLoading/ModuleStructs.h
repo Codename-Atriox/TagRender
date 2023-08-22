@@ -33,13 +33,22 @@ namespace ModuleStructs{
 
     // // // // FLAGS // // // // 
     // (these are probably flipped as i was figuring this out straight from the module files)
-    // 0000-0001 <- Uses Compression
-    // 0000-0010 <- has blocks, which means to read the data across several data blocks, otherwise read straight from data offset
-    // 0000-0100 <- is a raw file, meaning it has no tag header
-    const char flag_UseCompression = 0b00000001;
-    const char flag_UseBlocks      = 0b00000010;
-    const char flag_UseRawfile     = 0b00000100;
+    // 0000-0001 <- 
+    // 0000-0010 <- 
+    // 0000-0100 <- 
+    const char flag_UseCompression = 0b00000001; // Uses Compression
+    const char flag_UseBlocks      = 0b00000010; // has blocks, which means to read the data across several data blocks, otherwise read straight from data offset
+    const char flag_UseRawfile     = 0b00000100; // is a raw file, meaning it has no tag header
+    
+    const char flag2_UseHd1   = 0b0000000000000001; // if this is checked, then its likely that the tag resides in the hd1 file (if that exists)
     struct module_file {
+        uint64_t get_dataoffset() {
+            return DataOffset_and_flags & 0x0000FFFFFFFFFFFF;
+        }
+        uint16_t get_dataflags() {
+            return (uint16_t)(DataOffset_and_flags >> 48);
+        }
+
         char        ClassGroup;     //  
         char        Flags;          // refer to flag bits below this struct
         uint16_t    BlockCount;     // "The number of blocks that make up the file. Only valid if the HasBlocks flag is set"
@@ -48,8 +57,8 @@ namespace ModuleStructs{
 
         uint32_t    ClassId;        // this is the tag group, should be a string right?
 
-        uint32_t    DataOffset;     //how is this not a long???? surely theres no way a uint32_t could actually offset far enough in most files
-        uint32_t    Unk_0x14;       // we will now need to double check each file to make sure if this number is ever anything // its used in the very big files
+        uint64_t    DataOffset_and_flags;     //how is this not a long???? surely theres no way a uint32_t could actually offset far enough in most files
+        //uint32_t  Unk_0x14;       // we will now need to double check each file to make sure if this number is ever anything // its used in the very big files
 
         int32_t     TotalCompressedSize;    // "The total size of compressed data."
         int32_t     TotalUncompressedSize;  // "The total size of the data after it is uncompressed. If this is 0, then the file is empty."
@@ -61,9 +70,9 @@ namespace ModuleStructs{
         int32_t     UncompressedResourceDataSize;
         int32_t     UncompressedActualResourceDataSize;   // used with bitmaps, and likely other tags idk
 
-        char        HeaderAlignment;             // Power of 2 to align the header buffer to (e.g. 4 = align to a multiple of 16 bytes).
-        char        TagDataAlightment;           // Power of 2 to align the tag data buffer to.
-        char        ResourceDataAligment;        // Power of 2 to align the resource data buffer to.
+        char        HeaderAlignment;             // "Power of 2 to align the header buffer to (e.g. 4 = align to a multiple of 16 bytes)."
+        char        TagDataAlightment;           // "Power of 2 to align the tag data buffer to."
+        char        ResourceDataAligment;        // "Power of 2 to align the resource data buffer to."
         char        ActualResourceDataAligment;  // Power of 2 to align the actual resource data buffer to.
 
         uint32_t    NameOffset;       // 

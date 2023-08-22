@@ -521,9 +521,9 @@ struct MeshImportInfo{
 struct LODTransitionDistanceBlock{
    float lodTransitionDistance;
 };
-struct BLANK{
-   int32_t BLANK;
-   uint8_t BLANK[4];
+struct s_anyTagGuts {
+	int32_t global_tag_ID;
+	uint8_t local_tag_handle[4];
 };
 struct StaticGeoMarkerGroup{
    uint32_t name;
@@ -567,12 +567,12 @@ struct RuntimeGeoPerMeshData{
    uint8_t generated_pad359f[4];
    int64_t Mesh_Checksum;
 };
-struct BLANK{
-   int64_t BLANK;
-   BLANK BLANK;
+struct AnyTag_struct_definition {
+	int64_t vtable_space;
+	s_anyTagGuts internal_struct;
 };
 struct RuntimeGeoTag{
-   BLANK AnyTag;
+	AnyTag_struct_definition AnyTag;
    _s_tagblock<RuntimeGeoPerMeshData> Per_Mesh_Data;
    uint8_t generated_pad8ff5[4];
    s_render_geometry render_geometry;

@@ -13,31 +13,34 @@ private:
 public:
     const char* tagnames_file = "Data\\Slipspace\\tagnamesSLIM.txt";
     Tagnames() {
+        try{
+            // open the file:
+            std::streampos fileSize;
+            std::ifstream file(tagnames_file, std::ios::binary);
 
-        // open the file:
-        std::streampos fileSize;
-        std::ifstream file(tagnames_file, std::ios::binary);
+            // get its size:
+            file.seekg(0, std::ios::end);
+            fileSize = file.tellg();
+            file.seekg(0, std::ios::beg);
 
-        // get its size:
-        file.seekg(0, std::ios::end);
-        fileSize = file.tellg();
-        file.seekg(0, std::ios::beg);
+            // read the data:
+            std::vector<char> fileData(fileSize);
+            file.read((char*)&fileData[0], fileSize);
 
-        // read the data:
-        std::vector<char> fileData(fileSize);
-        file.read((char*)&fileData[0], fileSize);
-
-        // then process into tagnames map
-        uint32_t index = 0;
-        while (index < fileSize) {
-            // read tagid
-            uint32_t tagid = *(uint32_t*)&fileData[index];
-            index += 4;
-            // then while loop to read string
-            std::string tagname = &fileData[index];
-            index += tagname.length() + 1;
-            // add into the map
-            tagnames[tagid] = tagname;
+            // then process into tagnames map
+            uint32_t index = 0;
+            while (index < fileSize) {
+                // read tagid
+                uint32_t tagid = *(uint32_t*)&fileData[index];
+                index += 4;
+                // then while loop to read string
+                std::string tagname = &fileData[index];
+                index += tagname.length() + 1;
+                // add into the map
+                tagnames[tagid] = tagname;
+            }
+        }catch (std::exception exe) {
+            // do nothing here, we will log these errors when we build an error log lol
         }
         
     }

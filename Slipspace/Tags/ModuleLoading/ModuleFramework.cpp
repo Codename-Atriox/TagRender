@@ -27,12 +27,13 @@ void Module::GetTagProcessed(uint32_t tagID, char*& output_tag_bytes, char*& out
 void Module::GetTagProcessed(module_file* file_ptr, char*& output_tag_bytes, char*& output_cleanup_ptr) {
     // read tag from module (ifstream)
     char* raw_tag_bytes = new char[file_ptr->TotalUncompressedSize];
-    GetTagRaw(file_ptr, raw_tag_bytes);
+    if (FAILED(GetTagRaw(file_ptr, raw_tag_bytes)))
+        throw exception("get tag failed, not allowed!!");
     // process tag to make it usable
     TagProcessing::Open_ready_tag(raw_tag_bytes, file_ptr->TotalUncompressedSize, output_tag_bytes, output_cleanup_ptr);
 }
 
-void Module::ReturnResource(uint32_t tag_index, uint32_t index, char* output_buffer, uint32_t output_size){
+module_file* Module::ReturnResourceHeader(uint32_t tag_index, uint32_t index) {
     module_file* target_tag = GetTagHeader_AtIndex(tag_index);
 
     if (index >= target_tag->ResourceCount)
@@ -50,10 +51,14 @@ void Module::ReturnResource(uint32_t tag_index, uint32_t index, char* output_buf
     if ((resource_tag->Flags & flag_UseRawfile) == 0)
         throw exception("resource files with tagdata content are not currently supported");
 
-    if (resource_tag->TotalUncompressedSize > output_size)
-        throw exception("not enough room allocated to fit indexed resource");
+    return resource_tag;
+}
 
-    GetTagRaw(resource_tag, output_buffer);
+HRESULT Module::ReturnResource(uint32_t tag_index, uint32_t index, char* output_buffer, uint32_t output_size){
+    module_file* resource_header = ReturnResourceHeader(tag_index, index);
+    if (resource_header->TotalUncompressedSize > output_size)
+        throw exception("not enough room allocated to fit indexed resource");
+    return GetTagRaw(resource_header, output_buffer);
 }
 
 module_file* Module::GetTagHeader_AtIndex(uint32_t index){
@@ -63,7 +68,7 @@ module_file* Module::GetTagHeader_AtIndex(uint32_t index){
     return &files[index];
 }
 // output bytes NEEDS to already be allocated
-void Module::GetTagRaw(module_file* file_ptr, char* output_bytes) {
+HRESULT Module::GetTagRaw(module_file* file_ptr, char* output_bytes) {
     if (output_bytes == 0)
         throw exception("tag output buffer was not preallocated");
     // then begin the read
@@ -74,12 +79,20 @@ void Module::GetTagRaw(module_file* file_ptr, char* output_bytes) {
     bool reading_separate_blocks = (file_ptr->Flags & flag_UseBlocks) != 0;
     bool reading_raw_file        = (file_ptr->Flags & flag_UseRawfile) != 0;
 
+    // check if this is a hd1 file?
+    bool is_hd1 = (file_ptr->get_dataflags() & flag2_UseHd1) != 0;
+    if (is_hd1) { // we're just going to throw an exception for now, as we'll create another function to check whether its a hd file or not
+        throw exception("dobule check before-hand that this is not a hd1 resource!!!");
+        return E_FAIL;
+    }
+
+
     if (file_ptr->TotalUncompressedSize == 0)
         throw exception("module file was empty");
 
     // god dammit, mf 'long' how about you take a long trip down to the bottom of the ocean
     // please someone for the love of god make the long 64 bits, and not just literally an int
-    uint64_t data_Address = module_metadata_size + file_ptr->DataOffset;
+    uint64_t data_Address = module_metadata_size + file_ptr->get_dataoffset();
 
     if (reading_separate_blocks) {
         for (int i = 0; i < file_ptr->BlockCount; i++) {
@@ -112,13 +125,14 @@ void Module::GetTagRaw(module_file* file_ptr, char* output_bytes) {
             try{unpacker->decompress(output_bytes, file_ptr->TotalUncompressedSize, raw_bytes, file_ptr->TotalCompressedSize);
             }catch (exception ex) {
                 delete[] raw_bytes;
-                // delete[] output_bytes; // NOTE: THIS HAS TO BE CLEANED UP MANUALLY
+                // delete[] output_bytes; // NOTE: THIS HAS TO BE CLEANED UP MANUALLY // what does that mean
                 throw ex;
             }
             delete[] raw_bytes;
         }else 
             module_reader.read(output_bytes, file_ptr->TotalUncompressedSize);
     }
+    return S_OK;
 }
 
 Module::Module(string path, Oodle* oodler) {

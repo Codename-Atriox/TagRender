@@ -76,19 +76,36 @@ Module* ModuleManager::GetModule_AtIndex(uint32_t index){
 
 	return loaded_modules[index];
 }
+Module* ModuleManager::GetModule_FromTag(Tag* tag) {
+    Module* parent_module = 0;
+    for (uint32_t c = 0; c < loaded_modules.size(); c++) {
+        if (loaded_modules[c]->filepath == tag->source_module) {
+            parent_module = loaded_modules[c];
+            break;
+        }
+    }
+    return parent_module;
+}
 
-void ModuleManager::OpenTagResource(Tag* tag, uint32_t resource_index, char* resource_out_buffer, uint32_t buffer_size){
+
+HRESULT ModuleManager::OpenTagResource(Tag* tag, uint32_t resource_index, char* resource_out_buffer, uint32_t buffer_size){
 	// figure out which module this belongs to
-	Module* parent_module = 0;
-	for (uint32_t c = 0; c < loaded_modules.size(); c++) {
-		if (loaded_modules[c]->filepath == tag->source_module){
-			parent_module = loaded_modules[c];
-			break;
-	}}
+    Module* parent_module = GetModule_FromTag(tag);
 	if (parent_module == 0)
 		throw exception("tag has no parent module!! was it deallocated?");
 	// attempt write resource to buffer
-	parent_module->ReturnResource(tag->source_tag_index, resource_index, resource_out_buffer, buffer_size);
+	return parent_module->ReturnResource(tag->source_tag_index, resource_index, resource_out_buffer, buffer_size);
+}
+bool ModuleManager::IsTagResourceHd1(Tag* tag, uint32_t resource_index) {
+    Module* parent_module = GetModule_FromTag(tag);
+    if (parent_module == 0)
+        throw exception("tag has no parent module!! was it deallocated?");
+    auto var = parent_module->ReturnResourceHeader(tag->source_tag_index, resource_index);
+    bool test = (var->get_dataflags() & flag2_UseHd1) != 0;
+    if (tag->preview_1 == 5) {
+        throw exception("poop");
+    }
+    return test;
 }
 
 /*
@@ -148,22 +165,77 @@ bool is_short_header(DXGI_FORMAT format) {
     return false;
 }
 
-
-ID3D11ShaderResourceView* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device* device) {
-	if (tag->tag_FourCC != 0x6269746D) // 'bitm'
+// index -1 : highest texture resolution
+BitmapResource* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device* device, int target_resource) {
+	if (tag->tag_FourCC != Tag::bitm) // 'bitm'
 		return nullptr;
 
-    // DEBUG TEMP CODE //
-    // check to see if this tag already has an image loaded
-    if (tag->resources.Size() > 0)
-        return (ID3D11ShaderResourceView*)tag->resources[0];
 
 
-    // pseudo select-best-image code here
-    // aka select the first one, because if theres more, then why???
     BitmapGroup* bitm_tag = (BitmapGroup*)(tag->tag_data);
     BitmapData* selected_bitmap = bitm_tag->bitmaps[0];
+    BitmapDataResource* bitmap_details = selected_bitmap->bitmap_resource_handle.content_ptr;
 
+
+    // calculate actual resource index before doing anything
+    // so we can makre sure we haven't already created this guy
+    const bool has_pixel_data = (bitmap_details->pixels.data_size != 0);
+    const bool has_streamble_data = (bitmap_details->streamingData.count != 0);
+    // count all resources
+    int32_t resource_count = has_pixel_data; // (0 or 1 for init count)
+    resource_count += bitmap_details->streamingData.count;
+
+    // if there is no images, then fail
+    if (resource_count == 0)
+        throw exception("no buffers to source image from");
+
+    // if target index is larger than size, set to highest index
+    // or if index is -1, then also selected highest index
+    bool is_using_pixel_data = false;
+    if (target_resource >= resource_count || target_resource < 0)
+        target_resource = resource_count - 1;
+
+    int32_t resource_file_index = target_resource;
+    if (has_pixel_data) {
+        if (target_resource == 0) // resource 0 means lowest, the data in the buffer is assumedly the lowest quality // however infinite i believe uses that as a buffer, and thus cannot have both streamable & pixel data
+            is_using_pixel_data = true;
+        resource_file_index--;
+    }
+
+    // now check if that resource is valid, if not then go down the list until we find a valid resource.
+    // determine whether we are currently loading 
+    bool hd1_loaded = false; // PLACEHOLDER // replace with grabbing the module's bool for this
+
+
+    // only run this for when using resources
+    if (!is_using_pixel_data) {
+        while (IsTagResourceHd1(tag, resource_file_index)) {
+            target_resource--;
+            resource_file_index--;
+
+            if (resource_file_index < 0) {
+                if (has_pixel_data) break; // this means that all resource files were not compatible, and so we have to resort to our pixel buffer
+                else throw exception("all available resources relied on hd1 module, which we do not have loaded. cannot fetch any resources!!!!");
+            }
+        }
+    }
+
+    // rerun criteria, as we may now be relying on pixel data
+    if (has_pixel_data && target_resource == 0)
+        is_using_pixel_data = true;
+
+    tag->preview_1 = target_resource; // update the value to let the user know whats up
+
+    // now check to see if this resource already exists.
+    for (int i = 0; i < tag->resources.Size(); i++) {
+        BitmapResource* res = (BitmapResource*)tag->resources[i];
+        if (res->resource_index == target_resource) {
+            return res;
+        }
+    }
+
+
+    // error checking only needs to occur the first time, no point double checking everytime we need to access the index
     if (selected_bitmap->type != BitmapType::_2D_texture)
         throw exception("unsupported image type");
     if (selected_bitmap->bitmap_resource_handle.content_ptr == 0)
@@ -171,7 +243,6 @@ ID3D11ShaderResourceView* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device*
     if (selected_bitmap->bitmap_resource_handle.is_chunked_resource == 0)
         throw exception("images with non-chunked/streamable data are not supported!!");
 
-    BitmapDataResource* bitmap_details = selected_bitmap->bitmap_resource_handle.content_ptr;
 
     DirectX::TexMetadata* meta = new DirectX::TexMetadata();
 
@@ -193,9 +264,9 @@ ID3D11ShaderResourceView* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device*
     if (!is_short_header(meta->format)) header_size += 20; // sizeof(DirectX::DDS_HEADER_DXT10);
 
     size_t image_data_size;
-    uint8_t resource_index;
+
+
     // figure out if this texture is using internal data, or resource data
-    const bool is_using_pixel_data = (bitmap_details->pixels.data_size != 0);
     if (is_using_pixel_data) { // use pixel data
         meta->width = selected_bitmap->width;
         meta->height = selected_bitmap->height;
@@ -204,16 +275,15 @@ ID3D11ShaderResourceView* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device*
         if (bitmap_details->streamingData.count == 0)
             throw exception("no streaming data or pixel data");
 
-        uint32_t index = 0; // probably the lowest quality // select the image that we want to be using
-        if (index >= bitmap_details->streamingData.count)
+        if (resource_file_index >= bitmap_details->streamingData.count)
             throw exception("out of bounds index for streaming texture array");
 
-        meta->width = bitmap_details->streamingData[index]->dimensions & 0x0000FFFF;
-        meta->height = (bitmap_details->streamingData[index]->dimensions >> 16) & 0x0000FFFF;
-        image_data_size = bitmap_details->streamingData[index]->size;
+        meta->width = bitmap_details->streamingData[resource_file_index]->dimensions & 0x0000FFFF;
+        meta->height = (bitmap_details->streamingData[resource_file_index]->dimensions >> 16) & 0x0000FFFF;
+        image_data_size = bitmap_details->streamingData[resource_file_index]->size;
         // NOTE: implement a more advanced system that actually compares sizes of resources to see which one this block refers to
         // for now we're just going to pretend the order of resources aligns with the order of streaming data blocks
-        resource_index = index; // apparently that number is the opposite of what it should be (bitmap_details->streamingData[index]->chunkInfo >> 16) & 0xFF; // push 2 backs back, and ignore first byte
+        // apparently that number is the opposite of what it should be (bitmap_details->streamingData[index]->chunkInfo >> 16) & 0xFF; // push 2 backs back, and ignore first byte
         // we should also load the image here // negative, no point writing image just yet if it has a chance of failing
     }
     // if its a 1x1 pixel, then clear mip map levels?
@@ -229,36 +299,48 @@ ID3D11ShaderResourceView* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device*
     if (!SUCCEEDED(hr))
         throw exception("image failed to generate DDS header");
     if (header_size != output_size)
-        // DXGI_FORMAT_BC1_UNORM_SRGB (72) is actually long header? // TODO??
         throw exception("header size was incorrectly assumed! must investigate this image format!!!");
+
+    BitmapResource* resource_container = new BitmapResource();
+    resource_container->Width = meta->width;
+    resource_container->Height = meta->height;
+    resource_container->resource_index = target_resource;
+
+    // i believe we delete meta? // as it should be copied to the DDS header
+    delete meta;
 
     // then write the bitmap data
     if (is_using_pixel_data)  // non-resource pixel array
         memcpy(DDSheader_dest+header_size, bitmap_details->pixels.content_ptr, image_data_size);
-    else // chunked resource  // an interesting problem arises, chunk files are aligned to a 0x?000 bytes in size // so the size is wrong
-        OpenTagResource(tag, resource_index, DDSheader_dest+header_size, image_data_size);
+    else if (FAILED(OpenTagResource(tag, resource_file_index, DDSheader_dest + header_size, image_data_size))) { // chunked resource
+        throw exception("this cannot happen yet, must debug!!");
+        // then cleanup & return stub tag details, just so it doesn't continue to attempt to load the tag over and over again if it ever fails
+        delete[] DDSheader_dest;
+        tag->resources.Append(resource_container);
+        return resource_container;
+    }
     
 
+
+
     // and then we should have a fully loaded dds image in mem, which we should beable to now export for testing purposes
-    DirectX::ScratchImage* DDS_image = new DirectX::ScratchImage();
-    hr = DirectX::LoadFromDDSMemory(DDSheader_dest, header_size + image_data_size,  (DirectX::DDS_FLAGS)0, nullptr, *DDS_image);
+    hr = DirectX::LoadFromDDSMemory(DDSheader_dest, header_size + image_data_size, (DirectX::DDS_FLAGS)0, nullptr, resource_container->scratch_image);
     if (FAILED(hr))
         throw exception("failed to load DDS from memory");
-    const wchar_t* export_file_path = L"C:\\Users\\Joe bingle\\Downloads\\test\\test.dds";
-    hr = DirectX::SaveToDDSFile(*DDS_image->GetImage(0,0,0), (DirectX::DDS_FLAGS)0, export_file_path);
-    if (FAILED(hr))
-        throw exception("failed to save DDS to local file");
+    //const wchar_t* export_file_path = L"C:\\Users\\Joe bingle\\Downloads\\test\\test.dds";
+    //hr = DirectX::SaveToDDSFile(*DDS_image->GetImage(0,0,0), (DirectX::DDS_FLAGS)0, export_file_path);
+    //if (FAILED(hr))
+    //    throw exception("failed to save DDS to local file");
     //Image& image, _In_ DDS_FLAGS flags, _In_z_ const wchar_t*
     //hr = DirectX::SaveToWICFile(*DDS_image->GetImage(0, 0, 0), (DirectX::DDS_FLAGS)0, export_file_path);
 
-    ID3D11ShaderResourceView* image_resource = nullptr;
-    hr = DirectX::CreateShaderResourceView(device, DDS_image->GetImages(), DDS_image->GetImageCount(), DDS_image->GetMetadata(), &image_resource);
+    hr = DirectX::CreateShaderResourceView(device, resource_container->scratch_image.GetImages(), resource_container->scratch_image.GetImageCount(), resource_container->scratch_image.GetMetadata(), &resource_container->image_view);
     if (FAILED(hr))
         throw exception("failed to get shader view from texture");
 
-    tag->resources.Append(image_resource);
+    tag->resources.Append(resource_container);
 
-    return image_resource;
+    return resource_container;
     /*
     image->header.size = 124;
     image->header.flags = 0x1 + 0x2 + 0x4 + 0x1000 + 0x8; // ?? what are all these for
