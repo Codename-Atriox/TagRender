@@ -155,7 +155,8 @@ void TagProcessing::Processtag(char* tag_bytes, uint64_t file_size, char*& _Out_
 				tagblock->content_ptr = &runtime_bytes[resolve_datablock_offset(contained_datar, offsets)];
 			} else tagblock->content_ptr = nullptr;
 		}
-		else if (current_struct->Type == 2 || current_struct->Type == 3) { // resource // not sure why we previously had type 3 as tagblock??
+		// '4' because we dont really care what it is, just let us load
+		else if (current_struct->Type == 2 || current_struct->Type == 3 || current_struct->Type == 4) { // resource // not sure why we previously had type 3 as tagblock??
 			// we're not going to read external types right now
 			_basic_resource* resource = reinterpret_cast<_basic_resource*>(&runtime_bytes[resolve_datablock_offset(datar, offsets) + current_struct->FieldOffset]);
 			// use the handle as an index to the resource
