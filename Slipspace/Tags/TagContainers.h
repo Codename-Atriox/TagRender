@@ -12,9 +12,10 @@ public:
     ~BitmapResource() {
         delete image_view; // not sure if we can do this or not, we'll have to find out
     }
-    uint32_t resource_index;
+    int32_t resource_index;
     uint32_t Width;
     uint32_t Height;
+    bool hd1;
     DirectX::ScratchImage scratch_image;
     ID3D11ShaderResourceView* image_view = nullptr;
 };

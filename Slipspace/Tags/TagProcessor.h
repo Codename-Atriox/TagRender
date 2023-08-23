@@ -30,7 +30,7 @@ public:
     Module* GetModule_AtIndex(uint32_t index);
     Module* GetModule_FromTag(Tag* tag);
 
-    BitmapResource* BITM_GetTexture(Tag* tag, ID3D11Device* device, int target_resource = -1);
+    BitmapResource* BITM_GetTexture(Tag* tag, ID3D11Device* device, int target_resource = -1, bool load_next_best = true);
     void TagToModel(Tag* tag);
     HRESULT OpenTagResource(Tag* tag, uint32_t resource_index, char* resource_out_buffer, uint32_t buffer_size);
     bool IsTagResourceHd1(Tag* tag, uint32_t resource_index);

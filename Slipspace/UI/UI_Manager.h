@@ -207,12 +207,24 @@ public:
 						lods = 1;
 					lods += bitm_resource->streamingData.count;
 					ImGui::Text("LODs [%d]", lods);
-					ImGui::DragInt("Active LOD", &open_bitmap->preview_1, 0.1f, 0, lods-1);
+					ImGui::DragInt("Active MIP", &open_bitmap->preview_1, 0.1f, 0, lods-1);
 					// then present the actual image
 					if (curr_bitmap->type == BitmapType::_2D_texture) {
-						BitmapResource* last_loaded_image = Modules->BITM_GetTexture(open_bitmap, device, open_bitmap->preview_1);
-						if (last_loaded_image != nullptr)
-							ImGui::Image((void*)last_loaded_image->image_view, ImVec2(256, 256));
+						BitmapResource* last_loaded_image = Modules->BITM_GetTexture(open_bitmap, device, open_bitmap->preview_1, false);
+						if (last_loaded_image != nullptr) {
+							ImGui::Text("Resolution: %dx%d", last_loaded_image->Width, last_loaded_image->Height);
+							ImGui::SameLine();
+							if (last_loaded_image->hd1)
+								 ImGui::Text("[HD]");
+							else ImGui::Text("[SD]");
+
+							if (last_loaded_image->image_view != nullptr) {
+								ImGui::Image((void*)last_loaded_image->image_view, ImVec2(256, 256));
+							} else ImGui::Text("No image!");
+							
+						}
+						else ImGui::Text("Failed to load image!");
+						
 					} 
 					else {
 						ImGui::Text("Incompatible Image!");

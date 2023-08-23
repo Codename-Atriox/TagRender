@@ -100,12 +100,7 @@ bool ModuleManager::IsTagResourceHd1(Tag* tag, uint32_t resource_index) {
     Module* parent_module = GetModule_FromTag(tag);
     if (parent_module == 0)
         throw exception("tag has no parent module!! was it deallocated?");
-    auto var = parent_module->ReturnResourceHeader(tag->source_tag_index, resource_index);
-    bool test = (var->get_dataflags() & flag2_UseHd1) != 0;
-    if (tag->preview_1 == 5) {
-        throw exception("poop");
-    }
-    return test;
+    return (parent_module->ReturnResourceHeader(tag->source_tag_index, resource_index)->get_dataflags() & flag2_UseHd1) != 0;
 }
 
 /*
@@ -166,11 +161,12 @@ bool is_short_header(DXGI_FORMAT format) {
 }
 
 // index -1 : highest texture resolution
-BitmapResource* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device* device, int target_resource) {
+BitmapResource* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device* device, int32_t target_resource, bool load_next_best) {
 	if (tag->tag_FourCC != Tag::bitm) // 'bitm'
 		return nullptr;
 
-
+    // TODO: OPTIMIZE THIS, we shouldn't have to compute whether a resource index is hd1 or not everytime
+    // maybe if it is hd1, create a dummy resource with the hd1 bool set & then go through list until we find a non-hd1 asset?
 
     BitmapGroup* bitm_tag = (BitmapGroup*)(tag->tag_data);
     BitmapData* selected_bitmap = bitm_tag->bitmaps[0];
@@ -208,31 +204,57 @@ BitmapResource* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device* device, i
 
 
     // only run this for when using resources
-    if (!is_using_pixel_data) {
-        while (IsTagResourceHd1(tag, resource_file_index)) {
-            target_resource--;
-            resource_file_index--;
+    // iterate through all resources until 
+    //if (!is_using_pixel_data) {
+    //    while (IsTagResourceHd1(tag, resource_file_index)) {
+    //        target_resource--;
+    //        resource_file_index--;
+    //        if (resource_file_index < 0) {
+    //            if (has_pixel_data) break; // this means that all resource files were not compatible, and so we have to resort to our pixel buffer
+    //            else throw exception("all available resources relied on hd1 module, which we do not have loaded. cannot fetch any resources!!!!");
+    //        }
+    //    }
+    //}
 
-            if (resource_file_index < 0) {
-                if (has_pixel_data) break; // this means that all resource files were not compatible, and so we have to resort to our pixel buffer
-                else throw exception("all available resources relied on hd1 module, which we do not have loaded. cannot fetch any resources!!!!");
-            }
-        }
+
+
+
+    // now check to see if this resource already exists.
+    // if it does & the asset is hd1 & we haven't loaded hd1 modules, then we have to find the next best
+    if (!is_using_pixel_data && load_next_best && !hd1_loaded) {
+        BitmapResource* next_best = 0;
+        int32_t next_best_nonhd1 = -1;
+        int32_t lowest_hd1_asset_index = target_resource + 1; // assuming hd1's are indexed always after non-hd1 assets
+
+        for (int i = 0; i < tag->resources.Size(); i++) {
+            BitmapResource* res = (BitmapResource*)tag->resources[i];
+            if (res->hd1) {
+                if (res->resource_index < lowest_hd1_asset_index)
+                    lowest_hd1_asset_index = res->resource_index;
+            } else if (res->resource_index <= target_resource && res->resource_index > next_best_nonhd1) {
+                next_best_nonhd1 = res->resource_index;
+                next_best = res;
+        }}
+
+        // if our next index is not the index below the lowest recorded hd1 asset index, then we clearly have not loaded it yet
+        if (next_best_nonhd1 < lowest_hd1_asset_index - 1) {
+            target_resource = lowest_hd1_asset_index - 1; // basically, just load the next asset after the lowest hd1, until we've loaded an asset that isn't hd1
+            resource_file_index = target_resource - has_pixel_data;
+            if (target_resource < 0) throw exception("all assets marked as hd1!!! no assets to fallback to!");
+        } else { // we found the next best resource index already
+            if (next_best == 0) throw exception("epic code logic fail! this is impossible");
+            return next_best;
+
+    }} else for (int i = 0; i < tag->resources.Size(); i++) { // we just grab whichever index we need, regardless of whether its hd1 or not
+        BitmapResource* res = (BitmapResource*)tag->resources[i];
+        if (res->resource_index == target_resource) return res;
     }
-
+    
     // rerun criteria, as we may now be relying on pixel data
     if (has_pixel_data && target_resource == 0)
         is_using_pixel_data = true;
-
-    tag->preview_1 = target_resource; // update the value to let the user know whats up
-
-    // now check to see if this resource already exists.
-    for (int i = 0; i < tag->resources.Size(); i++) {
-        BitmapResource* res = (BitmapResource*)tag->resources[i];
-        if (res->resource_index == target_resource) {
-            return res;
-        }
-    }
+    
+    
 
 
     // error checking only needs to occur the first time, no point double checking everytime we need to access the index
@@ -290,7 +312,18 @@ BitmapResource* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device* device, i
     if (meta->width == 1 || meta->height == 1)
         meta->mipLevels = 1; // i dont think this will fix it
 
+    BitmapResource* resource_container = new BitmapResource();
+    resource_container->Width = meta->width;
+    resource_container->Height = meta->height;
+    resource_container->resource_index = target_resource;
+    resource_container->hd1 = IsTagResourceHd1(tag, resource_file_index);
 
+    // if this was marked as hd1 & we dont have hd1 loaded, then blank this & next time it will load a lower index asset
+    if (resource_container->hd1 && !hd1_loaded) {
+        tag->resources.Append(resource_container);
+        delete meta;
+        return resource_container;
+    }
 
     char* DDSheader_dest = new char[header_size + image_data_size];
 
@@ -300,11 +333,6 @@ BitmapResource* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device* device, i
         throw exception("image failed to generate DDS header");
     if (header_size != output_size)
         throw exception("header size was incorrectly assumed! must investigate this image format!!!");
-
-    BitmapResource* resource_container = new BitmapResource();
-    resource_container->Width = meta->width;
-    resource_container->Height = meta->height;
-    resource_container->resource_index = target_resource;
 
     // i believe we delete meta? // as it should be copied to the DDS header
     delete meta;
