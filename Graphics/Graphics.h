@@ -13,7 +13,6 @@
 #include "RenderableGameObject.h"
 #include "Light.h"
 
-#include "utilities/NFD/NFD.h"
 #include "../Slipspace/Tags/TagProcessor.h"
 #include "../Slipspace/UI/UI_Manager.h"
 

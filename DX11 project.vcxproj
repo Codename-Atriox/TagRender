@@ -135,6 +135,7 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\..\TagFramework_cpp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -156,6 +157,7 @@
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\..\TagFramework_cpp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -186,7 +188,6 @@
     <ClCompile Include="Graphics\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="Graphics\RenderableGameObject.cpp" />
     <ClCompile Include="Graphics\Texture.cpp" />
-    <ClCompile Include="Graphics\utilities\NFD\NFD.cpp" />
     <ClCompile Include="Keyboard\KeyboarClass.cpp" />
     <ClCompile Include="Keyboard\KeyboardEvent.cpp" />
     <ClCompile Include="Graphics\Model.cpp" />
@@ -204,6 +205,8 @@
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="StringHelper.cpp" />
     <ClCompile Include="Timer.cpp" />
+    <ClCompile Include="Utilities\NFD\nfd_common.c" />
+    <ClCompile Include="Utilities\NFD\nfd_win.cpp" />
     <ClCompile Include="WindowContainer.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -233,8 +236,6 @@
     <ClInclude Include="Graphics\IndexBuffer.h" />
     <ClInclude Include="Graphics\RenderableGameObject.h" />
     <ClInclude Include="Graphics\Texture.h" />
-    <ClInclude Include="Graphics\utilities\FileDialogue.h" />
-    <ClInclude Include="Graphics\utilities\NFD\NFD.h" />
     <ClInclude Include="Keyboard\KeybaordEvent.h" />
     <ClInclude Include="Keyboard\KeyboardClass.h" />
     <ClInclude Include="Graphics\Model.h" />
@@ -271,6 +272,9 @@
     <ClInclude Include="Graphics\Vertex.h" />
     <ClInclude Include="Graphics\VertexBuffer.h" />
     <ClInclude Include="Timer.h" />
+    <ClInclude Include="Utilities\NFD\common.h" />
+    <ClInclude Include="Utilities\NFD\include\nfd.h" />
+    <ClInclude Include="Utilities\NFD\nfd_common.h" />
     <ClInclude Include="WindowContainer.h" />
   </ItemGroup>
   <ItemGroup>

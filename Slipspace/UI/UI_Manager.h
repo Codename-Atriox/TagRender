@@ -2,6 +2,8 @@
 #include "Utilities/UI_Bitmap.h"
 #include "../Tags/TagContainers.h"
 
+#include "../../Utilities/NFD/include/nfd.h"
+
 class UI {
 public:
 	void render_UI(ModuleManager* Modules, ID3D11Device* device) {
@@ -12,6 +14,8 @@ public:
 
 
 	}
+	const char* module_load_filters = "module";
+	const char* module_load_defaultpath = "D:\\Programs\\Steam\\steamapps\\common\\Halo Infinite\\deploy";
 
 
 	// ////////////// //
@@ -31,13 +35,12 @@ public:
 	void render_module_window(ModuleManager* Modules) {
 		ImGui::Begin("Modules");
 		if (ImGui::Button("Open Module")) {
-
-			std::string test;
-			if (NativeFileDialogue::NFD_OpenDialog(test)) {
-				Modules->OpenModule(test);
+			char* outpath;
+			if (NFD_OpenDialog(module_load_filters, module_load_defaultpath, &outpath) == NFD_OKAY) {
+				Modules->OpenModule(string(outpath));
+				if (outpath) delete[] outpath;
 				//throw std::exception("button pressed");
 			}
-
 		}
 		// loaded modules display
 		ImGui::Text("Indexed tags [%d]", Modules->total_tags);
@@ -75,7 +78,7 @@ public:
 							Modules->OpenTag(menu_active_tag->GlobalTagId);
 						}
 
-					} 
+					}
 					ImGui::PopID();
 				}
 
@@ -111,7 +114,7 @@ public:
 				ImGui::Text("%s", active_tag->tagname.c_str());
 				ImGui::SameLine();
 				switch (active_tag->tag_FourCC) {
-				case 1651078253:{
+				case 1651078253: {
 					ImGui::Text("Bitmap");
 					// check whether bitmap is opened
 					bool is_opened = false;
@@ -119,7 +122,8 @@ public:
 						if (OpenBitmaps[i] == active_tag) {
 							is_opened = true;
 							break;
-					}}
+						}
+					}
 					ImGui::SameLine();
 					if (!is_opened) {
 						if (ImGui::Button("View"))
@@ -127,7 +131,7 @@ public:
 					}
 					else if (ImGui::Button("Close"))
 						OpenBitmaps.Remove(active_tag);
-					} break;
+				} break;
 				case 1:
 					ImGui::Text("Runtime Geo");
 					break;
@@ -152,15 +156,88 @@ public:
 	// ////////////// //
 	// BITMAP WINDOW //
 	// //////////// //
+	enum export_type { DDS = 0, JPG = 1, PNG = 2 };
+	const char* formats[3] = {{"DDS"}, {"JPG"}, {"PNG"}};
+	const char* formats_ext[3] = { {".dds"}, {".jpg"}, {".png"} };
+	bool is_exportable_format(DXGI_FORMAT format) {
+		switch (format) {
+		case DXGI_FORMAT_R32G32B32A32_FLOAT:
+		case DXGI_FORMAT_R16G16B16A16_FLOAT:
+		case DXGI_FORMAT_R16G16B16A16_UNORM:
+		case DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM:
+		case DXGI_FORMAT_R10G10B10A2_UNORM:
+		case DXGI_FORMAT_B5G5R5A1_UNORM:
+		case DXGI_FORMAT_B5G6R5_UNORM:
+		case DXGI_FORMAT_R32_FLOAT:
+		case DXGI_FORMAT_R16_FLOAT:
+		case DXGI_FORMAT_R16_UNORM:
+		case DXGI_FORMAT_R8_UNORM:
+		case DXGI_FORMAT_A8_UNORM:
+		case DXGI_FORMAT_R8G8B8A8_UNORM:
+		case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+		case DXGI_FORMAT_B8G8R8A8_UNORM:
+		case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+		case DXGI_FORMAT_B8G8R8X8_UNORM:
+		case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB:
+			return true;
+		}
+		return false;
+	}
+	void export_bitmap_resource(DirectX::ScratchImage* image, string path, export_type type) {
+		try{HRESULT hr;
+			// fix up the path extension if we didn't do it right
+			if (!path.ends_with(formats_ext[type]))
+				path += formats_ext[type];
+			
+			wstring wide_export_path(path.begin(), path.end());
+			if (type > DDS) { // write to regular file format
+				DirectX::ScratchImage decompressedImage;
+				if (DirectX::IsCompressed(image->GetMetadata().format)) {
+					hr = DirectX::Decompress(image->GetImages(), image->GetImageCount(), image->GetMetadata(), DXGI_FORMAT_R8G8B8A8_UNORM, decompressedImage);
+					if (FAILED(hr))
+						return;
+				} else if (!is_exportable_format(image->GetMetadata().format)) { // BC bitmaps should always convert to that format anyway, so they shouldn't need to convert
+					hr = DirectX::Convert(image->GetImages(), image->GetImageCount(), image->GetMetadata(), DXGI_FORMAT_R8G8B8A8_UNORM, DirectX::TEX_FILTER_DEFAULT, DirectX::TEX_THRESHOLD_DEFAULT, decompressedImage);
+					if (FAILED(hr))
+						return;
+				}
+				// for the codec version, it aligns with our enum when we plus 1
+				hr = DirectX::SaveToWICFile(*decompressedImage.GetImage(0, 0, 0), DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(DirectX::WICCodecs(type + 1)), wide_export_path.c_str());
+				if (FAILED(hr))
+					return;
+			} else { // write to DDS format
+
+				hr = DirectX::SaveToDDSFile(*image->GetImage(0,0,0), (DirectX::DDS_FLAGS)0, wide_export_path.c_str());
+				if (FAILED(hr))
+					return;
+			}
+
+
+		}catch (exception ex) {
+			// do nothing, no memory allocated so none required to be removed.
+		}
+	}
+	void export_prompt(DirectX::ScratchImage* image, export_type type) {
+		char* outpath;
+		if (NFD_SaveDialog(formats[type], NULL, &outpath) == NFD_OKAY && outpath) { // idk why but it hides other files if we have an extension defined, seems inconvenient
+			export_bitmap_resource(image, string(outpath), type);
+			delete[] outpath;
+		}
+	}
 	CTList<Tag> OpenBitmaps;
 	void render_bitmap_window(ModuleManager* Modules, ID3D11Device* device) {
 		// create each window
 		for (uint32_t i = 0; i < OpenBitmaps.Size(); i++) {
 			Tag* open_bitmap = OpenBitmaps[i];
 			ImGui::PushID(open_bitmap->tagID);
-			ImGui::Begin(open_bitmap->tagname.c_str()); // use name of the tag?
-			if (ImGui::Button("Close")){
-				OpenBitmaps.RemoveAt(i); 
+			bool window_is_open = true;
+			if (!ImGui::Begin(open_bitmap->tagname.c_str(), &window_is_open) && window_is_open) {
+				ImGui::End();
+				ImGui::PopID();
+				continue;
+			}
+			if (!window_is_open) {
+				OpenBitmaps.RemoveAt(i);
 				i--;
 				ImGui::End();
 				ImGui::PopID();
@@ -220,8 +297,15 @@ public:
 
 							if (last_loaded_image->image_view != nullptr) {
 								ImGui::Image((void*)last_loaded_image->image_view, ImVec2(256, 256));
+								
 							} else ImGui::Text("No image!");
-							
+							if (last_loaded_image->scratch_image.GetImageCount() > 0) {
+								if (ImGui::Button("DDS")) export_prompt(&last_loaded_image->scratch_image, DDS);
+								ImGui::SameLine();
+								if (ImGui::Button("JPG")) export_prompt(&last_loaded_image->scratch_image, JPG);
+								ImGui::SameLine();
+								if (ImGui::Button("PNG")) export_prompt(&last_loaded_image->scratch_image, PNG);
+							}
 						}
 						else ImGui::Text("Failed to load image!");
 						

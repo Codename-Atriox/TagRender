@@ -1,6 +1,6 @@
 #pragma once
 /*
-  MOFIED VERSION OF NATIVE FILE DIALOGUE: https://github.com/mlabbe/nativefiledialog/tree/master/src
+  MODIFIED VERSION OF NATIVE FILE DIALOGUE: https://github.com/mlabbe/nativefiledialog/tree/master/src
 
   Native File Dialog
 

@@ -355,12 +355,6 @@ BitmapResource* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device* device, i
     hr = DirectX::LoadFromDDSMemory(DDSheader_dest, header_size + image_data_size, (DirectX::DDS_FLAGS)0, nullptr, resource_container->scratch_image);
     if (FAILED(hr))
         throw exception("failed to load DDS from memory");
-    //const wchar_t* export_file_path = L"C:\\Users\\Joe bingle\\Downloads\\test\\test.dds";
-    //hr = DirectX::SaveToDDSFile(*DDS_image->GetImage(0,0,0), (DirectX::DDS_FLAGS)0, export_file_path);
-    //if (FAILED(hr))
-    //    throw exception("failed to save DDS to local file");
-    //Image& image, _In_ DDS_FLAGS flags, _In_z_ const wchar_t*
-    //hr = DirectX::SaveToWICFile(*DDS_image->GetImage(0, 0, 0), (DirectX::DDS_FLAGS)0, export_file_path);
 
     hr = DirectX::CreateShaderResourceView(device, resource_container->scratch_image.GetImages(), resource_container->scratch_image.GetImageCount(), resource_container->scratch_image.GetMetadata(), &resource_container->image_view);
     if (FAILED(hr))
