@@ -210,11 +210,6 @@
     <ClCompile Include="WindowContainer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="C:\Users\Joe bingle\Downloads\plguins_cpp\levl.h" />
-    <ClInclude Include="C:\Users\Joe bingle\Downloads\plguins_cpp\mat .h" />
-    <ClInclude Include="C:\Users\Joe bingle\Downloads\plguins_cpp\mode.h" />
-    <ClInclude Include="C:\Users\Joe bingle\Downloads\plguins_cpp\rtgo.h" />
-    <ClInclude Include="C:\Users\Joe bingle\Downloads\plguins_cpp\sbsp.h" />
     <ClInclude Include="Graphics\Color.h" />
     <ClInclude Include="COMException.h" />
     <ClInclude Include="Graphics\GameObject.h" />

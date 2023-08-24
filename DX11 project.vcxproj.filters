@@ -305,21 +305,6 @@
     <ClInclude Include="Slipspace\Tags\TagnameFetcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\Joe bingle\Downloads\plguins_cpp\levl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="C:\Users\Joe bingle\Downloads\plguins_cpp\mat .h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="C:\Users\Joe bingle\Downloads\plguins_cpp\mode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="C:\Users\Joe bingle\Downloads\plguins_cpp\rtgo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="C:\Users\Joe bingle\Downloads\plguins_cpp\sbsp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Slipspace\Tags\TagStructs\levl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
