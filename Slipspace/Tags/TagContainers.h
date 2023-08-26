@@ -19,10 +19,6 @@ public:
     DirectX::ScratchImage scratch_image;
     ID3D11ShaderResourceView* image_view = nullptr;
 };
-class ModelResource {
-public:
-    vector<vector<char>> resource_buffers;
-};
 struct Tag {
     const static uint32_t bitm = 1651078253;
     const static uint32_t rtgo = 1920231279;
@@ -47,9 +43,9 @@ struct Tag {
         case bitm:
             for (int i = 0; i < resources.Size(); i++) delete (BitmapResource*)resources[i];
             break;
-        case rtgo:
-            for (int i = 0; i < resources.Size(); i++) delete (ModelResource*)resources[i];
-            break;
+        //case rtgo:
+        //    for (int i = 0; i < resources.Size(); i++) delete (ModelResource*)resources[i];
+        //    break;
         }
     }
     std::string tagname_ext;
