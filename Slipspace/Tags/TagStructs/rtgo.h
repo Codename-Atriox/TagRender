@@ -6,579 +6,581 @@
 ; SOURCE PLUGIN: rtgo
 ; GENERATED TIMESTAMP: 24/08/2023 -> 6:00:28 PM
 */
-
+#pragma once
 #include "commons.h"
 #pragma pack(push, 1)
 
+namespace rtgo {
 
-// /////////////// //
-// FLAG REFERENCES //
-// /////////////// //
+	// /////////////// //
+	// FLAG REFERENCES //
+	// /////////////// //
 
-struct PerMeshFlagsDefinition {
-	uint8_t content;
-	bool Does_not_block_AOE_damage() { return (content & 0b00000001); }
-	bool Ignore_lightmap_policy() { return (content & 0b00000010); }
-};
-struct RenderGeometryFlags {
-	uint32_t content;
-	bool processed() { return (content & 0b00000000000000000000000000000001); }
-	bool available() { return (content & 0b00000000000000000000000000000010); }
-	bool has_valid_budgets__really_() { return (content & 0b00000000000000000000000000000100); }
-	bool manual_resource_creation() { return (content & 0b00000000000000000000000000001000); }
-	bool keep_raw_geometry() { return (content & 0b00000000000000000000000000010000); }
-	bool dont_use_compressed_vertex_positions() { return (content & 0b00000000000000000000000000100000); }
-	bool pca_animation_table_sorted() { return (content & 0b00000000000000000000000001000000); }
-	bool has_dual_quat() { return (content & 0b00000000000000000000000010000000); }
-	bool mesh_streaming() { return (content & 0b00000000000000000000000100000000); }
-};
-struct MeshFlags {
-	uint16_t content;
-	bool mesh_has_vertex_color() { return (content & 0b0000000000000001); }
-	bool use_region_index_for_sorting() { return (content & 0b0000000000000010); }
-	bool can_be_rendered_in_draw_bundles() { return (content & 0b0000000000000100); }
-	bool mesh_is_custom_shadow_caster() { return (content & 0b0000000000001000); }
-	bool mesh_is_unindexed__do_not_modify_() { return (content & 0b0000000000010000); }
-	bool mash_should_render_in_z_prepass() { return (content & 0b0000000000100000); }
-	bool use_uncompressed_vertex_format() { return (content & 0b0000000001000000); }
-	bool mesh_is_PCA() { return (content & 0b0000000010000000); }
-	bool mesh_has_a_useful_set_of_second_texture_coords() { return (content & 0b0000000100000000); }
-	bool mesh_has_a_useful_set_of_third_texture_coords() { return (content & 0b0000001000000000); }
-	bool Use_UV3_Tangent_Rotation() { return (content & 0b0000010000000000); }
-};
-struct CompressionFlags {
-	uint16_t content;
-	bool compressed_position() { return (content & 0b0000000000000001); }
-	bool compressed_texcoord() { return (content & 0b0000000000000010); }
-	bool compression_optimized() { return (content & 0b0000000000000100); }
-};
-struct LODFlags {
-	uint16_t content;
-	bool lod_0() { return (content & 0b0000000000000001); }
-	bool lod_1() { return (content & 0b0000000000000010); }
-	bool lod_2() { return (content & 0b0000000000000100); }
-	bool lod_3() { return (content & 0b0000000000001000); }
-	bool lod_4() { return (content & 0b0000000000010000); }
-	bool lod_5() { return (content & 0b0000000000100000); }
-	bool lod_6() { return (content & 0b0000000001000000); }
-	bool lod_7() { return (content & 0b0000000010000000); }
-	bool lod_8() { return (content & 0b0000000100000000); }
-	bool lod_9() { return (content & 0b0000001000000000); }
-	bool lod_10() { return (content & 0b0000010000000000); }
-	bool lod_11() { return (content & 0b0000100000000000); }
-	bool lod_12() { return (content & 0b0001000000000000); }
-	bool lod_13() { return (content & 0b0010000000000000); }
-	bool lod_14() { return (content & 0b0100000000000000); }
-	bool lod_15() { return (content & 0b1000000000000000); }
-};
-struct LODRenderFlags {
-	uint16_t content;
-	bool LOD_has_shadow_proxies() { return (content & 0b0000000000000001); }
-};
-struct PerMeshRawDataFlags {
-	uint32_t content;
-	bool indices_are_triangle_strips() { return (content & 0b00000000000000000000000000000001); }
-	bool indices_are_triangle_lists() { return (content & 0b00000000000000000000000000000010); }
-	bool indices_are_quad_lists() { return (content & 0b00000000000000000000000000000100); }
-};
-struct PartFlags {
-	uint16_t content;
-	bool draw_cull_rendering_shields() { return (content & 0b0000000000000001); }
-	bool blendshape() { return (content & 0b0000000000000010); }
-	bool colormask_Control_NormalBlend() { return (content & 0b0000000000000100); }
-	bool draw_cull_rendering_active_camo() { return (content & 0b0000000000001000); }
-	bool Don_t_use_virtual_texturing() { return (content & 0b0000000000010000); }
-	bool Virtual_texturing_UV_shell_skirt() { return (content & 0b0000000000100000); }
-};
-struct RaytracingMetaDataFlags {
-	uint16_t content;
-	bool has_blendshape() { return (content & 0b0000000000000001); }
-};
+	struct PerMeshFlagsDefinition {
+		uint8_t content;
+		bool Does_not_block_AOE_damage() { return (content & 0b00000001); }
+		bool Ignore_lightmap_policy() { return (content & 0b00000010); }
+	};
+	struct RenderGeometryFlags {
+		uint32_t content;
+		bool processed() { return (content & 0b00000000000000000000000000000001); }
+		bool available() { return (content & 0b00000000000000000000000000000010); }
+		bool has_valid_budgets__really_() { return (content & 0b00000000000000000000000000000100); }
+		bool manual_resource_creation() { return (content & 0b00000000000000000000000000001000); }
+		bool keep_raw_geometry() { return (content & 0b00000000000000000000000000010000); }
+		bool dont_use_compressed_vertex_positions() { return (content & 0b00000000000000000000000000100000); }
+		bool pca_animation_table_sorted() { return (content & 0b00000000000000000000000001000000); }
+		bool has_dual_quat() { return (content & 0b00000000000000000000000010000000); }
+		bool mesh_streaming() { return (content & 0b00000000000000000000000100000000); }
+	};
+	struct MeshFlags {
+		uint16_t content;
+		bool mesh_has_vertex_color() { return (content & 0b0000000000000001); }
+		bool use_region_index_for_sorting() { return (content & 0b0000000000000010); }
+		bool can_be_rendered_in_draw_bundles() { return (content & 0b0000000000000100); }
+		bool mesh_is_custom_shadow_caster() { return (content & 0b0000000000001000); }
+		bool mesh_is_unindexed__do_not_modify_() { return (content & 0b0000000000010000); }
+		bool mash_should_render_in_z_prepass() { return (content & 0b0000000000100000); }
+		bool use_uncompressed_vertex_format() { return (content & 0b0000000001000000); }
+		bool mesh_is_PCA() { return (content & 0b0000000010000000); }
+		bool mesh_has_a_useful_set_of_second_texture_coords() { return (content & 0b0000000100000000); }
+		bool mesh_has_a_useful_set_of_third_texture_coords() { return (content & 0b0000001000000000); }
+		bool Use_UV3_Tangent_Rotation() { return (content & 0b0000010000000000); }
+	};
+	struct CompressionFlags {
+		uint16_t content;
+		bool compressed_position() { return (content & 0b0000000000000001); }
+		bool compressed_texcoord() { return (content & 0b0000000000000010); }
+		bool compression_optimized() { return (content & 0b0000000000000100); }
+	};
+	struct LODFlags {
+		uint16_t content;
+		bool lod_0() { return (content & 0b0000000000000001); }
+		bool lod_1() { return (content & 0b0000000000000010); }
+		bool lod_2() { return (content & 0b0000000000000100); }
+		bool lod_3() { return (content & 0b0000000000001000); }
+		bool lod_4() { return (content & 0b0000000000010000); }
+		bool lod_5() { return (content & 0b0000000000100000); }
+		bool lod_6() { return (content & 0b0000000001000000); }
+		bool lod_7() { return (content & 0b0000000010000000); }
+		bool lod_8() { return (content & 0b0000000100000000); }
+		bool lod_9() { return (content & 0b0000001000000000); }
+		bool lod_10() { return (content & 0b0000010000000000); }
+		bool lod_11() { return (content & 0b0000100000000000); }
+		bool lod_12() { return (content & 0b0001000000000000); }
+		bool lod_13() { return (content & 0b0010000000000000); }
+		bool lod_14() { return (content & 0b0100000000000000); }
+		bool lod_15() { return (content & 0b1000000000000000); }
+	};
+	struct LODRenderFlags {
+		uint16_t content;
+		bool LOD_has_shadow_proxies() { return (content & 0b0000000000000001); }
+	};
+	struct PerMeshRawDataFlags {
+		uint32_t content;
+		bool indices_are_triangle_strips() { return (content & 0b00000000000000000000000000000001); }
+		bool indices_are_triangle_lists() { return (content & 0b00000000000000000000000000000010); }
+		bool indices_are_quad_lists() { return (content & 0b00000000000000000000000000000100); }
+	};
+	struct PartFlags {
+		uint16_t content;
+		bool draw_cull_rendering_shields() { return (content & 0b0000000000000001); }
+		bool blendshape() { return (content & 0b0000000000000010); }
+		bool colormask_Control_NormalBlend() { return (content & 0b0000000000000100); }
+		bool draw_cull_rendering_active_camo() { return (content & 0b0000000000001000); }
+		bool Don_t_use_virtual_texturing() { return (content & 0b0000000000010000); }
+		bool Virtual_texturing_UV_shell_skirt() { return (content & 0b0000000000100000); }
+	};
+	struct RaytracingMetaDataFlags {
+		uint16_t content;
+		bool has_blendshape() { return (content & 0b0000000000000001); }
+	};
 
-// /////////////// //
-// ENUM REFERENCES //
-// /////////////// //
+	// /////////////// //
+	// enum REFERENCES //
+	// /////////////// //
 
-enum VertexType : uint8_t {
-	world = 0,
-	rigid = 1,
-	skinned = 2,
-	particle_model = 3,
-	screen = 4,
-	debug = 5,
-	transparent = 6,
-	particle = 7,
-	removed08 = 8,
-	removed09 = 9,
-	chud_simple = 10,
-	decorator = 11,
-	position_only = 12,
-	removed13 = 13,
-	ripple = 14,
-	removed15 = 15,
-	tessellatedTerrain = 16,
-	empty = 17,
-	decal = 18,
-	removed19 = 19,
-	removed20 = 20,
-	position_only = 21,
-	tracer = 22,
-	rigid_boned = 23,
-	removed24 = 24,
-	CheapParticle = 25,
-	dq_skinned = 26,
-	skinned_8_weights = 27,
-	tessellated_vector = 28,
-	interaction = 29,
-	number_of_standard_vertex_types = 30,
-};
-enum IndexBufferPrimitiveType : uint8_t {
-	DEFAULT = 0,
-	line_list = 1,
-	line_strip = 2,
-	triangle_list = 3,
-	triangle_patch = 4,
-	triangle_strip = 5,
-	quad_list = 6,
-};
-enum RenderGeometryMeshPackage__Policy : uint16_t {
-	Single_Resource = 0,
-	N_Meshes_Per_Resource = 1,
-};
-enum eVertexBufferUsage : uint32_t {
-	Position = 0,
-	UV0 = 1,
-	UV1 = 2,
-	UV2 = 3,
-	Color = 4,
-	Normal = 5,
-	Tangent = 6,
-	BlendIndices0 = 7,
-	BlendWeights0 = 8,
-	BlendIndices1 = 9,
-	BlendWeights1 = 10,
-	PrevPosition = 11,
-	InstanceData = 12,
-	BlendshapePosition = 13,
-	BlendshapeNormal = 14,
-	BlendshapeIndex = 15,
-	Edge = 16,
-	EdgeIndex = 17,
-	EdgeIndexInfo = 18,
-};
-enum eRasterizerVertexFormat : uint32_t {
-	real = 0,
-	realVector2D = 1,
-	realVector3D = 2,
-	realVector4D = 3,
-	byteVector4D = 4,
-	byteARGBColor = 5,
-	shortVector2D = 6,
-	shortVector2DNormalized = 7,
-	shortVector4DNormalized = 8,
-	wordVector2DNormalized = 9,
-	wordVector4DNormalized = 10,
-	real16Vector2D = 11,
-	real16Vector4D = 12,
-	_10_10_10_normalized = 13,
-	_10_10_10_2 = 14,
-	_10_10_10_2_signedNormalizedPackedAsUnorm = 15,
-	dword = 16,
-	dwordVector2D = 17,
-	_11_11_10_float = 18,
-	byteUnitVector3D = 19,
-	wordVector3DNormalizedWith4Word = 20,
-};
-// ///////////////// //
-// STRUCT REFERENCES //
-// ///////////////// //
+	enum class VertexType : uint8_t {
+		world = 0,
+		rigid = 1,
+		skinned = 2,
+		particle_model = 3,
+		screen = 4,
+		debug = 5,
+		transparent = 6,
+		particle = 7,
+		removed08 = 8,
+		removed09 = 9,
+		chud_simple = 10,
+		decorator = 11,
+		position_only = 12,
+		removed13 = 13,
+		ripple = 14,
+		removed15 = 15,
+		tessellatedTerrain = 16,
+		empty = 17,
+		decal = 18,
+		removed19 = 19,
+		removed20 = 20,
+		__position_only = 21,
+		tracer = 22,
+		rigid_boned = 23,
+		removed24 = 24,
+		CheapParticle = 25,
+		dq_skinned = 26,
+		skinned_8_weights = 27,
+		tessellated_vector = 28,
+		interaction = 29,
+		number_of_standard_vertex_types = 30,
+	};
+	enum class IndexBufferPrimitiveType : uint8_t {
+		DEFAULT = 0,
+		line_list = 1,
+		line_strip = 2,
+		triangle_list = 3,
+		triangle_patch = 4,
+		triangle_strip = 5,
+		quad_list = 6,
+	};
+	enum class RenderGeometryMeshPackage__Policy : uint16_t {
+		Single_Resource = 0,
+		N_Meshes_Per_Resource = 1,
+	};
+	enum class eVertexBufferUsage : uint32_t {
+		Position = 0,
+		UV0 = 1,
+		UV1 = 2,
+		UV2 = 3,
+		Color = 4,
+		Normal = 5,
+		Tangent = 6,
+		BlendIndices0 = 7,
+		BlendWeights0 = 8,
+		BlendIndices1 = 9,
+		BlendWeights1 = 10,
+		PrevPosition = 11,
+		InstanceData = 12,
+		BlendshapePosition = 13,
+		BlendshapeNormal = 14,
+		BlendshapeIndex = 15,
+		Edge = 16,
+		EdgeIndex = 17,
+		EdgeIndexInfo = 18,
+	};
+	enum class eRasterizerVertexFormat : uint32_t {
+		real = 0,
+		realVector2D = 1,
+		realVector3D = 2,
+		realVector4D = 3,
+		byteVector4D = 4,
+		byteARGBColor = 5,
+		shortVector2D = 6,
+		shortVector2DNormalized = 7,
+		shortVector4DNormalized = 8,
+		wordVector2DNormalized = 9,
+		wordVector4DNormalized = 10,
+		real16Vector2D = 11,
+		real16Vector4D = 12,
+		_10_10_10_normalized = 13,
+		_10_10_10_2 = 14,
+		_10_10_10_2_signedNormalizedPackedAsUnorm = 15,
+		dword = 16,
+		dwordVector2D = 17,
+		_11_11_10_float = 18,
+		byteUnitVector3D = 19,
+		wordVector3DNormalizedWith4Word = 20,
+	};
+	// ///////////////// //
+	// STRUCT REFERENCES //
+	// ///////////////// //
 
-struct StreamingChunkList {
-	_s_data chunks;
-};
-struct BLASOfflineData {
-	_s_data Temp_BLAS_buffer;
-	int32_t PostbuildCurrentSize;
-	int32_t PostbuildSerializedSize;
-	uint32_t offset;
-	uint8_t generated_pad707f[4];
-	int64_t m_resource;
-};
-struct MeshPartRaytracingMetaData {
-	uint32_t index_count;
-	uint32_t index_offset;
-	uint8_t geo_type;
-	uint8_t generated_padf9a7[3];
-};
-struct D3DBufferData {
-	uint32_t byte_width;
-	uint32_t bind_flags;
-	uint32_t misc_flags;
-	uint32_t stride;
-	_s_data d3d_buffer;
-	uint16_t usage;
-	uint16_t cpu_flags;
-};
-struct i343__LevelBreakdown__AssetVariantLevelBreakdownData {
-	uint32_t Variant_name;
-	_s_tagref Runtime_Geo;
-	_s_tagref Static_Collision_Geo;
-};
-struct s_raw_water_append {
-	_s_doublefloat base_texcoord;
-};
-struct GeometryNodeWeight {
-	float node_weight;
-};
-struct IResourceViewPointer {
-	int64_t IResourceView;
-};
-struct StreamingGeometryBuffer {
-	uint32_t buffer_size;
-	uint32_t bind_flags;
-	_s_data Temp_buffer_for_pipeline;
-};
-struct StreamingGeometryChunk {
-	uint16_t buffer_index;
-	uint16_t allocation_priority;
-	uint32_t buffer_start;
-	uint32_t buffer_end;
-};
-struct StreamingGeometryMesh {
-	int32_t lod_state_cache_slot;
-	int8_t required_lod;
-	uint8_t generated_pad413f[3];
-	_s_data lod_raytracing_meta_data;
-	_s_tagblock<StreamingChunkList> mesh_lod_chunks;
-};
-struct RaytracingMetaData {
-	uint16_t index_buffer_index;
-	uint16_t vertex_buffer_index;
-	eRasterizerVertexFormat vertex_format;
-	VertexType vertex_type;
-	uint8_t generated_pad35fb[3];
-	_s_triplefloat decompression_Scale;
-	_s_triplefloat decompression_Translation;
-	_s_tagblock<MeshPartRaytracingMetaData> mesh_part_metadata;
-	RaytracingMetaDataFlags meta_data_flags;
-	uint8_t generated_pade946[6];
-	BLASOfflineData blas_offline_data;
-};
-struct RasterizerIndexBuffer {
-	uint8_t declaration_type;
-	uint8_t stride;
-	uint8_t ownsD3DResource;
-	uint8_t generated_pad8bf7[1];
-	uint32_t count;
-	uint32_t offset;
-	D3DBufferData d3dbuffer;
-	int64_t m_resource;
-	int64_t m_resourceView;
-};
-struct RasterizerVertexBuffer {
-	eVertexBufferUsage usage;
-	eRasterizerVertexFormat format;
-	uint8_t stride;
-	uint8_t ownsD3DResource;
-	uint8_t generated_pad9e95[2];
-	uint32_t count;
-	uint32_t offset;
-	D3DBufferData d3dbuffer;
-	int64_t m_resource;
-	int64_t m_resourceView;
-};
-struct i343__LevelBreakdown__RuntimeGeoLevelBreakdownData {
-	_s_tagref Asset_tag;
-	uint32_t Default_variant_name;
-	_s_tagref LOD_settings_tag;
-	uint32_t LOD_settings_name;
-	int32_t Convert_Collision_to_Shadow_Geometry;
-	_s_tagblock<i343__LevelBreakdown__AssetVariantLevelBreakdownData> Asset_variants;
-};
-struct RawTriangleEdgeIndexInfo {
-	uint32_t triangle_and_edge_index_pos;
-	uint32_t encoded_triangle_and_edge_size;
-};
-struct RawTensionEdge {
-	uint32_t start_vertex_index;
-	uint32_t end_vertex_index;
-	float edge_rest_length;
-};
-struct RawBlendshapeVertex {
-	_s_triplefloat position;
-	_s_triplefloat normal;
-	_s_argbfloat tension_and_ambient_occlusion;
-	uint32_t target_Id;
-};
-struct s_raw_water_data {
-	_s_tagblock<WordIndex> raw_water_indices;
-	_s_tagblock<s_raw_water_append> raw_water_vertices;
-};
-struct RawVertex {
-	_s_triplefloat position;
-	_s_doublefloat texcoord;
-	_s_triplefloat normal;
-	_s_triplefloat binormal;
-	_s_triplefloat tangent;
-	_s_doublefloat lightmap_texcoord;
-	GeometryNodeIndex node_indices[8];
-	GeometryNodeWeight node_weights[8];
-	_s_triplefloat vertex_color;
-	_s_doublefloat texcoord1;
-	float dual_quat_weight;
-	float vertex_alpha;
-	_s_triplefloat tangent_UV2;
-	_s_doublefloat texcoord2;
-	_s_triplefloat tangent_UV3;
-};
-struct s_render_geometry_api_resource {
-	_s_tagblock<RasterizerVertexBuffer> pc_vertex_buffers;
-	_s_tagblock<RasterizerIndexBuffer> pc_index_buffers;
-	_s_tagblock<RaytracingMetaData> raytracing_metadata;
-	_s_tagblock<StreamingGeometryMesh> Streaming_Meshes;
-	_s_tagblock<StreamingGeometryChunk> Streaming_Chunks;
-	_s_tagblock<StreamingGeometryBuffer> Streaming_Buffers;
-	int64_t m_sharedDXResources;
-	int64_t m_sharedDXResourceRawView;
-	IResourceViewPointer m_sharedDXResourceTypedViews[21];
-	int64_t Runtime_Data;
-};
-struct PositioningNodeWeight {
-	float node_weight;
-};
-struct GeometryNodeIndex {
-	uint8_t node_index;
-};
-struct LODRenderDataVertexBufferIndex {
-	uint16_t vertex_buffer_index;
-};
-struct MaterialStreamingScale {
-	int32_t material_index;
-	float material_scale;
-};
-struct s_subpart {
-	int32_t index_start;
-	int32_t index_count;
-	int16_t part_index;
-	uint16_t budget_vertex_count;
-};
-struct s_part {
-	int16_t material_index;
-	int16_t transparent_sorting_index;
-	int32_t index_start;
-	int32_t index_count;
-	int32_t perMeshPartConstantsOffset;
-	uint8_t part_type;
-	uint8_t generated_pad5c53[1];
-	PartFlags part_flags;
-	uint16_t budget_vertex_count;
-	uint8_t generated_pad0f9e[2];
-};
-struct s_per_mesh_raw_data {
-	_s_tagblock<RawVertex> raw_vertices;
-	_s_tagblock<WordIndex> raw_indices;
-	_s_tagblock<DwordIndex> raw_indices32;
-	_s_tagblock<s_raw_water_data> raw_water_data;
-	_s_tagblock<RawBlendshapeVertex> raw_blendshapes;
-	_s_tagblock<DwordIndex> raw_blendshapes_indices;
-	_s_tagblock<RawTensionEdge> raw_tension_edges;
-	_s_tagblock<DwordIndex> raw_blendshapes_triangle_and_edge_Indices;
-	_s_tagblock<RawTriangleEdgeIndexInfo> raw_blendshapes_triangle_and_edge_index_info;
-	PerMeshRawDataFlags flags;
-	_s_tagblock<i343__LevelBreakdown__RuntimeGeoLevelBreakdownData> level_breakdown_data;
-};
-struct WordIndex {
-	uint16_t word;
-};
-struct RenderGeometryDeformationParameter {
-	uint32_t parameter_name;
-	uint8_t parameter_mode;
-	uint8_t generated_pad8065[3];
-	float constant_input;
-};
-struct DwordIndex {
-	uint32_t dword;
-};
-struct RenderGeometryMeshPackage__ResourceLookup {
-	int16_t resource_group_index;
-	int16_t group_item_index;
-};
-struct RenderGeometryMeshPackageResourceGroup {
-	_s_resource<s_render_geometry_api_resource> mesh_resource;
-};
-struct s_positioning {
-	_s_quadfloat plane;
-	_s_triplefloat position;
-	float radius;
-	GeometryNodeIndex node_indices[8];
-	PositioningNodeWeight node_weights[7];
-};
-struct NodeIndexStruct {
-	uint16_t node_index;
-};
-struct MeshVertexKey {
-	int32_t key1;
-	int32_t key2;
-};
-struct LODRenderData {
-	_s_tagblock<s_per_mesh_raw_data> per_mesh_temporary;
-	_s_tagblock<s_positioning> part_sorting_position;
-	_s_tagblock<s_part> parts;
-	_s_tagblock<s_subpart> subparts;
-	_s_tagblock<MaterialStreamingScale> material_streaming_scale;
-	LODRenderDataVertexBufferIndex vertex_buffer_indices[19];
-	uint16_t index_buffer_index;
-	LODFlags lod_flags;
-	LODRenderFlags lod_render_flags;
-	uint16_t raytracing_metadata_index;
-	uint8_t generated_paddaed[2];
-};
-struct StaticGeoMarker {
-	_s_triplefloat translation;
-	_s_quadfloat rotation;
-};
-struct DeformationParameterDefaultValue {
-	uint32_t parameter_name;
-	float parameter_default_value;
-};
-struct RenderGeometryProceduralRemapTable {
-	_s_tagblock<WordIndex> Procedural_Remap_Table;
-};
-struct RenderGeometryProceduralDeformation {
-	_s_tagblock<RenderGeometryDeformationParameter> parameter_list;
-	uint32_t Procedural_deformation_function_name;
-};
-struct s_blendshape_compression_info {
-	_s_triplefloat position_scale;
-	_s_triplefloat position_offset;
-	_s_triplefloat normal_scale;
-	_s_triplefloat normal_offset;
-	_s_tagblock<DwordIndex> raw_target_hash_name;
-};
-struct RenderGeometryMeshPackage {
-	uint16_t flags;
-	RenderGeometryMeshPackage__Policy mesh_resource_packing_policy;
-	uint16_t total_index_buffer_count;
-	uint16_t total_vertex_buffer_count;
-	uint16_t total_raytracing_metadata_count;
-	uint8_t generated_pad4c35[2];
-	_s_tagblock<RenderGeometryMeshPackageResourceGroup> mesh_resource_groups;
-	_s_tagblock<RenderGeometryMeshPackage__ResourceLookup> index_resource_look_up;
-	_s_tagblock<RenderGeometryMeshPackage__ResourceLookup> vertex_resource_look_up;
-	_s_tagblock<RenderGeometryMeshPackage__ResourceLookup> raytracing_resource_look_up;
-};
-struct s_render_geometry_lod_volume {
-	_s_triplefloat position_bounds_0;
-	_s_triplefloat position_bounds_1;
-	_s_tagblock<s_positioning> position_data;
-};
-struct RenderGeometryAnimatedMeshRef {
-	_s_tagref Animated_mesh_tag_reference;
-	uint32_t Name;
-};
-struct s_per_mesh_node_map {
-	_s_tagblock<NodeIndexStruct> node_map;
-};
-struct s_compression_info {
-	CompressionFlags compression_flags;
-	uint8_t generated_pad1711[2];
-	_s_triplefloat position_bounds_0;
-	_s_triplefloat position_bounds_1;
-	_s_doublefloat texcoord_bounds_0;
-	_s_doublefloat texcoord_bounds_1;
-	_s_doublefloat texcoord_bounds2_0;
-	_s_doublefloat texcoord_bounds2_1;
-	_s_doublefloat texcoord_bounds3_0;
-	_s_doublefloat texcoord_bounds3_1;
-	float unused0;
-	float unused1;
-};
-struct PCAMeshIndex {
-	int32_t mesh_index;
-};
-struct s_mesh {
-	_s_tagblock<LODRenderData> LOD_render_data;
-	MeshFlags mesh_flags;
-	uint8_t rigid_node_index;
-	VertexType vertex_type;
-	int8_t use_dual_quat;
-	IndexBufferPrimitiveType index_buffer_type;
-	int16_t pca_mesh_index;
-	_s_tagblock<MeshVertexKey> vertex_keys;
-	int16_t clone_index;
-	int16_t optional_LOD_volume_index;
-	int16_t Procedural_Deformation_Remap_Table;
-	uint8_t generated_pad8fb3[2];
-	int32_t lod_state_cache_slot;
-};
-struct MeshImportInfo {
-	uint32_t CRC;
-	_s_triplefloat position_bounds_0;
-	_s_triplefloat position_bounds_1;
-	_s_doublefloat texcoord_bounds_0;
-	_s_doublefloat texcoord_bounds_1;
-};
-struct LODTransitionDistanceBlock {
-	float lodTransitionDistance;
-};
-struct s_anyTagGuts {
-	int32_t global_tag_ID;
-	uint8_t local_tag_handle[4];
-};
-struct StaticGeoMarkerGroup {
-	uint32_t name;
-	_s_tagblock<StaticGeoMarker> markers;
-};
-struct s_render_geometry {
-	RenderGeometryFlags runtime_flags;
-	_s_tagblock<MeshImportInfo> meshes_import_info;
-	_s_tagblock<s_mesh> meshes;
-	_s_tagblock<PCAMeshIndex> PCA_Mesh_Indices;
-	_s_tagblock<s_compression_info> compression_info;
-	_s_tagblock<s_per_mesh_node_map> per_mesh_node_map;
-	_s_tagblock<RenderGeometryAnimatedMeshRef> Optional_animated_mesh_tag_references;
-	_s_tagblock<s_render_geometry_lod_volume> Optional_LOD_volumes_data;
-	RenderGeometryMeshPackage mesh_package;
-	_s_tagblock<s_blendshape_compression_info> blendshape_compression_info;
-	_s_tagblock<RenderGeometryProceduralDeformation> blendshape_Procedural_Deformation_function_list;
-	_s_tagblock<RenderGeometryProceduralRemapTable> Procedural_Deformation_function_Remap_Table_List;
-	_s_tagblock<DeformationParameterDefaultValue> Deformation_parameter_default_value_table_from_skeleton;
-	uint8_t generated_paddf2d[4];
-	int64_t perMeshPartConstantBuffer;
-	int8_t target_platformization;
-	uint8_t generated_padc54c[7];
-};
-struct RuntimeGeoPerMeshData {
-	uint32_t Name;
-	int16_t Mesh_index;
-	PerMeshFlagsDefinition Per_mesh_flags;
-	uint8_t Lightmapping_policy;
-	_s_triplefloat Scale;
-	_s_triplefloat Forward;
-	_s_triplefloat Left;
-	_s_triplefloat Up;
-	_s_triplefloat Position;
-	_s_triplefloat Bounds_min;
-	_s_triplefloat Bounds_max;
-	_s_triplefloat Bounding_sphere_center;
-	float Bounding_sphere_radius;
-	_s_tagblock<LODTransitionDistanceBlock> Lod_levels;
-	float Fade_out_after_distance;
-	uint8_t generated_pad359f[4];
-	int64_t Mesh_Checksum;
-};
-struct AnyTag_struct_definition {
-	int64_t vtable_space;
-	s_anyTagGuts internal_struct;
-};
-struct RuntimeGeoTag {
-	AnyTag_struct_definition AnyTag;
-	_s_tagblock<RuntimeGeoPerMeshData> Per_Mesh_Data;
-	uint8_t generated_pad8ff5[4];
-	s_render_geometry render_geometry;
-	_s_tagblock<StaticGeoMarkerGroup> marker_groups;
-	uint32_t asset_category_name;
-	int32_t asset_category_index;
-	int32_t Number_of_LODS_to_make_required;
-};	
+	struct StreamingChunkList {
+		_s_data chunks;
+	};
+	struct BLASOfflineData {
+		_s_data Temp_BLAS_buffer;
+		int32_t PostbuildCurrentSize;
+		int32_t PostbuildSerializedSize;
+		uint32_t offset;
+		uint8_t generated_pad707f[4];
+		int64_t m_resource;
+	};
+	struct MeshPartRaytracingMetaData {
+		uint32_t index_count;
+		uint32_t index_offset;
+		uint8_t geo_type;
+		uint8_t generated_padf9a7[3];
+	};
+	struct D3DBufferData {
+		uint32_t byte_width;
+		uint32_t bind_flags;
+		uint32_t misc_flags;
+		uint32_t stride;
+		_s_data d3d_buffer;
+		uint16_t usage;
+		uint16_t cpu_flags;
+	};
+	struct i343__LevelBreakdown__AssetVariantLevelBreakdownData {
+		uint32_t Variant_name;
+		_s_tagref Runtime_Geo;
+		_s_tagref Static_Collision_Geo;
+	};
+	struct s_raw_water_append {
+		_s_doublefloat base_texcoord;
+	};
+	struct GeometryNodeWeight {
+		float node_weight;
+	};
+	struct IResourceViewPointer {
+		int64_t IResourceView;
+	};
+	struct StreamingGeometryBuffer {
+		uint32_t buffer_size;
+		uint32_t bind_flags;
+		_s_data Temp_buffer_for_pipeline;
+	};
+	struct StreamingGeometryChunk {
+		uint16_t buffer_index;
+		uint16_t allocation_priority;
+		uint32_t buffer_start;
+		uint32_t buffer_end;
+	};
+	struct StreamingGeometryMesh {
+		int32_t lod_state_cache_slot;
+		int8_t required_lod;
+		uint8_t generated_pad413f[3];
+		_s_data lod_raytracing_meta_data;
+		_s_tagblock<StreamingChunkList> mesh_lod_chunks;
+	};
+	struct RaytracingMetaData {
+		uint16_t index_buffer_index;
+		uint16_t vertex_buffer_index;
+		eRasterizerVertexFormat vertex_format;
+		VertexType vertex_type;
+		uint8_t generated_pad35fb[3];
+		_s_triplefloat decompression_Scale;
+		_s_triplefloat decompression_Translation;
+		_s_tagblock<MeshPartRaytracingMetaData> mesh_part_metadata;
+		RaytracingMetaDataFlags meta_data_flags;
+		uint8_t generated_pade946[6];
+		BLASOfflineData blas_offline_data;
+	};
+	struct RasterizerIndexBuffer {
+		uint8_t declaration_type;
+		uint8_t stride;
+		uint8_t ownsD3DResource;
+		uint8_t generated_pad8bf7[1];
+		uint32_t count;
+		uint32_t offset;
+		D3DBufferData d3dbuffer;
+		int64_t m_resource;
+		int64_t m_resourceView;
+	};
+	struct RasterizerVertexBuffer {
+		eVertexBufferUsage usage;
+		eRasterizerVertexFormat format;
+		uint8_t stride;
+		uint8_t ownsD3DResource;
+		uint8_t generated_pad9e95[2];
+		uint32_t count;
+		uint32_t offset;
+		D3DBufferData d3dbuffer;
+		int64_t m_resource;
+		int64_t m_resourceView;
+	};
+	struct i343__LevelBreakdown__RuntimeGeoLevelBreakdownData {
+		_s_tagref Asset_tag;
+		uint32_t Default_variant_name;
+		_s_tagref LOD_settings_tag;
+		uint32_t LOD_settings_name;
+		int32_t Convert_Collision_to_Shadow_Geometry;
+		_s_tagblock<i343__LevelBreakdown__AssetVariantLevelBreakdownData> Asset_variants;
+	};
+	struct RawTriangleEdgeIndexInfo {
+		uint32_t triangle_and_edge_index_pos;
+		uint32_t encoded_triangle_and_edge_size;
+	};
+	struct RawTensionEdge {
+		uint32_t start_vertex_index;
+		uint32_t end_vertex_index;
+		float edge_rest_length;
+	};
+	struct RawBlendshapeVertex {
+		_s_triplefloat position;
+		_s_triplefloat normal;
+		_s_argbfloat tension_and_ambient_occlusion;
+		uint32_t target_Id;
+	};
+	struct WordIndex {
+		uint16_t word;
+	};
+	struct s_raw_water_data {
+		_s_tagblock<WordIndex> raw_water_indices;
+		_s_tagblock<s_raw_water_append> raw_water_vertices;
+	};
+	struct GeometryNodeIndex {
+		uint8_t node_index;
+	};
+	struct RawVertex {
+		_s_triplefloat position;
+		_s_doublefloat texcoord;
+		_s_triplefloat normal;
+		_s_triplefloat binormal;
+		_s_triplefloat tangent;
+		_s_doublefloat lightmap_texcoord;
+		GeometryNodeIndex node_indices[8];
+		GeometryNodeWeight node_weights[8];
+		_s_triplefloat vertex_color;
+		_s_doublefloat texcoord1;
+		float dual_quat_weight;
+		float vertex_alpha;
+		_s_triplefloat tangent_UV2;
+		_s_doublefloat texcoord2;
+		_s_triplefloat tangent_UV3;
+	};
+	struct s_render_geometry_api_resource {
+		_s_tagblock<RasterizerVertexBuffer> pc_vertex_buffers;
+		_s_tagblock<RasterizerIndexBuffer> pc_index_buffers;
+		_s_tagblock<RaytracingMetaData> raytracing_metadata;
+		_s_tagblock<StreamingGeometryMesh> Streaming_Meshes;
+		_s_tagblock<StreamingGeometryChunk> Streaming_Chunks;
+		_s_tagblock<StreamingGeometryBuffer> Streaming_Buffers;
+		int64_t m_sharedDXResources;
+		int64_t m_sharedDXResourceRawView;
+		IResourceViewPointer m_sharedDXResourceTypedViews[21];
+		int64_t Runtime_Data;
+	};
+	struct PositioningNodeWeight {
+		float node_weight;
+	};
+	struct LODRenderDataVertexBufferIndex {
+		uint16_t vertex_buffer_index;
+	};
+	struct MaterialStreamingScale {
+		int32_t material_index;
+		float material_scale;
+	};
+	struct s_subpart {
+		int32_t index_start;
+		int32_t index_count;
+		int16_t part_index;
+		uint16_t budget_vertex_count;
+	};
+	struct s_part {
+		int16_t material_index;
+		int16_t transparent_sorting_index;
+		int32_t index_start;
+		int32_t index_count;
+		int32_t perMeshPartConstantsOffset;
+		uint8_t part_type;
+		uint8_t generated_pad5c53[1];
+		PartFlags part_flags;
+		uint16_t budget_vertex_count;
+		uint8_t generated_pad0f9e[2];
+	};
+	struct DwordIndex {
+		uint32_t dword;
+	};
+	struct s_per_mesh_raw_data {
+		_s_tagblock<RawVertex> raw_vertices;
+		_s_tagblock<WordIndex> raw_indices;
+		_s_tagblock<DwordIndex> raw_indices32;
+		_s_tagblock<s_raw_water_data> raw_water_data;
+		_s_tagblock<RawBlendshapeVertex> raw_blendshapes;
+		_s_tagblock<DwordIndex> raw_blendshapes_indices;
+		_s_tagblock<RawTensionEdge> raw_tension_edges;
+		_s_tagblock<DwordIndex> raw_blendshapes_triangle_and_edge_Indices;
+		_s_tagblock<RawTriangleEdgeIndexInfo> raw_blendshapes_triangle_and_edge_index_info;
+		PerMeshRawDataFlags flags;
+		_s_tagblock<i343__LevelBreakdown__RuntimeGeoLevelBreakdownData> level_breakdown_data;
+	};
+	struct RenderGeometryDeformationParameter {
+		uint32_t parameter_name;
+		uint8_t parameter_mode;
+		uint8_t generated_pad8065[3];
+		float constant_input;
+	};
+	struct RenderGeometryMeshPackage__ResourceLookup {
+		int16_t resource_group_index;
+		int16_t group_item_index;
+	};
+	struct RenderGeometryMeshPackageResourceGroup {
+		_s_resource<s_render_geometry_api_resource> mesh_resource;
+	};
+	struct s_positioning {
+		_s_quadfloat plane;
+		_s_triplefloat position;
+		float radius;
+		GeometryNodeIndex node_indices[8];
+		PositioningNodeWeight node_weights[7];
+	};
+	struct NodeIndexStruct {
+		uint16_t node_index;
+	};
+	struct MeshVertexKey {
+		int32_t key1;
+		int32_t key2;
+	};
+	struct LODRenderData {
+		_s_tagblock<s_per_mesh_raw_data> per_mesh_temporary;
+		_s_tagblock<s_positioning> part_sorting_position;
+		_s_tagblock<s_part> parts;
+		_s_tagblock<s_subpart> subparts;
+		_s_tagblock<MaterialStreamingScale> material_streaming_scale;
+		LODRenderDataVertexBufferIndex vertex_buffer_indices[19];
+		uint16_t index_buffer_index;
+		LODFlags lod_flags;
+		LODRenderFlags lod_render_flags;
+		uint16_t raytracing_metadata_index;
+		uint8_t generated_paddaed[2];
+	};
+	struct StaticGeoMarker {
+		_s_triplefloat translation;
+		_s_quadfloat rotation;
+	};
+	struct DeformationParameterDefaultValue {
+		uint32_t parameter_name;
+		float parameter_default_value;
+	};
+	struct RenderGeometryProceduralRemapTable {
+		_s_tagblock<WordIndex> Procedural_Remap_Table;
+	};
+	struct RenderGeometryProceduralDeformation {
+		_s_tagblock<RenderGeometryDeformationParameter> parameter_list;
+		uint32_t Procedural_deformation_function_name;
+	};
+	struct s_blendshape_compression_info {
+		_s_triplefloat position_scale;
+		_s_triplefloat position_offset;
+		_s_triplefloat normal_scale;
+		_s_triplefloat normal_offset;
+		_s_tagblock<DwordIndex> raw_target_hash_name;
+	};
+	struct RenderGeometryMeshPackage {
+		uint16_t flags;
+		RenderGeometryMeshPackage__Policy mesh_resource_packing_policy;
+		uint16_t total_index_buffer_count;
+		uint16_t total_vertex_buffer_count;
+		uint16_t total_raytracing_metadata_count;
+		uint8_t generated_pad4c35[2];
+		_s_tagblock<RenderGeometryMeshPackageResourceGroup> mesh_resource_groups;
+		_s_tagblock<RenderGeometryMeshPackage__ResourceLookup> index_resource_look_up;
+		_s_tagblock<RenderGeometryMeshPackage__ResourceLookup> vertex_resource_look_up;
+		_s_tagblock<RenderGeometryMeshPackage__ResourceLookup> raytracing_resource_look_up;
+	};
+	struct s_render_geometry_lod_volume {
+		_s_triplefloat position_bounds_0;
+		_s_triplefloat position_bounds_1;
+		_s_tagblock<s_positioning> position_data;
+	};
+	struct RenderGeometryAnimatedMeshRef {
+		_s_tagref Animated_mesh_tag_reference;
+		uint32_t Name;
+	};
+	struct s_per_mesh_node_map {
+		_s_tagblock<NodeIndexStruct> node_map;
+	};
+	struct s_compression_info {
+		CompressionFlags compression_flags;
+		uint8_t generated_pad1711[2];
+		_s_triplefloat position_bounds_0;
+		_s_triplefloat position_bounds_1;
+		_s_doublefloat texcoord_bounds_0;
+		_s_doublefloat texcoord_bounds_1;
+		_s_doublefloat texcoord_bounds2_0;
+		_s_doublefloat texcoord_bounds2_1;
+		_s_doublefloat texcoord_bounds3_0;
+		_s_doublefloat texcoord_bounds3_1;
+		float unused0;
+		float unused1;
+	};
+	struct PCAMeshIndex {
+		int32_t mesh_index;
+	};
+	struct s_mesh {
+		_s_tagblock<LODRenderData> LOD_render_data;
+		MeshFlags mesh_flags;
+		uint8_t rigid_node_index;
+		VertexType vertex_type;
+		int8_t use_dual_quat;
+		IndexBufferPrimitiveType index_buffer_type;
+		int16_t pca_mesh_index;
+		_s_tagblock<MeshVertexKey> vertex_keys;
+		int16_t clone_index;
+		int16_t optional_LOD_volume_index;
+		int16_t Procedural_Deformation_Remap_Table;
+		uint8_t generated_pad8fb3[2];
+		int32_t lod_state_cache_slot;
+	};
+	struct MeshImportInfo {
+		uint32_t CRC;
+		_s_triplefloat position_bounds_0;
+		_s_triplefloat position_bounds_1;
+		_s_doublefloat texcoord_bounds_0;
+		_s_doublefloat texcoord_bounds_1;
+	};
+	struct LODTransitionDistanceBlock {
+		float lodTransitionDistance;
+	};
+	struct s_anyTagGuts {
+		int32_t global_tag_ID;
+		uint8_t local_tag_handle[4];
+	};
+	struct StaticGeoMarkerGroup {
+		uint32_t name;
+		_s_tagblock<StaticGeoMarker> markers;
+	};
+	struct s_render_geometry {
+		RenderGeometryFlags runtime_flags;
+		_s_tagblock<MeshImportInfo> meshes_import_info;
+		_s_tagblock<s_mesh> meshes;
+		_s_tagblock<PCAMeshIndex> PCA_Mesh_Indices;
+		_s_tagblock<s_compression_info> compression_info;
+		_s_tagblock<s_per_mesh_node_map> per_mesh_node_map;
+		_s_tagblock<RenderGeometryAnimatedMeshRef> Optional_animated_mesh_tag_references;
+		_s_tagblock<s_render_geometry_lod_volume> Optional_LOD_volumes_data;
+		RenderGeometryMeshPackage mesh_package;
+		_s_tagblock<s_blendshape_compression_info> blendshape_compression_info;
+		_s_tagblock<RenderGeometryProceduralDeformation> blendshape_Procedural_Deformation_function_list;
+		_s_tagblock<RenderGeometryProceduralRemapTable> Procedural_Deformation_function_Remap_Table_List;
+		_s_tagblock<DeformationParameterDefaultValue> Deformation_parameter_default_value_table_from_skeleton;
+		uint8_t generated_paddf2d[4];
+		int64_t perMeshPartConstantBuffer;
+		int8_t target_platformization;
+		uint8_t generated_padc54c[7];
+	};
+	struct RuntimeGeoPerMeshData {
+		uint32_t Name;
+		int16_t Mesh_index;
+		PerMeshFlagsDefinition Per_mesh_flags;
+		uint8_t Lightmapping_policy;
+		_s_triplefloat Scale;
+		_s_triplefloat Forward;
+		_s_triplefloat Left;
+		_s_triplefloat Up;
+		_s_triplefloat Position;
+		_s_triplefloat Bounds_min;
+		_s_triplefloat Bounds_max;
+		_s_triplefloat Bounding_sphere_center;
+		float Bounding_sphere_radius;
+		_s_tagblock<LODTransitionDistanceBlock> Lod_levels;
+		float Fade_out_after_distance;
+		uint8_t generated_pad359f[4];
+		int64_t Mesh_Checksum;
+	};
+	struct AnyTag_struct_definition {
+		int64_t vtable_space;
+		s_anyTagGuts internal_struct;
+	};
+	struct RuntimeGeoTag {
+		AnyTag_struct_definition AnyTag;
+		_s_tagblock<RuntimeGeoPerMeshData> Per_Mesh_Data;
+		uint8_t generated_pad8ff5[4];
+		s_render_geometry render_geometry;
+		_s_tagblock<StaticGeoMarkerGroup> marker_groups;
+		uint32_t asset_category_name;
+		int32_t asset_category_index;
+		int32_t Number_of_LODS_to_make_required;
+	};
+}
 #pragma pack(pop)

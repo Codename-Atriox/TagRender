@@ -159,7 +159,7 @@ bool Graphics::InitializeDirectX(HWND hwnd)
 
 bool Graphics::InitializeShaders()
 {
-	std::wstring shaderfolder = L"D:\\Projects\\VS\\directX project\\DX11 project\\x64\\Debug\\";
+	std::wstring shaderfolder = L"D:\\Projects\\VS\\TagRender\\x64\\Debug\\";
 	
 
 	D3D11_INPUT_ELEMENT_DESC layout[] =

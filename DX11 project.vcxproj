@@ -71,19 +71,19 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>D:\Projects\VS\directX project\DX11 project\Includes;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)Includes;$(IncludePath)</IncludePath>
     <LibraryPath>D:\Projects\VS\directX project\DX11 project\Libs\x86\Debug;D:\Projects\VS\directX project\DX11 project\Libs\Any;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>D:\Projects\VS\directX project\DX11 project\Includes;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)Includes;$(IncludePath)</IncludePath>
     <LibraryPath>D:\Projects\VS\directX project\DX11 project\Libs\x86\Release;D:\Projects\VS\directX project\DX11 project\Libs\Any;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>D:\Projects\VS\directX project\DX11 project\Includes;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)Includes;$(IncludePath)</IncludePath>
     <LibraryPath>D:\Projects\VS\directX project\DX11 project\Libs\x64\Debug;D:\Projects\VS\directX project\DX11 project\Libs\Any;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>D:\Projects\VS\directX project\DX11 project\Includes;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)Includes;$(IncludePath)</IncludePath>
     <LibraryPath>D:\Projects\VS\directX project\DX11 project\Libs\x64\Release;D:\Projects\VS\directX project\DX11 project\Libs\Any;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -140,7 +140,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d11.lib;DirectXTK.lib;DirectXTex.lib;DXGI.lib;D3DCompiler.lib;assimp-vc140-mt.lib;TagFramework_cpp.lib;oo2core_8_win64.lib</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;DirectXTK.lib;DirectXTex.lib;DXGI.lib;D3DCompiler.lib;assimp-vc140-mt.lib;oo2core_8_win64.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(IntDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>

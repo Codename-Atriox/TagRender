@@ -410,18 +410,18 @@ void ModuleManager::RTGO_loadbuffers(Tag* tag, ID3D11Device* device) {
     // we need to load all resources into single char buffer, we do not need to store size as all links to buffer are created here
     // nothing will directly access the pointer, except for cleaing up, which we'll do in a custom struct destructor
 
-    RuntimeGeoTag* runtime_geo = (RuntimeGeoTag*)tag->tag_data;
+    rtgo::RuntimeGeoTag* runtime_geo = (rtgo::RuntimeGeoTag*)tag->tag_data;
 
     // no support for multiple 'mesh reosurce groups' yet, throw exception
     if (runtime_geo->render_geometry.mesh_package.mesh_resource_groups.count != 1)
         throw exception("bad number of resource groups in runtime geo");
 
-    RenderGeometryMeshPackageResourceGroup* current_runtime_geo_group = runtime_geo->render_geometry.mesh_package.mesh_resource_groups[0];
+    rtgo::RenderGeometryMeshPackageResourceGroup* current_runtime_geo_group = runtime_geo->render_geometry.mesh_package.mesh_resource_groups[0];
     // double check to make sure the file exists as expected, we dont know how non-chunked models work yet
     if (current_runtime_geo_group->mesh_resource.is_chunked_resource == 0)
         throw exception("non-chunked geo resources are not yet supported!!!");
     
-    s_render_geometry_api_resource* current_geo_resource = current_runtime_geo_group->mesh_resource.content_ptr;
+    rtgo::s_render_geometry_api_resource* current_geo_resource = current_runtime_geo_group->mesh_resource.content_ptr;
 
     // first we have to iterate through all resources & write their contents to the buffers
     // all buffer datas will go into the one char buffer, which we then give the reference to the thing
@@ -441,7 +441,7 @@ void ModuleManager::RTGO_loadbuffers(Tag* tag, ID3D11Device* device) {
 
     for (uint32_t i = 0; i < current_geo_resource->Streaming_Chunks.count; i++) {
         // loop through all buffers
-        StreamingGeometryChunk* curr_buffer_chunk = current_geo_resource->Streaming_Chunks[i];
+        rtgo::StreamingGeometryChunk* curr_buffer_chunk = current_geo_resource->Streaming_Chunks[i];
         uint64_t buffer_offset = offsets[curr_buffer_chunk->buffer_index];
         if (curr_buffer_chunk->buffer_start > curr_buffer_chunk->buffer_end)
             throw exception("bad buffer indicies");
@@ -464,7 +464,7 @@ void ModuleManager::RTGO_loadbuffers(Tag* tag, ID3D11Device* device) {
 
     // iterate through buffers and generate D3D11 buffers
     for (uint32_t i = 0; i < current_geo_resource->pc_vertex_buffers.count; i++) {
-        RasterizerVertexBuffer* vert_buffer = current_geo_resource->pc_vertex_buffers[i];
+        rtgo::RasterizerVertexBuffer* vert_buffer = current_geo_resource->pc_vertex_buffers[i];
 
         D3D11_BUFFER_DESC vertexBufferDesc;
         ZeroMemory(&vertexBufferDesc, sizeof(vertexBufferDesc)); // do we even need to do this?
@@ -486,7 +486,7 @@ void ModuleManager::RTGO_loadbuffers(Tag* tag, ID3D11Device* device) {
     }
     // iterate through buffers and generate D3D11 buffers
     for (uint32_t i = 0; i < current_geo_resource->pc_index_buffers.count; i++) {
-        RasterizerIndexBuffer* index_buffer = current_geo_resource->pc_index_buffers[i];
+        rtgo::RasterizerIndexBuffer* index_buffer = current_geo_resource->pc_index_buffers[i];
 
         D3D11_BUFFER_DESC indexBufferDesc;
         ZeroMemory(&indexBufferDesc, sizeof(indexBufferDesc)); // do we even need to do this?
