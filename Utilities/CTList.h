@@ -67,7 +67,7 @@ public:
 		T** new_array = (T**)new void* [allocated_count];
 
 		if (content_ptr != 0) // do not copy from buffer if its empty, aka first initialization
-			memcpy(new_array, content_ptr, (size_t)count); // NOTE: count is converted to longlong, meaning our highest item index is a signed long long;
+			memcpy(new_array, content_ptr, (size_t)(count * 8)); // * because sizeof(pointer) // NOTE: count is converted to longlong, meaning our highest item index is a signed long long;
 		ClearBuffer();
 		content_ptr = new_array;
 	}

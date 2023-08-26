@@ -16,9 +16,17 @@ void ModuleManager::OpenModule(string filename){
 		loaded_modules.push_back(new_module);
 		open_modules++;
 		total_tags += new_module->file_count;
+
+        //int32_t tag_index = new_module->find_tag_index(0xFC3EA86A);
+        //if (tag_index == -1) 
+        //    throw exception("tag not found"); // this module does not contain the tag
+        //return;
 	} catch (exception ex) {
 		throw exception("failed to open module");
 	}
+
+
+
 }
 
 void ModuleManager::CloseModule(string filename){
@@ -43,7 +51,7 @@ Tag* ModuleManager::GetTag(uint32_t tagID) {
 			return loaded_tags[i];
 	return (Tag*)0;
 }
-Tag* ModuleManager::OpenTag(uint32_t tagID){
+Tag* ModuleManager::OpenTag(uint32_t tagID, ID3D11Device* device){
 	// first check if the tag already exists
 	Tag* new_tag = GetTag(tagID);
 	if (new_tag != (Tag*)0) return new_tag;
@@ -62,7 +70,19 @@ Tag* ModuleManager::OpenTag(uint32_t tagID){
 
 
 		Tag* new_tag = new Tag(TagnameProcessor.GetTagname(file_ptr->GlobalTagId), file_ptr->ClassId, file_ptr->GlobalTagId, output_tag_bytes, output_cleanup_ptr, module_ptr->filepath, tag_index);
+        if (new_tag->tagname == "") {
+            new_tag->tagname = "name failed";
+        }
 		loaded_tags.push_back(new_tag);
+
+        // then do any processing required for the tag
+        // and for every tag, we're going to use that anytag blank slot to point to our tag header structure thing // so then we can use it for things like dependency arrays etc
+        ((rtgo::AnyTag_struct_definition*)new_tag->tag_data)->vtable_space = (long)new_tag; // cursed
+        switch (new_tag->tag_FourCC) {
+        case Tag::rtgo:
+            RTGO_loadbuffers(new_tag, device);
+            break;
+        }
 
 		// TagToTexture(new_tag);
 		return new_tag;
@@ -161,6 +181,7 @@ bool is_short_header(DXGI_FORMAT format) {
 }
 
 // index -1 : highest texture resolution
+
 BitmapResource* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device* device, int32_t target_resource, bool load_next_best) {
 	if (tag->tag_FourCC != Tag::bitm) // 'bitm'
 		return nullptr;
@@ -169,7 +190,17 @@ BitmapResource* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device* device, i
     // maybe if it is hd1, create a dummy resource with the hd1 bool set & then go through list until we find a non-hd1 asset?
 
     BitmapGroup* bitm_tag = (BitmapGroup*)(tag->tag_data);
-    BitmapData* selected_bitmap = bitm_tag->bitmaps[0];
+
+    bool multi_mode = (bitm_tag->bitmaps.count > 1);
+
+    BitmapData* selected_bitmap = nullptr;
+    if (multi_mode){
+        if (target_resource >= bitm_tag->bitmaps.count)
+            throw exception("bad multi image mode resource target index (overflowed)!!!");
+        load_next_best = false; // this disables certain code that should never run when multimode
+        selected_bitmap = bitm_tag->bitmaps[target_resource]; // multi-mode means our index is to the bitmap, not 
+    }else selected_bitmap = bitm_tag->bitmaps[0];
+        
     BitmapDataResource* bitmap_details = selected_bitmap->bitmap_resource_handle.content_ptr;
 
 
@@ -177,26 +208,32 @@ BitmapResource* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device* device, i
     // so we can makre sure we haven't already created this guy
     const bool has_pixel_data = (bitmap_details->pixels.data_size != 0);
     const bool has_streamble_data = (bitmap_details->streamingData.count != 0);
-    // count all resources
-    int32_t resource_count = has_pixel_data; // (0 or 1 for init count)
-    resource_count += bitmap_details->streamingData.count;
 
-    // if there is no images, then fail
-    if (resource_count == 0)
-        throw exception("no buffers to source image from");
-
-    // if target index is larger than size, set to highest index
-    // or if index is -1, then also selected highest index
+    // count all resources, if resources are chunks
     bool is_using_pixel_data = false;
-    if (target_resource >= resource_count || target_resource < 0)
-        target_resource = resource_count - 1;
-
     int32_t resource_file_index = target_resource;
-    if (has_pixel_data) {
-        if (target_resource == 0) // resource 0 means lowest, the data in the buffer is assumedly the lowest quality // however infinite i believe uses that as a buffer, and thus cannot have both streamable & pixel data
-            is_using_pixel_data = true;
-        resource_file_index--;
+    if (!multi_mode) {
+        int32_t resource_count = has_pixel_data; // (0 or 1 for init count)
+        resource_count += bitmap_details->streamingData.count;
+
+        // if there is no images, then fail
+        if (resource_count == 0)
+            throw exception("no buffers to source image from");
+
+        // if target index is larger than size, set to highest index
+        // or if index is -1, then also selected highest index
+        if (target_resource >= resource_count || target_resource < 0)
+            target_resource = resource_count - 1;
+
+        if (has_pixel_data) {
+            if (target_resource == 0) // resource 0 means lowest, the data in the buffer is assumedly the lowest quality // however infinite i believe uses that as a buffer, and thus cannot have both streamable & pixel data
+                is_using_pixel_data = true;
+            resource_file_index--;
+        }
     }
+    else is_using_pixel_data = true; // im pretty sure its not possible for multi mode to have another other than single mips
+
+
 
     // now check if that resource is valid, if not then go down the list until we find a valid resource.
     // determine whether we are currently loading 
@@ -262,8 +299,12 @@ BitmapResource* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device* device, i
         throw exception("unsupported image type");
     if (selected_bitmap->bitmap_resource_handle.content_ptr == 0)
         throw exception("image data not present?!!");
-    if (selected_bitmap->bitmap_resource_handle.is_chunked_resource == 0)
-        throw exception("images with non-chunked/streamable data are not supported!!");
+
+    // make sure multi/single modes have according resource types
+    if (multi_mode && selected_bitmap->bitmap_resource_handle.is_chunked_resource != 0)
+        throw exception("multi mode bitmaps must use non-chunked resources!! (it would be impossible for them to be set otherwise)");
+    if (!multi_mode && selected_bitmap->bitmap_resource_handle.is_chunked_resource == 0)
+        throw exception("bitmaps with single image should be in chunk mode!! must investigate!!");
 
 
     DirectX::TexMetadata* meta = new DirectX::TexMetadata();
@@ -316,7 +357,8 @@ BitmapResource* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device* device, i
     resource_container->Width = meta->width;
     resource_container->Height = meta->height;
     resource_container->resource_index = target_resource;
-    resource_container->hd1 = IsTagResourceHd1(tag, resource_file_index);
+    if (is_using_pixel_data) resource_container->hd1 = false; // im pretty sure it cant be possible for buffer data to be in hd1, as it has to exist within the main tag's blocks
+    else                     resource_container->hd1 = IsTagResourceHd1(tag, resource_file_index);
 
     // if this was marked as hd1 & we dont have hd1 loaded, then blank this & next time it will load a lower index asset
     if (resource_container->hd1 && !hd1_loaded) {
@@ -407,6 +449,8 @@ BitmapResource* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device* device, i
 
 
 void ModuleManager::RTGO_loadbuffers(Tag* tag, ID3D11Device* device) {
+    if (tag->tag_FourCC != Tag::rtgo) // 'bitm'
+        return;
     // we need to load all resources into single char buffer, we do not need to store size as all links to buffer are created here
     // nothing will directly access the pointer, except for cleaing up, which we'll do in a custom struct destructor
 
@@ -452,7 +496,7 @@ void ModuleManager::RTGO_loadbuffers(Tag* tag, ID3D11Device* device) {
             //continue; // this buffer has no content, thus likely no resource file
 
         // then just dump the data in
-        if (OpenTagResource(tag, i, streaming_buffer + (buffer_offset + curr_buffer_chunk->buffer_start), curr_buffer_chunk->buffer_end - curr_buffer_chunk->buffer_start))
+        if (FAILED(OpenTagResource(tag, i, streaming_buffer + (buffer_offset + curr_buffer_chunk->buffer_start), curr_buffer_chunk->buffer_end - curr_buffer_chunk->buffer_start)))
             throw exception("resource chunk failed to load");
     }
     delete[] offsets;
@@ -481,7 +525,9 @@ void ModuleManager::RTGO_loadbuffers(Tag* tag, ID3D11Device* device) {
             throw exception("render geo with non-chunked data is not currently supported!! because i have no idea what could be contained in this buffer!!");
         vertexBufferData.pSysMem = streaming_buffer + vert_buffer->offset;
 
-        HRESULT hr = device->CreateBuffer(&vertexBufferDesc, &vertexBufferData, (ID3D11Buffer**)vert_buffer->m_resource);
+        ID3D11Buffer* result = nullptr;
+        HRESULT hr = device->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &result);
+        vert_buffer->m_resource = (uint64_t)result;
         if (FAILED(hr)) throw exception("failed to generate d3d11 buffer!!");
     }
     // iterate through buffers and generate D3D11 buffers
@@ -503,7 +549,9 @@ void ModuleManager::RTGO_loadbuffers(Tag* tag, ID3D11Device* device) {
             throw exception("render geo with non-chunked data is not currently supported!! because i have no idea what could be contained in this buffer!!");
         vertexBufferData.pSysMem = streaming_buffer + index_buffer->offset;
 
-        HRESULT hr = device->CreateBuffer(&indexBufferDesc, &vertexBufferData, (ID3D11Buffer**)index_buffer->m_resource);
+        ID3D11Buffer* result = nullptr;
+        HRESULT hr = device->CreateBuffer(&indexBufferDesc, &vertexBufferData, &result);
+        index_buffer->m_resource = (uint64_t)result;
         if (FAILED(hr)) throw exception("failed to generate d3d11 buffer!!");
     }
     // thats all, we dont have anything to return, because we just wrote everything to the tag

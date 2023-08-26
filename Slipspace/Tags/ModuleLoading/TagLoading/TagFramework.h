@@ -64,23 +64,5 @@ private:
 
 
 static class TagProcessing {
-public:
-	static void Open_ready_tag(char* tag_bytes, uint64_t tag_size, char*& _Out_tag, char*& _Out_cleanup_ptr);
-private:
-	static struct tag_loading_offsets {
-		uint64_t tag_dependencies_offset;
-		uint64_t data_blocks_offset;
-		uint64_t tag_structs_offset;
-		uint64_t data_references_offset;
-		uint64_t tag_fixup_references_offset;
-		uint64_t string_table_offset;
-		uint64_t zoneset_info_offset;
-		// these three are offsets into the headerless array (so -= header.size)
-		uint64_t header_size;
-		uint64_t data_1_offset; // tag data
-		uint64_t data_2_offset; // resource data
-		uint64_t data_3_offset; // alt resource data
-	};
-    static uint64_t resolve_datablock_offset(TagStructs::data_block* datar, tag_loading_offsets* offsets);
-    static void Processtag(char* tag_bytes, uint64_t file_size, char*& _Out_data, char*& _Out_cleanup_ptr);
+
 };

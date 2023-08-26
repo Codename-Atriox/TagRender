@@ -7,7 +7,7 @@
 class UI {
 public:
 	void render_UI(ModuleManager* Modules, ID3D11Device* device) {
-		render_module_window(Modules);
+		render_module_window(Modules, device);
 		render_loaded_tags_window(Modules);
 		render_bitmap_window(Modules, device);
 
@@ -32,7 +32,7 @@ public:
 		tag_UI_groups_buffer[index * 5 + 3] = tag_group & 0xff;
 		tag_UI_groups_buffer[index * 5 + 4] = 0; // null terminator
 	}
-	void render_module_window(ModuleManager* Modules) {
+	void render_module_window(ModuleManager* Modules, ID3D11Device* device) {
 		ImGui::Begin("Modules");
 		if (ImGui::Button("Open Module")) {
 			char* outpath;
@@ -75,7 +75,7 @@ public:
 
 						ImGui::SameLine();
 						if (ImGui::Button("Open")) {
-							Modules->OpenTag(menu_active_tag->GlobalTagId);
+							Modules->OpenTag(menu_active_tag->GlobalTagId, device);
 						}
 
 					}
@@ -251,8 +251,15 @@ public:
 
 				ImGui::Text("Bitmaps [%d]", bitmap_header->bitmaps.count);
 				// maybe add logic here if needed
+
 				uint32_t selected_bitmap = 0;
-				if (selected_bitmap < bitmap_header->bitmaps.count) {
+				bool multi_image = (bitmap_header->bitmaps.count > 1);
+				if (multi_image){
+					// if we have multiple images, then that means we probably dont have mips, so we preview slider the image index
+					ImGui::DragInt("Active image", &open_bitmap->preview_1, 0.1f, 0, bitmap_header->bitmaps.count - 1);
+					selected_bitmap = open_bitmap->preview_1;
+				}
+				if (selected_bitmap < bitmap_header->bitmaps.count && selected_bitmap >= 0) {
 					BitmapData* curr_bitmap = bitmap_header->bitmaps[selected_bitmap];
 
 					ImGui::Text("Size [%dx%d]", curr_bitmap->sourceWidth, curr_bitmap->sourceHeight);
@@ -284,7 +291,7 @@ public:
 						lods = 1;
 					lods += bitm_resource->streamingData.count;
 					ImGui::Text("LODs [%d]", lods);
-					ImGui::DragInt("Active MIP", &open_bitmap->preview_1, 0.1f, 0, lods-1);
+					if (!multi_image) ImGui::DragInt("Active MIP", &open_bitmap->preview_1, 0.1f, 0, bitmap_header->bitmaps.count - 1);
 					// then present the actual image
 					if (curr_bitmap->type == BitmapType::_2D_texture) {
 						BitmapResource* last_loaded_image = Modules->BITM_GetTexture(open_bitmap, device, open_bitmap->preview_1, false);
@@ -329,7 +336,71 @@ public:
 	// //////////////////// //
 	// RENDER MODEL WINDOW //
 	// ////////////////// //
-	void render_model_window() {
+	/*
+	CTList<Tag> OpenRuntimeGeos;
+	void render_runtimegeo_window(Tag* tag, ID3D11Device* device, ID3D11DeviceContext* deviceContext) {
 
-	}
+		rtgo::RuntimeGeoTag* runtime_geo = (rtgo::RuntimeGeoTag*)tag->tag_data;
+		// no support for multiple 'mesh reosurce groups' yet, throw exception
+		if (runtime_geo->render_geometry.mesh_package.mesh_resource_groups.count != 1)
+			throw exception("bad number of resource groups in runtime geo");
+		// buffer structs
+		rtgo::RenderGeometryMeshPackageResourceGroup* runtime_geo_group = runtime_geo->render_geometry.mesh_package.mesh_resource_groups[0];
+		// double check to make sure the file exists as expected, we dont know how non-chunked models work yet
+		if (runtime_geo_group->mesh_resource.is_chunked_resource == 0)
+			throw exception("non-chunked geo resources are not yet supported!!!");
+		rtgo::s_render_geometry_api_resource* geo_resource = runtime_geo_group->mesh_resource.content_ptr;
+
+
+		for (int m_index = 0; m_index < runtime_geo->render_geometry.meshes.count; m_index++) {
+			rtgo::s_mesh* current_mesh = runtime_geo->render_geometry.meshes[m_index];
+
+			for (int lod_index = 0; lod_index < current_mesh->LOD_render_data.count; lod_index++) {
+				rtgo::LODRenderData* current_lod = current_mesh->LOD_render_data[lod_index];
+
+				uint16_t ibuffer_index = ;
+				uint16_t ibuffer_index = current_lod->index_buffer_index;
+
+				rtgo::RasterizerIndexBuffer* index_buffer = geo_resource->pc_index_buffers[current_lod->index_buffer_index];
+				rtgo::RasterizerVertexBuffer* vert_buffer = geo_resource->pc_vertex_buffers[current_lod->index_buffer_index];
+
+				/* all 'vertex buffer indicies' meanings via slot/index
+				*  0 : Position (wordVector4DNormalized)
+				*  1 : UV0 (wordVector2DNormalized)
+				*  2 : UV1 (wordVector2DNormalized)
+				*  3 : UV2 (wordVector2DNormalized)
+				*  4 : Color (byteARGBColor)
+				*  5 : Normal (10_10_10_10_2_signedNormalizedPackedAsUnorm)
+				*  6 : Tangent (byteUnitVector3D)
+				*  7 : 
+				*  8 : 
+				*  9 : 
+				* 10 : 
+				* 11 : 
+				* 12 : 
+				* 13 : 
+				* 14 : 
+				* 15 : 
+				* 16 : 
+				* 17 : 
+				* 18 : 
+				* 19 : 
+				* /
+
+				ID3D11Buffer* vert_buffers[19] = {};
+				UINT vert_strides[19] = {};
+				UINT vert_offsets[19] = {};
+
+
+				deviceContext->IASetVertexBuffers(0, 1, vert_buffers, vert_strides, vert_offsets);
+				deviceContext->IASetIndexBuffer((ID3D11Buffer*)index_buffer->m_resource, DXGI_FORMAT::DXGI_FORMAT_R32_UINT, 0);
+				//deviceContext->DrawIndexed(this->indexBuffer.IndexCount(), 0, 0);
+			}
+
+		}
+		*/
+
+
+
+	//}
 };
