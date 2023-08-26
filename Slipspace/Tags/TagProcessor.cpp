@@ -406,3 +406,106 @@ BitmapResource* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device* device, i
 
 
 
+void ModuleManager::RTGO_loadbuffers(Tag* tag, ID3D11Device* device) {
+    // we need to load all resources into single char buffer, we do not need to store size as all links to buffer are created here
+    // nothing will directly access the pointer, except for cleaing up, which we'll do in a custom struct destructor
+
+    RuntimeGeoTag* runtime_geo = (RuntimeGeoTag*)tag->tag_data;
+
+    // no support for multiple 'mesh reosurce groups' yet, throw exception
+    if (runtime_geo->render_geometry.mesh_package.mesh_resource_groups.count != 1)
+        throw exception("bad number of resource groups in runtime geo");
+
+    RenderGeometryMeshPackageResourceGroup* current_runtime_geo_group = runtime_geo->render_geometry.mesh_package.mesh_resource_groups[0];
+    // double check to make sure the file exists as expected, we dont know how non-chunked models work yet
+    if (current_runtime_geo_group->mesh_resource.is_chunked_resource == 0)
+        throw exception("non-chunked geo resources are not yet supported!!!");
+    
+    s_render_geometry_api_resource* current_geo_resource = current_runtime_geo_group->mesh_resource.content_ptr;
+
+    // first we have to iterate through all resources & write their contents to the buffers
+    // all buffer datas will go into the one char buffer, which we then give the reference to the thing
+
+    // find total buffer size
+    uint64_t buffer_size = 0;
+
+    // cache offsets of all buffers
+    if (current_geo_resource->Streaming_Buffers.count == 0) throw exception("no streaming buffers to pull from!!!");
+    uint64_t* offsets = new uint64_t[current_geo_resource->Streaming_Buffers.count];
+
+    for (int i = 0; i < current_geo_resource->Streaming_Buffers.count; i++) {
+        offsets[i] = buffer_size;
+        buffer_size += current_geo_resource->Streaming_Buffers[i]->buffer_size;
+    }
+    char* streaming_buffer = new char[buffer_size];
+
+    for (uint32_t i = 0; i < current_geo_resource->Streaming_Chunks.count; i++) {
+        // loop through all buffers
+        StreamingGeometryChunk* curr_buffer_chunk = current_geo_resource->Streaming_Chunks[i];
+        uint64_t buffer_offset = offsets[curr_buffer_chunk->buffer_index];
+        if (curr_buffer_chunk->buffer_start > curr_buffer_chunk->buffer_end)
+            throw exception("bad buffer indicies");
+        if (curr_buffer_chunk->buffer_end > buffer_size)
+            throw exception("buffer end index overflows buffer size!!");
+        if (curr_buffer_chunk->buffer_start == curr_buffer_chunk->buffer_end)
+            break; // using a break instead because if any other buffer beyonds this one does have information, then this would be error prone
+            //continue; // this buffer has no content, thus likely no resource file
+
+        // then just dump the data in
+        if (OpenTagResource(tag, i, streaming_buffer + (buffer_offset + curr_buffer_chunk->buffer_start), curr_buffer_chunk->buffer_end - curr_buffer_chunk->buffer_start))
+            throw exception("resource chunk failed to load");
+    }
+    delete[] offsets;
+    // leave a pointer to the buffer array in the runtime data slot, so it can be cleaned up later
+    current_geo_resource->Runtime_Data = (uint64_t)streaming_buffer;
+
+    // now we load to fill in the buffers for each of the d3d11 buffer things
+    // which ironically all require us to create new d3dbuffers, because appanrently we couldn't just build them into the structs
+
+    // iterate through buffers and generate D3D11 buffers
+    for (uint32_t i = 0; i < current_geo_resource->pc_vertex_buffers.count; i++) {
+        RasterizerVertexBuffer* vert_buffer = current_geo_resource->pc_vertex_buffers[i];
+
+        D3D11_BUFFER_DESC vertexBufferDesc;
+        ZeroMemory(&vertexBufferDesc, sizeof(vertexBufferDesc)); // do we even need to do this?
+
+        vertexBufferDesc.Usage = (D3D11_USAGE)vert_buffer->d3dbuffer.usage;
+        vertexBufferDesc.ByteWidth = vert_buffer->d3dbuffer.byte_width;
+        vertexBufferDesc.BindFlags = vert_buffer->d3dbuffer.bind_flags;
+        vertexBufferDesc.CPUAccessFlags = vert_buffer->d3dbuffer.cpu_flags;
+        vertexBufferDesc.MiscFlags = vert_buffer->d3dbuffer.misc_flags;
+
+        D3D11_SUBRESOURCE_DATA vertexBufferData;
+        ZeroMemory(&vertexBufferData, sizeof(vertexBufferData));
+        if (vert_buffer->d3dbuffer.d3d_buffer.data_size != 0)
+            throw exception("render geo with non-chunked data is not currently supported!! because i have no idea what could be contained in this buffer!!");
+        vertexBufferData.pSysMem = streaming_buffer + vert_buffer->offset;
+
+        HRESULT hr = device->CreateBuffer(&vertexBufferDesc, &vertexBufferData, (ID3D11Buffer**)vert_buffer->m_resource);
+        if (FAILED(hr)) throw exception("failed to generate d3d11 buffer!!");
+    }
+    // iterate through buffers and generate D3D11 buffers
+    for (uint32_t i = 0; i < current_geo_resource->pc_index_buffers.count; i++) {
+        RasterizerIndexBuffer* index_buffer = current_geo_resource->pc_index_buffers[i];
+
+        D3D11_BUFFER_DESC indexBufferDesc;
+        ZeroMemory(&indexBufferDesc, sizeof(indexBufferDesc)); // do we even need to do this?
+
+        indexBufferDesc.Usage = (D3D11_USAGE)index_buffer->d3dbuffer.usage;
+        indexBufferDesc.ByteWidth = index_buffer->d3dbuffer.byte_width;
+        indexBufferDesc.BindFlags = index_buffer->d3dbuffer.bind_flags;
+        indexBufferDesc.CPUAccessFlags = index_buffer->d3dbuffer.cpu_flags;
+        indexBufferDesc.MiscFlags = index_buffer->d3dbuffer.misc_flags;
+
+        D3D11_SUBRESOURCE_DATA vertexBufferData;
+        ZeroMemory(&vertexBufferData, sizeof(vertexBufferData));
+        if (index_buffer->d3dbuffer.d3d_buffer.data_size != 0)
+            throw exception("render geo with non-chunked data is not currently supported!! because i have no idea what could be contained in this buffer!!");
+        vertexBufferData.pSysMem = streaming_buffer + index_buffer->offset;
+
+        HRESULT hr = device->CreateBuffer(&indexBufferDesc, &vertexBufferData, (ID3D11Buffer**)index_buffer->m_resource);
+        if (FAILED(hr)) throw exception("failed to generate d3d11 buffer!!");
+    }
+    // thats all, we dont have anything to return, because we just wrote everything to the tag
+    // we can now render this data via the interfaces we just created & referencing them using the meshes tagdata struct
+}
