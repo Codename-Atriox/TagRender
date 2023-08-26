@@ -332,7 +332,7 @@ void Graphics::RenderFrame()
 	//ImGui::DragFloat("Dynamic Light Attenuation C", &this->light.attenuation_c, 0.01f, 0.0f, 10.0f);
 	ImGui::End();
 
-	ui.render_UI(&Modules, device.Get()); // call to handle our Slipspace interface UI
+	ui.render_UI(&Modules, device.Get(), deviceContext.Get()); // call to handle our Slipspace interface UI
 	
 	// IM GUI DRAW
 	ImGui::Render();

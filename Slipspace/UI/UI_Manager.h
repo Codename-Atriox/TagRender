@@ -6,11 +6,11 @@
 
 class UI {
 public:
-	void render_UI(ModuleManager* Modules, ID3D11Device* device) {
+	void render_UI(ModuleManager* Modules, ID3D11Device* device, ID3D11DeviceContext* deviceContext) {
 		render_module_window(Modules, device);
 		render_loaded_tags_window(Modules);
 		render_bitmap_window(Modules, device);
-
+		render_runtimegeo_window(device, deviceContext);
 
 
 	}
@@ -132,9 +132,22 @@ public:
 					else if (ImGui::Button("Close"))
 						OpenBitmaps.Remove(active_tag);
 				} break;
-				case 1:
+				case 1: {
 					ImGui::Text("Runtime Geo");
-					break;
+					bool is_opened = false;
+					for (int i = 0; i < OpenRuntimeGeos.Size(); i++) {
+						if (OpenRuntimeGeos[i] == active_tag) {
+							is_opened = true;
+							break;
+						}
+					}
+					if (!is_opened) {
+						if (ImGui::Button("View"))
+							OpenRuntimeGeos.Append(active_tag);
+					}
+					else if (ImGui::Button("Close"))
+						OpenRuntimeGeos.Remove(active_tag);
+				} break;
 				case 2:
 					ImGui::Text("Model");
 					break;
@@ -336,71 +349,109 @@ public:
 	// //////////////////// //
 	// RENDER MODEL WINDOW //
 	// ////////////////// //
-	/*
+	void configure_shaders() {
+
+	}
 	CTList<Tag> OpenRuntimeGeos;
-	void render_runtimegeo_window(Tag* tag, ID3D11Device* device, ID3D11DeviceContext* deviceContext) {
+	void render_runtimegeo_window(ID3D11Device* device, ID3D11DeviceContext* deviceContext) {
 
-		rtgo::RuntimeGeoTag* runtime_geo = (rtgo::RuntimeGeoTag*)tag->tag_data;
-		// no support for multiple 'mesh reosurce groups' yet, throw exception
-		if (runtime_geo->render_geometry.mesh_package.mesh_resource_groups.count != 1)
-			throw exception("bad number of resource groups in runtime geo");
-		// buffer structs
-		rtgo::RenderGeometryMeshPackageResourceGroup* runtime_geo_group = runtime_geo->render_geometry.mesh_package.mesh_resource_groups[0];
-		// double check to make sure the file exists as expected, we dont know how non-chunked models work yet
-		if (runtime_geo_group->mesh_resource.is_chunked_resource == 0)
-			throw exception("non-chunked geo resources are not yet supported!!!");
-		rtgo::s_render_geometry_api_resource* geo_resource = runtime_geo_group->mesh_resource.content_ptr;
+		//this->deviceContext->VSSetConstantBuffers(0, 1, this->cb_vs_vertexshader->GetAddressOf());
 
+		//this->cb_vs_vertexshader->data.wvpMatrix = meshes[i].GetTransformMatrix() * worldMatrix * viewProjectionMatrix;
+		//this->cb_vs_vertexshader->data.wvpMatrix = XMMatrixTranspose(this->cb_vs_vertexshader->data.mat);
+		//this->cb_vs_vertexshader->data.worldMatrix = meshes[i].GetTransformMatrix() * worldMatrix;
+		//this->cb_vs_vertexshader->ApplyChanges();
 
-		for (int m_index = 0; m_index < runtime_geo->render_geometry.meshes.count; m_index++) {
-			rtgo::s_mesh* current_mesh = runtime_geo->render_geometry.meshes[m_index];
-
-			for (int lod_index = 0; lod_index < current_mesh->LOD_render_data.count; lod_index++) {
-				rtgo::LODRenderData* current_lod = current_mesh->LOD_render_data[lod_index];
-
-				uint16_t ibuffer_index = ;
-				uint16_t ibuffer_index = current_lod->index_buffer_index;
-
-				rtgo::RasterizerIndexBuffer* index_buffer = geo_resource->pc_index_buffers[current_lod->index_buffer_index];
-				rtgo::RasterizerVertexBuffer* vert_buffer = geo_resource->pc_vertex_buffers[current_lod->index_buffer_index];
-
-				/* all 'vertex buffer indicies' meanings via slot/index
-				*  0 : Position (wordVector4DNormalized)
-				*  1 : UV0 (wordVector2DNormalized)
-				*  2 : UV1 (wordVector2DNormalized)
-				*  3 : UV2 (wordVector2DNormalized)
-				*  4 : Color (byteARGBColor)
-				*  5 : Normal (10_10_10_10_2_signedNormalizedPackedAsUnorm)
-				*  6 : Tangent (byteUnitVector3D)
-				*  7 : 
-				*  8 : 
-				*  9 : 
-				* 10 : 
-				* 11 : 
-				* 12 : 
-				* 13 : 
-				* 14 : 
-				* 15 : 
-				* 16 : 
-				* 17 : 
-				* 18 : 
-				* 19 : 
-				* /
-
-				ID3D11Buffer* vert_buffers[19] = {};
-				UINT vert_strides[19] = {};
-				UINT vert_offsets[19] = {};
+		for (uint32_t i = 0; i < OpenRuntimeGeos.Size(); i++) {
+			Tag* tag = OpenRuntimeGeos[i];
 
 
-				deviceContext->IASetVertexBuffers(0, 1, vert_buffers, vert_strides, vert_offsets);
-				deviceContext->IASetIndexBuffer((ID3D11Buffer*)index_buffer->m_resource, DXGI_FORMAT::DXGI_FORMAT_R32_UINT, 0);
-				//deviceContext->DrawIndexed(this->indexBuffer.IndexCount(), 0, 0);
+			rtgo::RuntimeGeoTag* runtime_geo = (rtgo::RuntimeGeoTag*)tag->tag_data;
+			// no support for multiple 'mesh reosurce groups' yet, throw exception
+			if (runtime_geo->render_geometry.mesh_package.mesh_resource_groups.count != 1)
+				throw exception("bad number of resource groups in runtime geo");
+			// buffer structs
+			rtgo::RenderGeometryMeshPackageResourceGroup* runtime_geo_group = runtime_geo->render_geometry.mesh_package.mesh_resource_groups[0];
+			// double check to make sure the file exists as expected, we dont know how non-chunked models work yet
+			if (runtime_geo_group->mesh_resource.is_chunked_resource == 0)
+				throw exception("non-chunked geo resources are not yet supported!!!");
+			rtgo::s_render_geometry_api_resource* geo_resource = runtime_geo_group->mesh_resource.content_ptr;
+
+
+			for (int m_index = 0; m_index < runtime_geo->render_geometry.meshes.count; m_index++) {
+				rtgo::s_mesh* current_mesh = runtime_geo->render_geometry.meshes[m_index];
+
+				for (int lod_index = 0; lod_index < current_mesh->LOD_render_data.count; lod_index++) {
+					rtgo::LODRenderData* current_lod = current_mesh->LOD_render_data[lod_index];
+
+					uint16_t ibuffer_index = current_lod->index_buffer_index;
+
+					rtgo::RasterizerIndexBuffer* index_buffer = geo_resource->pc_index_buffers[current_lod->index_buffer_index];
+
+					/* all 'vertex buffer indicies' meanings via slot/index
+					*  0 : Position (wordVector4DNormalized)
+					*  1 : UV0 (wordVector2DNormalized)
+					*  2 : UV1 (wordVector2DNormalized)
+					*  3 : UV2 (wordVector2DNormalized)
+					*  4 : Color (byteARGBColor)
+					*  5 : Normal (10_10_10_10_2_signedNormalizedPackedAsUnorm)
+					*  6 : Tangent (byteUnitVector3D)
+					*  7 :
+					*  8 :
+					*  9 :
+					* 10 :
+					* 11 :
+					* 12 :
+					* 13 :
+					* 14 :
+					* 15 :
+					* 16 :
+					* 17 :
+					* 18 :
+					* 19 :
+					*/
+					ID3D11Buffer* vert_buffers[19] = {};
+					UINT vert_strides[19] = {};
+					UINT vert_offsets[19] = {};
+					for (int vert_buffer_index = 0; vert_buffer_index < 19; vert_buffer_index++) { // statically assigned length because how do we even measure that
+						if (current_lod->vertex_buffer_indices[vert_buffer_index].vertex_buffer_index == 65535)
+							continue;
+						rtgo::RasterizerVertexBuffer* vert_buffer = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[vert_buffer_index].vertex_buffer_index];
+						vert_buffers[vert_buffer_index] = (ID3D11Buffer*)vert_buffer->m_resource;
+						vert_strides[vert_buffer_index] = vert_buffer->stride;
+						vert_offsets[vert_buffer_index] = 0; // im pretty sure we do not offset these, we only offset the indicies
+					}
+					// then apply the vertex buffers, as they do not change between mesh part
+					deviceContext->IASetVertexBuffers(0, 19, vert_buffers, vert_strides, vert_offsets);
+					// map the stride to a format
+					DXGI_FORMAT index_format = (DXGI_FORMAT)0;
+					switch (index_buffer->stride) {
+					case 2:  index_format = DXGI_FORMAT::DXGI_FORMAT_R16_UINT; break;
+					case 4:  index_format = DXGI_FORMAT::DXGI_FORMAT_R32_UINT; break;
+					default: throw exception("invalid index buffer stride (has to be either 2 or 4 bytes!!!)");
+					}
+					deviceContext->IASetIndexBuffer((ID3D11Buffer*)index_buffer->m_resource, index_format, 0);
+
+					// now loop through all parts & draw
+					for (int part_index = 0; part_index < current_lod->parts.count; part_index++) {
+						rtgo::s_part* mesh_part = current_lod->parts[part_index];
+						deviceContext->DrawIndexed(mesh_part->index_count, mesh_part->index_start, 0);
+					}
+
+
+
+				}
+
 			}
 
+
 		}
-		*/
 
 
 
-	//}
+		
+
+
+
+	}
 };

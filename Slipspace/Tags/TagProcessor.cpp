@@ -525,10 +525,11 @@ void ModuleManager::RTGO_loadbuffers(Tag* tag, ID3D11Device* device) {
             throw exception("render geo with non-chunked data is not currently supported!! because i have no idea what could be contained in this buffer!!");
         vertexBufferData.pSysMem = streaming_buffer + vert_buffer->offset;
 
-        ID3D11Buffer* result = nullptr;
+        ID3D11Buffer* result = {};
         HRESULT hr = device->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &result);
         vert_buffer->m_resource = (uint64_t)result;
-        if (FAILED(hr)) throw exception("failed to generate d3d11 buffer!!");
+        if (FAILED(hr)) 
+            throw exception("failed to generate d3d11 buffer!!");
     }
     // iterate through buffers and generate D3D11 buffers
     for (uint32_t i = 0; i < current_geo_resource->pc_index_buffers.count; i++) {
