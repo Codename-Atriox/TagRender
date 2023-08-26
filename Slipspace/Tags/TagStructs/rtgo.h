@@ -580,5 +580,5 @@ struct RuntimeGeoTag {
 	uint32_t asset_category_name;
 	int32_t asset_category_index;
 	int32_t Number_of_LODS_to_make_required;
-};
+};	
 #pragma pack(pop)
