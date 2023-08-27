@@ -102,6 +102,7 @@ void Model::ProcessNode(aiNode* node, const aiScene* scene, const XMMATRIX& pare
 
 }
 
+
 Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene, const XMMATRIX& transformMatrix)
 {
 	std::vector<Vertex> verticies;
@@ -141,6 +142,12 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene, const XMMATRIX& tran
 	aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 	std::vector<Texture> diffuseTextures = LoadMaterialTextures(material, aiTextureType::aiTextureType_DIFFUSE, scene);
 	textures.insert(textures.end(), diffuseTextures.begin(), diffuseTextures.end());
+
+	// debug
+	//std::ofstream out("C:\\Users\\Joe bingle\\Downloads\\test\\regularmodel.txt");
+	//for (int i = 0; i < verticies.size(); i++) {
+	//	out << verticies[i].pos.x << ',' << verticies[i].pos.y << ',' << verticies[i].pos.z << '\r';
+	//}
 
 	return Mesh(this->device, this->deviceContext, verticies, indicies, textures, transformMatrix);
 }

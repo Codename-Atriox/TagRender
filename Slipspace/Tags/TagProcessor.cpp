@@ -513,11 +513,11 @@ void ModuleManager::RTGO_loadbuffers(Tag* tag, ID3D11Device* device) {
         D3D11_BUFFER_DESC vertexBufferDesc;
         ZeroMemory(&vertexBufferDesc, sizeof(vertexBufferDesc)); // do we even need to do this?
 
-        vertexBufferDesc.Usage = (D3D11_USAGE)vert_buffer->d3dbuffer.usage;
-        vertexBufferDesc.ByteWidth = vert_buffer->d3dbuffer.byte_width;
-        vertexBufferDesc.BindFlags = vert_buffer->d3dbuffer.bind_flags;
-        vertexBufferDesc.CPUAccessFlags = vert_buffer->d3dbuffer.cpu_flags;
-        vertexBufferDesc.MiscFlags = vert_buffer->d3dbuffer.misc_flags;
+        vertexBufferDesc.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT; // apparently 343's mapped value is wrong (D3D11_USAGE)vert_buffer->d3dbuffer.usage; // 0
+        vertexBufferDesc.ByteWidth = vert_buffer->d3dbuffer.byte_width; // 144
+        vertexBufferDesc.BindFlags = vert_buffer->d3dbuffer.bind_flags; // 1 'vertex buffer'
+        vertexBufferDesc.CPUAccessFlags = vert_buffer->d3dbuffer.cpu_flags; // 0
+        vertexBufferDesc.MiscFlags = 0; // vert_buffer->d3dbuffer.misc_flags; // 32 // this causes issues for the first 2 buffers
 
         D3D11_SUBRESOURCE_DATA vertexBufferData;
         ZeroMemory(&vertexBufferData, sizeof(vertexBufferData));
@@ -525,7 +525,7 @@ void ModuleManager::RTGO_loadbuffers(Tag* tag, ID3D11Device* device) {
             throw exception("render geo with non-chunked data is not currently supported!! because i have no idea what could be contained in this buffer!!");
         vertexBufferData.pSysMem = streaming_buffer + vert_buffer->offset;
 
-        ID3D11Buffer* result = nullptr;
+        ID3D11Buffer* result;
         HRESULT hr = device->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &result);
         vert_buffer->m_resource = (uint64_t)result;
         if (FAILED(hr)) 
@@ -538,11 +538,11 @@ void ModuleManager::RTGO_loadbuffers(Tag* tag, ID3D11Device* device) {
         D3D11_BUFFER_DESC indexBufferDesc;
         ZeroMemory(&indexBufferDesc, sizeof(indexBufferDesc)); // do we even need to do this?
 
-        indexBufferDesc.Usage = (D3D11_USAGE)index_buffer->d3dbuffer.usage;
+        indexBufferDesc.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT; // not sure why 343's is some weird thing, i think its literally just the enum but as a number   (D3D11_USAGE)index_buffer->d3dbuffer.usage;
         indexBufferDesc.ByteWidth = index_buffer->d3dbuffer.byte_width;
         indexBufferDesc.BindFlags = index_buffer->d3dbuffer.bind_flags;
         indexBufferDesc.CPUAccessFlags = index_buffer->d3dbuffer.cpu_flags;
-        indexBufferDesc.MiscFlags = index_buffer->d3dbuffer.misc_flags;
+        indexBufferDesc.MiscFlags = 0; // index_buffer->d3dbuffer.misc_flags;
 
         D3D11_SUBRESOURCE_DATA vertexBufferData;
         ZeroMemory(&vertexBufferData, sizeof(vertexBufferData));
@@ -553,7 +553,8 @@ void ModuleManager::RTGO_loadbuffers(Tag* tag, ID3D11Device* device) {
         ID3D11Buffer* result = nullptr;
         HRESULT hr = device->CreateBuffer(&indexBufferDesc, &vertexBufferData, &result);
         index_buffer->m_resource = (uint64_t)result;
-        if (FAILED(hr)) throw exception("failed to generate d3d11 buffer!!");
+        if (FAILED(hr)) 
+            throw exception("failed to generate d3d11 buffer!!");
     }
     // thats all, we dont have anything to return, because we just wrote everything to the tag
     // we can now render this data via the interfaces we just created & referencing them using the meshes tagdata struct

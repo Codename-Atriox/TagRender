@@ -19,7 +19,7 @@
 class Graphics
 {
 public:
-	//RenderableGameObject gameObject;
+	RenderableGameObject gameObject;
 	//Light light;
 	Camera camera;
 	bool Initialize(HWND hwnd, int width, int height);
@@ -45,7 +45,7 @@ private:
 	PixelShader pixelshader_nolight;
 	ConstantBuffer<CB_VS_vertexshader> cb_vs_vertexshader;
 	ConstantBuffer<CB_PS_light> cb_ps_light;
-	// Microsoft::WRL::ComPtr <ID3D10Blob> vertex_shader_buffer;
+	//Microsoft::WRL::ComPtr <ID3D10Blob> vertex_shader_buffer;
 	//Microsoft::WRL::ComPtr<ID3D11Buffer> constantBuffer;
 
 	ModuleManager Modules;

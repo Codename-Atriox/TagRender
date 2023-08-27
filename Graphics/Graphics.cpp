@@ -164,7 +164,7 @@ bool Graphics::InitializeShaders()
 
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
-		{"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R16G16B16A16_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{"TEXCOORD", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0  },
 		{"NORMAL", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0  },
 	};
@@ -213,21 +213,21 @@ bool Graphics::InitializeScene(){
 		this->cb_ps_light.data.directionalLightDirection = XMFLOAT3(0.0f, 1.0f, 0.0f);
 
 
-		/*
+		
 		// SETUP MODELS
-		if (!gameObject.Initialize("Data\\Objects\\custom\\hydra launcher4.obj", this->device.Get(), this->deviceContext.Get(), cb_vs_vertexshader))
+		if (!gameObject.Initialize("Data\\Objects\\Samples\\dodge_challenger.fbx", this->device.Get(), this->deviceContext.Get(), cb_vs_vertexshader))
 			return false;
 
-		if (!light.Initialize(this->device.Get(), this->deviceContext.Get(), cb_vs_vertexshader))
-			return false;
-		*/
+		//if (!light.Initialize(this->device.Get(), this->deviceContext.Get(), cb_vs_vertexshader))
+	    //	return false;
+		
 
 		camera.SetPosition(0.0f, 0.0f, -2.0f);
 		camera.SetProjectionValues(
 			90.0f,
 			static_cast<float>(windowWidth) / static_cast<float>(windowHeight),
 			0.1f,
-			3000.0f);
+			300000.0f);
 	}
 	catch (COMException& exception)
 	{
@@ -251,12 +251,12 @@ void Graphics::RenderFrame()
 	//this->cb_ps_light.data.dynamicLightAttenuation_c = light.attenuation_c;
 
 	//this->cb_ps_light.ApplyChanges();
-	//this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_light.GetAddressOf());
+	this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_light.GetAddressOf());
 
 
 
 	// setup background stuff
-	float bgcolor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	float bgcolor[] = { 0.2f, 0.2f, 0.4f, 1.0f };
 	this->deviceContext->ClearRenderTargetView(this->renderTargetView.Get(), bgcolor);
 	this->deviceContext->ClearDepthStencilView(this->depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
@@ -288,6 +288,10 @@ void Graphics::RenderFrame()
 
 	}
 
+	// testing junk
+
+
+
 
 
 	// SETUP FPS COUNTER
@@ -302,9 +306,26 @@ void Graphics::RenderFrame()
 	}
 	// SETUP TEXT SPRITES
 	spriteBatch->Begin();
+	// draw FPS counter
 	spriteFont->DrawString(spriteBatch.get(),
 		StringHelper::StringToWide(fpsString).c_str(), // text 
 		DirectX::XMFLOAT2(0, 0), // position 
+		DirectX::Colors::White, // color
+		0.0f, // rotation
+		DirectX::XMFLOAT2(0.0f, 0.0f), // origin
+		DirectX::XMFLOAT2(1.0f, 1.0f)); // scale
+	// draw camera position
+	spriteFont->DrawString(spriteBatch.get(),
+		StringHelper::StringToWide(std::to_string(camera.GetPositionFloat3().x) + ", " + std::to_string(camera.GetPositionFloat3().y) + ", " + std::to_string(camera.GetPositionFloat3().z)).c_str(), // text 
+		DirectX::XMFLOAT2(0, 30), // position 
+		DirectX::Colors::White, // color
+		0.0f, // rotation
+		DirectX::XMFLOAT2(0.0f, 0.0f), // origin
+		DirectX::XMFLOAT2(1.0f, 1.0f)); // scale
+	// draw camera rotation // TODO: get some better numbers lol
+	spriteFont->DrawString(spriteBatch.get(),
+		StringHelper::StringToWide(std::to_string(camera.GetRotationFloat3().x) + ", " + std::to_string(camera.GetRotationFloat3().y) + ", " + std::to_string(camera.GetRotationFloat3().z)).c_str(), // text 
+		DirectX::XMFLOAT2(0, 60), // position 
 		DirectX::Colors::White, // color
 		0.0f, // rotation
 		DirectX::XMFLOAT2(0.0f, 0.0f), // origin
@@ -332,7 +353,9 @@ void Graphics::RenderFrame()
 	//ImGui::DragFloat("Dynamic Light Attenuation C", &this->light.attenuation_c, 0.01f, 0.0f, 10.0f);
 	ImGui::End();
 
-	ui.render_UI(&Modules, device.Get(), deviceContext.Get()); // call to handle our Slipspace interface UI
+
+
+	ui.render_UI(&Modules, device.Get(), deviceContext.Get(), &cb_vs_vertexshader, camera.GetViewMatrix() * camera.GetProjectionMatrix()); // call to handle our Slipspace interface UI
 	
 	// IM GUI DRAW
 	ImGui::Render();

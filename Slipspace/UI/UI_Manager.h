@@ -6,11 +6,11 @@
 
 class UI {
 public:
-	void render_UI(ModuleManager* Modules, ID3D11Device* device, ID3D11DeviceContext* deviceContext) {
+	void render_UI(ModuleManager* Modules, ID3D11Device* device, ID3D11DeviceContext* deviceContext, ConstantBuffer<CB_VS_vertexshader>* cb_vs_vertexshader, const XMMATRIX& viewProjectionMatrix) {
 		render_module_window(Modules, device);
 		render_loaded_tags_window(Modules);
 		render_bitmap_window(Modules, device);
-		render_runtimegeo_window(device, deviceContext);
+		render_runtimegeo_window(device, deviceContext, cb_vs_vertexshader, viewProjectionMatrix);
 
 
 	}
@@ -114,7 +114,7 @@ public:
 				ImGui::Text("%s", active_tag->tagname.c_str());
 				ImGui::SameLine();
 				switch (active_tag->tag_FourCC) {
-				case 1651078253: {
+				case Tag::bitm: {
 					ImGui::Text("Bitmap");
 					// check whether bitmap is opened
 					bool is_opened = false;
@@ -132,7 +132,7 @@ public:
 					else if (ImGui::Button("Close"))
 						OpenBitmaps.Remove(active_tag);
 				} break;
-				case 1: {
+				case Tag::rtgo: {
 					ImGui::Text("Runtime Geo");
 					bool is_opened = false;
 					for (int i = 0; i < OpenRuntimeGeos.Size(); i++) {
@@ -141,6 +141,7 @@ public:
 							break;
 						}
 					}
+					ImGui::SameLine();
 					if (!is_opened) {
 						if (ImGui::Button("View"))
 							OpenRuntimeGeos.Append(active_tag);
@@ -148,7 +149,7 @@ public:
 					else if (ImGui::Button("Close"))
 						OpenRuntimeGeos.Remove(active_tag);
 				} break;
-				case 2:
+				case Tag::mode:
 					ImGui::Text("Model");
 					break;
 				default:
@@ -352,15 +353,19 @@ public:
 	void configure_shaders() {
 
 	}
+
+#include <iostream>
+#include <fstream>
 	CTList<Tag> OpenRuntimeGeos;
-	void render_runtimegeo_window(ID3D11Device* device, ID3D11DeviceContext* deviceContext) {
+	void render_runtimegeo_window(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ConstantBuffer<CB_VS_vertexshader>* cb_vs_vertexshader, const XMMATRIX& viewProjectionMatrix) {
 
-		//this->deviceContext->VSSetConstantBuffers(0, 1, this->cb_vs_vertexshader->GetAddressOf());
+		XMMATRIX worldMatrix = XMMatrixRotationRollPitchYaw(0,0,0) * XMMatrixTranslation(0,0,0);
 
-		//this->cb_vs_vertexshader->data.wvpMatrix = meshes[i].GetTransformMatrix() * worldMatrix * viewProjectionMatrix;
-		//this->cb_vs_vertexshader->data.wvpMatrix = XMMatrixTranspose(this->cb_vs_vertexshader->data.mat);
-		//this->cb_vs_vertexshader->data.worldMatrix = meshes[i].GetTransformMatrix() * worldMatrix;
-		//this->cb_vs_vertexshader->ApplyChanges();
+		deviceContext->VSSetConstantBuffers(0, 1, cb_vs_vertexshader->GetAddressOf());
+		cb_vs_vertexshader->data.wvpMatrix = DirectX::XMMatrixIdentity() * worldMatrix * viewProjectionMatrix;
+		cb_vs_vertexshader->data.worldMatrix = DirectX::XMMatrixIdentity() * worldMatrix;
+		cb_vs_vertexshader->ApplyChanges();
+
 
 		for (uint32_t i = 0; i < OpenRuntimeGeos.Size(); i++) {
 			Tag* tag = OpenRuntimeGeos[i];
@@ -422,7 +427,6 @@ public:
 						vert_offsets[vert_buffer_index] = 0; // im pretty sure we do not offset these, we only offset the indicies
 					}
 					// then apply the vertex buffers, as they do not change between mesh part
-					deviceContext->IASetVertexBuffers(0, 19, vert_buffers, vert_strides, vert_offsets);
 					// map the stride to a format
 					DXGI_FORMAT index_format = (DXGI_FORMAT)0;
 					switch (index_buffer->stride) {
@@ -430,16 +434,56 @@ public:
 					case 4:  index_format = DXGI_FORMAT::DXGI_FORMAT_R32_UINT; break;
 					default: throw exception("invalid index buffer stride (has to be either 2 or 4 bytes!!!)");
 					}
-					deviceContext->IASetIndexBuffer((ID3D11Buffer*)index_buffer->m_resource, index_format, 0);
+
+					// debug only set first slot test
+
 
 					// now loop through all parts & draw
 					for (int part_index = 0; part_index < current_lod->parts.count; part_index++) {
 						rtgo::s_part* mesh_part = current_lod->parts[part_index];
+						deviceContext->IASetVertexBuffers(0, 19, vert_buffers, vert_strides, vert_offsets);
+						deviceContext->IASetIndexBuffer((ID3D11Buffer*)index_buffer->m_resource, index_format, 0);
 						deviceContext->DrawIndexed(mesh_part->index_count, mesh_part->index_start, 0);
+						// export mesh
+						string filename = tag->tagname + "_m" + std::to_string(m_index) + "_l" + std::to_string(lod_index) + "_p" + std::to_string(part_index);
+						std::ofstream out("C:\\Users\\Joe bingle\\Downloads\\test\\" + filename + ".obj");
+						out << "o Test" << "\n";
+						rtgo::RasterizerVertexBuffer* vert_buffer = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[0].vertex_buffer_index];
+						for (int vi = 0; vi < vert_buffer->count; vi++) {
+							uint64_t float4d =  *((uint64_t*)((char*)geo_resource->Runtime_Data + vert_buffer->offset) + vi);
+							uint16_t f1 = (float4d >> 48) & 0xffff;
+							uint16_t f2 = (float4d >> 32) & 0xffff;
+							uint16_t f3 = (float4d >> 16) & 0xffff;
+							uint16_t f4 = (float4d >> 00) & 0xffff;
+							out << "v " << f4 << ", " << f3 << ", " << f2 << "\n"; // << f4 << "\n";
+						}
+
+
+						for (int ii = 0; ii < mesh_part->index_count; ii += 3) {
+							uint16_t* index_ptr = (uint16_t*)((char*)geo_resource->Runtime_Data + index_buffer->offset + ((mesh_part->index_start + ii) * 2));
+							out << "f " << *index_ptr << ", " << *(index_ptr + 2) << ", " << *(index_ptr + 4) << "\n";
+						}
+
 					}
 
+					// debugging to peep at the structures
 
+					//std::ofstream out("C:\\Users\\Joe bingle\\Downloads\\test\\oddmodel.txt");
+					//rtgo::RasterizerVertexBuffer* vb = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[0].vertex_buffer_index];
+					//for (int i = 0; i < vb->count; i++) {
+					//	uint64_t float4d = *((uint64_t*)((char*)geo_resource->Runtime_Data + vb->offset) + i);
+					//	uint16_t f1 = (float4d >> 48) & 0xffff;
+					//	uint16_t f2 = (float4d >> 32) & 0xffff;
+					//	uint16_t f3 = (float4d >> 16) & 0xffff;
+					//	uint16_t f4 = (float4d >> 00) & 0xffff;
+					//	out << f1 << ',' << f2 << ',' << f3 << ',' << f4 << '\r';
+					//}
 
+					//std::ofstream outfile("C:\\Users\\Joe bingle\\Downloads\\test\\oddmodel.bin", std::ios::out | std::ios::binary);
+					//outfile.write((((char*)geo_resource->Runtime_Data) + vb->offset), vb->count * vb->stride); //no need to cast
+					//OpenRuntimeGeos.RemoveAt(i);
+					//i--;
+					//return;
 				}
 
 			}

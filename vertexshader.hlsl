@@ -10,7 +10,7 @@ cbuffer perObjectBuffer : register(b0)
 
 struct VS_INPUT
 {
-    float3 inPos : POSITION;
+    half4 inPos : POSITION;
     float2 inTexCoord : TEXCOORD;
     float3 inNormal  : NORMAL;
 };
@@ -26,10 +26,10 @@ struct VS_OUTPUT
 VS_OUTPUT main(VS_INPUT input)
 {
     VS_OUTPUT output;
-    output.outPosition = mul(float4(input.inPos, 1.0f), wvpMatrix);
+    output.outPosition = mul(float4(input.inPos), wvpMatrix);
     output.outCamDirection = normalize(output.outPosition.xyz - camera_position);
     output.outTexCoord = input.inTexCoord;
     output.outNormal = normalize(mul(float4(input.inNormal, 0.0f), worldMatrix));
-    output.outWorldPos = mul(float4(input.inPos, 1.0f), worldMatrix);
+    output.outWorldPos = mul(float4(input.inPos), worldMatrix);
     return output;
 }
