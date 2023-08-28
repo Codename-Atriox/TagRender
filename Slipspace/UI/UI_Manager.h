@@ -455,7 +455,10 @@ public:
 							uint16_t f2 = (float4d >> 32) & 0xffff;
 							uint16_t f3 = (float4d >> 16) & 0xffff;
 							uint16_t f4 = (float4d >> 00) & 0xffff;
-							out << "v " << f4 << ", " << f3 << ", " << f2 << "\n"; // << f4 << "\n";
+							//out << "v " << f4 << ", " << f3 << ", " << f2 << ", " << f1 << "\n";
+							out << "v " << (int16_t)f4 << ", " << (int16_t)f3 << ", " << (int16_t)f2 << "\n"; // ", " << (int16_t)f1 << "\n";
+							//out << "v " << half_to_float(swap_bytes(f4)) << ", " << half_to_float(swap_bytes(f3)) << ", " << half_to_float(swap_bytes(f2)) << ", " << half_to_float(swap_bytes(f1)) << "\n";
+							//out << "v " << half_to_float(f4) << ", " << half_to_float(f3) << ", " << half_to_float(f2) << ", " << half_to_float(f1) << "\n";
 						}
 
 
@@ -492,10 +495,59 @@ public:
 		}
 
 
-
 		
 
 
 
+	}
+	uint16_t swap_bytes(uint16_t target) {
+		uint16_t upper_to_lower = target >> 8;
+		uint16_t lower_to_upper = target << 8;
+
+		return upper_to_lower + lower_to_upper;
+	}
+
+	void test_half_mantisa_bit(int bitmask, double bit_half_value, int mantisa, double& output) {
+		if (mantisa & bitmask) output += bit_half_value;
+	}
+	double half_to_float(uint16_t half) {
+		int mantisa = half & 0x3FF;
+		int exponent = (half >> 10) & 0x1F;
+		double sign = (half & 0x1000000000000000) ? -1.0 : 1.0;
+
+		// test for special cases
+		if (exponent == 0x1F) {
+			if (mantisa) return NAN; // if mantisa is not 0, then return NaN
+			else return INFINITY * sign; // else return signed infinity if mantisa is 0
+		}
+		// shortcut for returning 0 
+		if (mantisa == 0 && exponent == 0) return 0.0 * sign;
+
+		// conmvert matisa to double
+		double out_mantisa = 0.0;
+		test_half_mantisa_bit(0b1, 0.000977,     mantisa, out_mantisa);
+		test_half_mantisa_bit(0b10, 0.001954,    mantisa, out_mantisa);
+		test_half_mantisa_bit(0b100, 0.00391,    mantisa, out_mantisa);
+		test_half_mantisa_bit(0b1000, 0.00782,   mantisa, out_mantisa);
+		test_half_mantisa_bit(0b10000, 0.01563,  mantisa, out_mantisa);
+		test_half_mantisa_bit(0b100000, 0.03125, mantisa, out_mantisa);
+		test_half_mantisa_bit(0b1000000, 0.0625, mantisa, out_mantisa);
+		test_half_mantisa_bit(0b10000000, 0.125, mantisa, out_mantisa);
+		test_half_mantisa_bit(0b100000000, 0.25, mantisa, out_mantisa);
+		test_half_mantisa_bit(0b1000000000, 0.5, mantisa, out_mantisa);
+
+		// convert exponent to double
+		int exponent_out = 0;
+		exponent_out = exponent - 14;
+		if (exponent > 0) { // leading bit, if exponent is greater than 1, mantisa is actually += 1.0
+			out_mantisa += 1.0; 
+			exponent_out--;
+		}
+		
+
+		double expontent_result = pow(2, exponent_out);
+
+		// calculate double
+		return sign * expontent_result * out_mantisa;
 	}
 };

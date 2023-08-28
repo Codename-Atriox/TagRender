@@ -10,7 +10,7 @@ cbuffer perObjectBuffer : register(b0)
 
 struct VS_INPUT
 {
-    half4 inPos : POSITION;
+    min16float4 inPos : POSITION;
     float2 inTexCoord : TEXCOORD;
     float3 inNormal  : NORMAL;
 };
