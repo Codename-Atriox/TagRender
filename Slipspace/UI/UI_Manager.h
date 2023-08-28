@@ -392,6 +392,7 @@ public:
 					uint16_t ibuffer_index = current_lod->index_buffer_index;
 
 					rtgo::RasterizerIndexBuffer* index_buffer = geo_resource->pc_index_buffers[current_lod->index_buffer_index];
+					rtgo::RasterizerVertexBuffer* vert_buffer = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[0].vertex_buffer_index];
 
 					/* all 'vertex buffer indicies' meanings via slot/index
 					*  0 : Position (wordVector4DNormalized)
@@ -431,7 +432,7 @@ public:
 					DXGI_FORMAT index_format = (DXGI_FORMAT)0;
 					switch (index_buffer->stride) {
 					case 2:  index_format = DXGI_FORMAT::DXGI_FORMAT_R16_UINT; break;
-					case 4:  index_format = DXGI_FORMAT::DXGI_FORMAT_R32_UINT; break;
+					case 4:  index_format = DXGI_FORMAT::DXGI_FORMAT_R32_UINT; throw exception("unexpected length"); break;
 					default: throw exception("invalid index buffer stride (has to be either 2 or 4 bytes!!!)");
 					}
 
@@ -448,23 +449,22 @@ public:
 						string filename = tag->tagname + "_m" + std::to_string(m_index) + "_l" + std::to_string(lod_index) + "_p" + std::to_string(part_index);
 						std::ofstream out("C:\\Users\\Joe bingle\\Downloads\\test\\" + filename + ".obj");
 						out << "o Test" << "\n";
-						rtgo::RasterizerVertexBuffer* vert_buffer = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[0].vertex_buffer_index];
 						for (int vi = 0; vi < vert_buffer->count; vi++) {
 							uint64_t float4d =  *((uint64_t*)((char*)geo_resource->Runtime_Data + vert_buffer->offset) + vi);
 							uint16_t f1 = (float4d >> 48) & 0xffff;
 							uint16_t f2 = (float4d >> 32) & 0xffff;
 							uint16_t f3 = (float4d >> 16) & 0xffff;
 							uint16_t f4 = (float4d >> 00) & 0xffff;
-							//out << "v " << f4 << ", " << f3 << ", " << f2 << ", " << f1 << "\n";
-							out << "v " << (int16_t)f4 << ", " << (int16_t)f3 << ", " << (int16_t)f2 << "\n"; // ", " << (int16_t)f1 << "\n";
-							//out << "v " << half_to_float(swap_bytes(f4)) << ", " << half_to_float(swap_bytes(f3)) << ", " << half_to_float(swap_bytes(f2)) << ", " << half_to_float(swap_bytes(f1)) << "\n";
-							//out << "v " << half_to_float(f4) << ", " << half_to_float(f3) << ", " << half_to_float(f2) << ", " << half_to_float(f1) << "\n";
+							out << "v " << f4 << " " << f3 << " " << f2 << "\n"; // " " << f1 << "\n";
+							//out << "v " << (int16_t)f4 << " " << (int16_t)f3 << " " << (int16_t)f2 << "\n"; // ", " << (int16_t)f1 << "\n";
+							//out << "v " << half_to_float(swap_bytes(f4)) << " " << half_to_float(swap_bytes(f3)) << " " << half_to_float(swap_bytes(f2)) << " " << half_to_float(swap_bytes(f1)) << "\n";
+							//out << "v " << half_to_float(f4) << " " << half_to_float(f3) << " " << half_to_float(f2) << "\n"; // " " << half_to_float(f1) << "\n";
 						}
 
 
 						for (int ii = 0; ii < mesh_part->index_count; ii += 3) {
-							uint16_t* index_ptr = (uint16_t*)((char*)geo_resource->Runtime_Data + index_buffer->offset + ((mesh_part->index_start + ii) * 2));
-							out << "f " << *index_ptr << ", " << *(index_ptr + 2) << ", " << *(index_ptr + 4) << "\n";
+							uint16_t* index_ptr = (uint16_t*)((char*)geo_resource->Runtime_Data + index_buffer->offset) + mesh_part->index_start + ii;
+							out << "f " << ((*index_ptr)+1) << " " << (*(index_ptr + 1)+1) << " " << (*(index_ptr + 2)+1) << "\n";
 						}
 
 					}
@@ -513,13 +513,17 @@ public:
 	double half_to_float(uint16_t half) {
 		int mantisa = half & 0x3FF;
 		int exponent = (half >> 10) & 0x1F;
-		double sign = (half & 0x1000000000000000) ? -1.0 : 1.0;
+		double sign = ((half & 0b1000000000000000) != 0) ? -1.0 : 1.0;
+		//if ((half & 0b1000000000000000) != 0) {
+		//	throw exception("code test");
+		//}
 
+		// removed because i dont think our format actually uses this
 		// test for special cases
-		if (exponent == 0x1F) {
-			if (mantisa) return NAN; // if mantisa is not 0, then return NaN
-			else return INFINITY * sign; // else return signed infinity if mantisa is 0
-		}
+		//if (exponent == 0x1F) {
+		//	if (mantisa) return NAN; // if mantisa is not 0, then return NaN
+		//	else return INFINITY * sign; // else return signed infinity if mantisa is 0
+		//}
 		// shortcut for returning 0 
 		if (mantisa == 0 && exponent == 0) return 0.0 * sign;
 
@@ -538,7 +542,7 @@ public:
 
 		// convert exponent to double
 		int exponent_out = 0;
-		exponent_out = exponent - 14;
+		exponent_out = exponent - 15;
 		if (exponent > 0) { // leading bit, if exponent is greater than 1, mantisa is actually += 1.0
 			out_mantisa += 1.0; 
 			exponent_out--;
