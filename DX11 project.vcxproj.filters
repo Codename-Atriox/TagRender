@@ -340,6 +340,7 @@
     <FxCompile Include="pixelshader_nolight.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
+    <FxCompile Include="generic_vertexshader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

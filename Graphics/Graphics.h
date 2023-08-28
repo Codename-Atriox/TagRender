@@ -25,10 +25,6 @@ public:
 	bool Initialize(HWND hwnd, int width, int height);
 	void RenderFrame();
 private:
-	void RenderModulesGUI();
-	void RenderTagsGUI();
-	void RenderBitmGUI();
-private:
 	bool InitializeDirectX(HWND hwnd);
 	bool InitializeShaders();
 	bool InitializeScene();
@@ -40,9 +36,11 @@ private:
 
 	Microsoft::WRL::ComPtr <ID3D11InputLayout> IntputLayout;
 
+	VertexShader generic_vertexshader;
 	VertexShader vertexshader;
 	PixelShader pixelshader;
 	PixelShader pixelshader_nolight;
+	ConstantBuffer<CB_VS_generic_vertexshader> cb_vs_generic_vertexshader;
 	ConstantBuffer<CB_VS_vertexshader> cb_vs_vertexshader;
 	ConstantBuffer<CB_PS_light> cb_ps_light;
 	//Microsoft::WRL::ComPtr <ID3D10Blob> vertex_shader_buffer;

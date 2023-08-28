@@ -1,11 +1,21 @@
 #pragma once
 #include <DirectXMath.h>
 
+struct CB_VS_generic_vertexshader
+{
+	DirectX::XMMATRIX wvpMatrix;
+	DirectX::XMMATRIX worldMatrix;
+	DirectX::XMFLOAT3 camera_position;
+};
+
 struct CB_VS_vertexshader
 {
 	DirectX::XMMATRIX wvpMatrix;
 	DirectX::XMMATRIX worldMatrix;
 	DirectX::XMFLOAT3 camera_position;
+	// dont we have to align these or something?
+	DirectX::XMFLOAT3 minbounds;
+	DirectX::XMFLOAT3 maxbounds;
 };
 //8 bytes -> 16
 
@@ -29,11 +39,13 @@ struct CB_PS_light
 	// 16
 
 	DirectX::XMFLOAT3 directionalLightColor;
-	float directionalLightStrength; //16
+	float directionalLightStrength; 
+	//16
 	DirectX::XMFLOAT3 directionalLightDirection;
 	float dynamicLightAttenuation_b;
 	// 16
 	float dynamicLightAttenuation_c;
+	// 4
 };
 
 

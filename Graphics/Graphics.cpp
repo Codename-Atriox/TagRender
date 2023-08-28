@@ -164,15 +164,26 @@ bool Graphics::InitializeShaders()
 
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
-		{"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R16G16B16A16_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R16G16B16A16_UINT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{"TEXCOORD", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0  },
 		{"NORMAL", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0  },
 	};
-
 	UINT numElements = ARRAYSIZE(layout);
 
 	if (!vertexshader.Initialize(this->device, shaderfolder + L"vertexshader.cso", layout, numElements))
 		return false;
+
+	D3D11_INPUT_ELEMENT_DESC generic_layout[] =
+	{
+		{"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{"TEXCOORD", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0  },
+		{"NORMAL", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0  },
+	};
+	UINT generic_numElements = ARRAYSIZE(generic_layout);
+
+	if (!generic_vertexshader.Initialize(this->device, shaderfolder + L"generic_vertexshader.cso", generic_layout, generic_numElements))
+		return false;
+
 
 	if (!pixelshader.Initialize(this->device, shaderfolder + L"pixelshader.cso"))
 		return false;
@@ -202,6 +213,9 @@ bool Graphics::InitializeScene(){
 		HRESULT hr = this->cb_vs_vertexshader.Initialize(this->device.Get(), this->deviceContext.Get()); //device->CreateBuffer(&desc, 0, constantBuffer.GetAddressOf());
 		COM_ERROR_IF_FAILED(hr, "Failed to initiate vertexshader");
 
+		hr = this->cb_vs_generic_vertexshader.Initialize(this->device.Get(), this->deviceContext.Get()); //device->CreateBuffer(&desc, 0, constantBuffer.GetAddressOf());
+		COM_ERROR_IF_FAILED(hr, "Failed to initiate generic vertexshader");
+
 		hr = this->cb_ps_light.Initialize(this->device.Get(), this->deviceContext.Get()); //device->CreateBuffer(&desc, 0, constantBuffer.GetAddressOf());
 		COM_ERROR_IF_FAILED(hr, "Failed to initiate pixelshader");
 
@@ -215,8 +229,8 @@ bool Graphics::InitializeScene(){
 
 		
 		// SETUP MODELS
-		if (!gameObject.Initialize("Data\\Objects\\Samples\\dodge_challenger.fbx", this->device.Get(), this->deviceContext.Get(), cb_vs_vertexshader))
-			return false;
+		//if (!gameObject.Initialize("Data\\Objects\\Samples\\dodge_challenger.fbx", this->device.Get(), this->deviceContext.Get(), cb_vs_vertexshader))
+		//	return false;
 
 		//if (!light.Initialize(this->device.Get(), this->deviceContext.Get(), cb_vs_vertexshader))
 	    //	return false;
@@ -240,6 +254,7 @@ bool Graphics::InitializeScene(){
 void Graphics::RenderFrame()
 {
 	this->cb_vs_vertexshader.data.camera_position = camera.GetPositionFloat3();
+	this->cb_vs_generic_vertexshader.data.camera_position = camera.GetPositionFloat3();
 
 
 	// SETUP LIGHTING
@@ -251,7 +266,7 @@ void Graphics::RenderFrame()
 	//this->cb_ps_light.data.dynamicLightAttenuation_c = light.attenuation_c;
 
 	//this->cb_ps_light.ApplyChanges();
-	this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_light.GetAddressOf());
+	//this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_light.GetAddressOf());
 
 
 
@@ -260,15 +275,80 @@ void Graphics::RenderFrame()
 	this->deviceContext->ClearRenderTargetView(this->renderTargetView.Get(), bgcolor);
 	this->deviceContext->ClearDepthStencilView(this->depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	this->deviceContext->IASetInputLayout(this->vertexshader.GetInputLayout());
+	this->deviceContext->IASetInputLayout(this->generic_vertexshader.GetInputLayout());
 	this->deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	this->deviceContext->RSSetState(this->rasterizerState.Get());
 	this->deviceContext->OMSetDepthStencilState(this->depthStencilState.Get(), 0);
 	this->deviceContext->OMSetBlendState(NULL, NULL, 0xFFFFFFFF);
 	//this->deviceContext->OMSetBlendState(this->blendState.Get(), NULL, 0xFFFFFFFF);
 	this->deviceContext->PSSetSamplers(0, 1, this->samplerState.GetAddressOf());
-	this->deviceContext->VSSetShader(vertexshader.GetShader(), NULL, 0);
+	this->deviceContext->VSSetShader(generic_vertexshader.GetShader(), NULL, 0);
 	this->deviceContext->PSSetShader(pixelshader.GetShader(), NULL, 0);
+
+	// render a test element
+	Vertex v[] =
+	{
+		Vertex(-0.5f,-0.5f,-0.5f,  0.0f,1.0f,  0.0f,0.0f,0.0f), // FRONT bottom left
+		Vertex(-0.5f, 0.5f,-0.5f,  0.0f,0.0f,  0.0f,0.0f,0.0f), // FRONT top left
+		Vertex( 0.5f, 0.5f,-0.5f,  1.0f,0.0f,  0.0f,0.0f,0.0f), // FRONT top right
+		Vertex( 0.5f,-0.5f,-0.5f,  1.0f,1.0f,  0.0f,0.0f,0.0f), // FRONT bottom right
+
+		Vertex(-0.5f,-0.5f, 0.5f,  0.0f,1.0f,  0.0f,0.0f,0.0f), // BACK bottom left
+		Vertex(-0.5f, 0.5f, 0.5f,  0.0f,0.0f,  0.0f,0.0f,0.0f), // BACK top left
+		Vertex( 0.5f, 0.5f, 0.5f,  1.0f,0.0f,  0.0f,0.0f,0.0f), // BACK top right
+		Vertex( 0.5f,-0.5f, 0.5f,  1.0f,1.0f,  0.0f,0.0f,0.0f), // BACK bottom right
+	};
+
+	VertexBuffer<Vertex> test_vert_buffer = {};
+	// LOAD VERTEX DATA
+	HRESULT hr = test_vert_buffer.Initialize(device.Get(), v, ARRAYSIZE(v));   // this->device->CreateBuffer(&vertexBufferDesc, &vertexBufferData, this->vertexBuffer.GetAddressOf());
+	COM_ERROR_IF_FAILED(hr, "Failed to create vertex buffer");
+
+	DWORD indicies[] =
+	{
+		0, 1, 2, // front 
+		0, 2, 3, // front
+		4, 7, 6, // back
+		4, 6, 5, // back
+		3, 2, 6, // right
+		3, 6, 7, // right
+		4, 5, 1, // left
+		4, 1, 0, // left
+		1, 5, 6, // top
+		1, 6, 2, // top
+		0, 3, 7, // bottom
+		0, 7, 4  // bottom
+	};
+
+	// LOAD INDEX DATA
+	IndexBuffer test_index_buffer = {};
+	hr = test_index_buffer.Initialize(device.Get(), indicies, ARRAYSIZE(indicies)); // device->CreateBuffer(&indexBufferDesc, &indexBufferData, indiciesBuffer.GetAddressOf());
+	COM_ERROR_IF_FAILED(hr, "Failed to create indicies buffer");
+
+	// render test data
+	this->deviceContext->VSSetConstantBuffers(0, 1, cb_vs_generic_vertexshader.GetAddressOf());
+
+
+	XMMATRIX worldMatrix = XMMatrixRotationRollPitchYaw(0, 0, 0) * XMMatrixTranslation(0, 0, 0);
+
+	deviceContext->VSSetConstantBuffers(0, 1, cb_vs_generic_vertexshader.GetAddressOf());
+	cb_vs_generic_vertexshader.data.wvpMatrix = DirectX::XMMatrixIdentity() * worldMatrix * (camera.GetViewMatrix() * camera.GetProjectionMatrix());
+	cb_vs_generic_vertexshader.data.worldMatrix = DirectX::XMMatrixIdentity() * worldMatrix;
+	cb_vs_generic_vertexshader.ApplyChanges();
+
+
+
+	UINT offset = 0;
+	this->deviceContext->IASetVertexBuffers(0, 1, test_vert_buffer.GetAddressOf(), test_vert_buffer.StridePtr(), &offset);
+	this->deviceContext->IASetIndexBuffer(test_index_buffer.Get(), DXGI_FORMAT::DXGI_FORMAT_R32_UINT, 0);
+	this->deviceContext->DrawIndexed(test_index_buffer.IndexCount(), 0, 0);
+
+
+	// end test section
+
+	this->deviceContext->IASetInputLayout(this->vertexshader.GetInputLayout());
+	this->deviceContext->VSSetShader(vertexshader.GetShader(), NULL, 0);
+
 
 	//static float alpha = 0.5f;
 	{ // 
@@ -289,6 +369,7 @@ void Graphics::RenderFrame()
 	}
 
 	// testing junk
+	ui.render_GEO(&Modules, device.Get(), deviceContext.Get(), &cb_vs_vertexshader, camera.GetViewMatrix() * camera.GetProjectionMatrix()); // call to handle our Slipspace interface UI
 
 
 
@@ -321,15 +402,15 @@ void Graphics::RenderFrame()
 		DirectX::Colors::White, // color
 		0.0f, // rotation
 		DirectX::XMFLOAT2(0.0f, 0.0f), // origin
-		DirectX::XMFLOAT2(1.0f, 1.0f)); // scale
+		DirectX::XMFLOAT2(0.5f, 0.5f)); // scale
 	// draw camera rotation // TODO: get some better numbers lol
 	spriteFont->DrawString(spriteBatch.get(),
 		StringHelper::StringToWide(std::to_string(camera.GetRotationFloat3().x) + ", " + std::to_string(camera.GetRotationFloat3().y) + ", " + std::to_string(camera.GetRotationFloat3().z)).c_str(), // text 
-		DirectX::XMFLOAT2(0, 60), // position 
+		DirectX::XMFLOAT2(0, 45), // position 
 		DirectX::Colors::White, // color
 		0.0f, // rotation
 		DirectX::XMFLOAT2(0.0f, 0.0f), // origin
-		DirectX::XMFLOAT2(1.0f, 1.0f)); // scale
+		DirectX::XMFLOAT2(0.5f, 0.5f)); // scale
 	spriteBatch->End();
 
 
@@ -355,7 +436,7 @@ void Graphics::RenderFrame()
 
 
 
-	ui.render_UI(&Modules, device.Get(), deviceContext.Get(), &cb_vs_vertexshader, camera.GetViewMatrix() * camera.GetProjectionMatrix()); // call to handle our Slipspace interface UI
+	ui.render_UI(&Modules, device.Get(), deviceContext.Get()); // call to handle our Slipspace interface UI
 	
 	// IM GUI DRAW
 	ImGui::Render();

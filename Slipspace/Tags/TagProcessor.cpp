@@ -527,7 +527,7 @@ void ModuleManager::RTGO_loadbuffers(Tag* tag, ID3D11Device* device) {
 
         ID3D11Buffer* result;
         HRESULT hr = device->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &result);
-        vert_buffer->m_resource = (uint64_t)result;
+        vert_buffer->m_resource = (int64_t)result;
         if (FAILED(hr)) 
             throw exception("failed to generate d3d11 buffer!!");
     }
@@ -552,7 +552,7 @@ void ModuleManager::RTGO_loadbuffers(Tag* tag, ID3D11Device* device) {
 
         ID3D11Buffer* result = nullptr;
         HRESULT hr = device->CreateBuffer(&indexBufferDesc, &vertexBufferData, &result);
-        index_buffer->m_resource = (uint64_t)result;
+        index_buffer->m_resource = (int64_t)result;
         if (FAILED(hr)) 
             throw exception("failed to generate d3d11 buffer!!");
     }

@@ -6,11 +6,13 @@
 
 class UI {
 public:
-	void render_UI(ModuleManager* Modules, ID3D11Device* device, ID3D11DeviceContext* deviceContext, ConstantBuffer<CB_VS_vertexshader>* cb_vs_vertexshader, const XMMATRIX& viewProjectionMatrix) {
+	void render_GEO(ModuleManager* Modules, ID3D11Device* device, ID3D11DeviceContext* deviceContext, ConstantBuffer<CB_VS_vertexshader>* cb_vs_vertexshader, const XMMATRIX& viewProjectionMatrix) {
+		render_runtimegeo_window(device, deviceContext, cb_vs_vertexshader, viewProjectionMatrix);
+	}
+	void render_UI(ModuleManager* Modules, ID3D11Device* device, ID3D11DeviceContext* deviceContext) {
 		render_module_window(Modules, device);
 		render_loaded_tags_window(Modules);
 		render_bitmap_window(Modules, device);
-		render_runtimegeo_window(device, deviceContext, cb_vs_vertexshader, viewProjectionMatrix);
 
 
 	}
@@ -361,10 +363,6 @@ public:
 
 		XMMATRIX worldMatrix = XMMatrixRotationRollPitchYaw(0,0,0) * XMMatrixTranslation(0,0,0);
 
-		deviceContext->VSSetConstantBuffers(0, 1, cb_vs_vertexshader->GetAddressOf());
-		cb_vs_vertexshader->data.wvpMatrix = DirectX::XMMatrixIdentity() * worldMatrix * viewProjectionMatrix;
-		cb_vs_vertexshader->data.worldMatrix = DirectX::XMMatrixIdentity() * worldMatrix;
-		cb_vs_vertexshader->ApplyChanges();
 
 
 		for (uint32_t i = 0; i < OpenRuntimeGeos.Size(); i++) {
@@ -381,6 +379,28 @@ public:
 			if (runtime_geo_group->mesh_resource.is_chunked_resource == 0)
 				throw exception("non-chunked geo resources are not yet supported!!!");
 			rtgo::s_render_geometry_api_resource* geo_resource = runtime_geo_group->mesh_resource.content_ptr;
+
+			// set constant buffer params
+			deviceContext->VSSetConstantBuffers(0, 1, cb_vs_vertexshader->GetAddressOf());
+			cb_vs_vertexshader->data.wvpMatrix = DirectX::XMMatrixIdentity() * worldMatrix * viewProjectionMatrix;
+			cb_vs_vertexshader->data.worldMatrix = DirectX::XMMatrixIdentity() * worldMatrix;
+			if (runtime_geo->render_geometry.compression_info.count > 0) {
+				rtgo::s_compression_info* compression = runtime_geo->render_geometry.compression_info[0];
+				cb_vs_vertexshader->data.minbounds.x = compression->position_bounds_0.f1;
+				cb_vs_vertexshader->data.minbounds.y = compression->position_bounds_0.f2;
+				cb_vs_vertexshader->data.minbounds.z = compression->position_bounds_0.f3;
+				cb_vs_vertexshader->data.maxbounds.x = compression->position_bounds_1.f1;
+				cb_vs_vertexshader->data.maxbounds.y = compression->position_bounds_1.f2;
+				cb_vs_vertexshader->data.maxbounds.z = compression->position_bounds_1.f3;
+			} else {
+				cb_vs_vertexshader->data.minbounds.x = 0;
+				cb_vs_vertexshader->data.minbounds.y = 0;
+				cb_vs_vertexshader->data.minbounds.z = 0;
+				cb_vs_vertexshader->data.maxbounds.x = 0;
+				cb_vs_vertexshader->data.maxbounds.y = 0;
+				cb_vs_vertexshader->data.maxbounds.z = 0;
+			}
+			cb_vs_vertexshader->ApplyChanges();
 
 
 			for (int m_index = 0; m_index < runtime_geo->render_geometry.meshes.count; m_index++) {
@@ -436,7 +456,7 @@ public:
 					default: throw exception("invalid index buffer stride (has to be either 2 or 4 bytes!!!)");
 					}
 
-					// debug only set first slot test
+
 
 
 					// now loop through all parts & draw
@@ -445,27 +465,28 @@ public:
 						deviceContext->IASetVertexBuffers(0, 19, vert_buffers, vert_strides, vert_offsets);
 						deviceContext->IASetIndexBuffer((ID3D11Buffer*)index_buffer->m_resource, index_format, 0);
 						deviceContext->DrawIndexed(mesh_part->index_count, mesh_part->index_start, 0);
-						// export mesh
-						string filename = tag->tagname + "_m" + std::to_string(m_index) + "_l" + std::to_string(lod_index) + "_p" + std::to_string(part_index);
-						std::ofstream out("C:\\Users\\Joe bingle\\Downloads\\test\\" + filename + ".obj");
-						out << "o Test" << "\n";
-						for (int vi = 0; vi < vert_buffer->count; vi++) {
-							uint64_t float4d =  *((uint64_t*)((char*)geo_resource->Runtime_Data + vert_buffer->offset) + vi);
-							uint16_t f1 = (float4d >> 48) & 0xffff;
-							uint16_t f2 = (float4d >> 32) & 0xffff;
-							uint16_t f3 = (float4d >> 16) & 0xffff;
-							uint16_t f4 = (float4d >> 00) & 0xffff;
-							out << "v " << f4 << " " << f3 << " " << f2 << "\n"; // " " << f1 << "\n";
-							//out << "v " << (int16_t)f4 << " " << (int16_t)f3 << " " << (int16_t)f2 << "\n"; // ", " << (int16_t)f1 << "\n";
-							//out << "v " << half_to_float(swap_bytes(f4)) << " " << half_to_float(swap_bytes(f3)) << " " << half_to_float(swap_bytes(f2)) << " " << half_to_float(swap_bytes(f1)) << "\n";
-							//out << "v " << half_to_float(f4) << " " << half_to_float(f3) << " " << half_to_float(f2) << "\n"; // " " << half_to_float(f1) << "\n";
-						}
+
+						// export mesh // DEBUG //
+						//string filename = tag->tagname + "_m" + std::to_string(m_index) + "_l" + std::to_string(lod_index) + "_p" + std::to_string(part_index);
+						//std::ofstream out("C:\\Users\\Joe bingle\\Downloads\\test\\" + filename + ".obj");
+						//out << "o Test" << "\n";
+						//for (int vi = 0; vi < vert_buffer->count; vi++) {
+						//	uint64_t float4d =  *((uint64_t*)((char*)geo_resource->Runtime_Data + vert_buffer->offset) + vi);
+						//	uint16_t f1 = (float4d >> 48) & 0xffff;
+						//	uint16_t f2 = (float4d >> 32) & 0xffff;
+						//	uint16_t f3 = (float4d >> 16) & 0xffff;
+						//	uint16_t f4 = (float4d >> 00) & 0xffff;
+						//	out << "v " << f4 << " " << f3 << " " << f2 << "\n"; // " " << f1 << "\n";
+						//	//out << "v " << (int16_t)f4 << " " << (int16_t)f3 << " " << (int16_t)f2 << "\n"; // ", " << (int16_t)f1 << "\n";
+						//	//out << "v " << half_to_float(swap_bytes(f4)) << " " << half_to_float(swap_bytes(f3)) << " " << half_to_float(swap_bytes(f2)) << " " << half_to_float(swap_bytes(f1)) << "\n";
+						//	//out << "v " << half_to_float(f4) << " " << half_to_float(f3) << " " << half_to_float(f2) << "\n"; // " " << half_to_float(f1) << "\n";
+						//}
 
 
-						for (int ii = 0; ii < mesh_part->index_count; ii += 3) {
-							uint16_t* index_ptr = (uint16_t*)((char*)geo_resource->Runtime_Data + index_buffer->offset) + mesh_part->index_start + ii;
-							out << "f " << ((*index_ptr)+1) << " " << (*(index_ptr + 1)+1) << " " << (*(index_ptr + 2)+1) << "\n";
-						}
+						//for (int ii = 0; ii < mesh_part->index_count; ii += 3) {
+						//	uint16_t* index_ptr = (uint16_t*)((char*)geo_resource->Runtime_Data + index_buffer->offset) + mesh_part->index_start + ii;
+						//	out << "f " << ((*index_ptr)+1) << " " << (*(index_ptr + 1)+1) << " " << (*(index_ptr + 2)+1) << "\n";
+						//}
 
 					}
 
@@ -491,7 +512,8 @@ public:
 
 			}
 
-
+			//OpenRuntimeGeos.RemoveAt(i);
+			//i--;
 		}
 
 
