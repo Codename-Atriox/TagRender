@@ -165,7 +165,7 @@ bool Graphics::InitializeShaders()
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
 		{"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R16G16B16A16_UINT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{"TEXCOORD", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0  },
+		{"UV0", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0  },
 		{"NORMAL", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0  },
 	};
 	UINT numElements = ARRAYSIZE(layout);
@@ -342,8 +342,6 @@ void Graphics::RenderFrame()
 	this->deviceContext->IASetVertexBuffers(0, 1, test_vert_buffer.GetAddressOf(), test_vert_buffer.StridePtr(), &offset);
 	this->deviceContext->IASetIndexBuffer(test_index_buffer.Get(), DXGI_FORMAT::DXGI_FORMAT_R32_UINT, 0);
 	this->deviceContext->DrawIndexed(test_index_buffer.IndexCount(), 0, 0);
-
-
 	// end test section
 
 	this->deviceContext->IASetInputLayout(this->vertexshader.GetInputLayout());
@@ -407,6 +405,14 @@ void Graphics::RenderFrame()
 	spriteFont->DrawString(spriteBatch.get(),
 		StringHelper::StringToWide(std::to_string(camera.GetRotationFloat3().x) + ", " + std::to_string(camera.GetRotationFloat3().y) + ", " + std::to_string(camera.GetRotationFloat3().z)).c_str(), // text 
 		DirectX::XMFLOAT2(0, 45), // position 
+		DirectX::Colors::White, // color
+		0.0f, // rotation
+		DirectX::XMFLOAT2(0.0f, 0.0f), // origin
+		DirectX::XMFLOAT2(0.5f, 0.5f)); // scale
+	// draw camera speed
+	spriteFont->DrawString(spriteBatch.get(),
+		StringHelper::StringToWide("speed:" + std::to_string(camera.speed)).c_str(), // text 
+		DirectX::XMFLOAT2(0, 60), // position 
 		DirectX::Colors::White, // color
 		0.0f, // rotation
 		DirectX::XMFLOAT2(0.0f, 0.0f), // origin

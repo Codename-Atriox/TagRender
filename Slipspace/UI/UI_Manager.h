@@ -387,10 +387,10 @@ public:
 			if (runtime_geo->render_geometry.compression_info.count > 0) {
 				rtgo::s_compression_info* compression = runtime_geo->render_geometry.compression_info[0];
 				cb_vs_vertexshader->data.minbounds.x = compression->position_bounds_0.f1;
-				cb_vs_vertexshader->data.minbounds.y = compression->position_bounds_0.f2;
-				cb_vs_vertexshader->data.minbounds.z = compression->position_bounds_0.f3;
-				cb_vs_vertexshader->data.maxbounds.x = compression->position_bounds_1.f1;
-				cb_vs_vertexshader->data.maxbounds.y = compression->position_bounds_1.f2;
+				cb_vs_vertexshader->data.maxbounds.x = compression->position_bounds_0.f2;
+				cb_vs_vertexshader->data.minbounds.y = compression->position_bounds_0.f3;
+				cb_vs_vertexshader->data.maxbounds.y = compression->position_bounds_1.f1;
+				cb_vs_vertexshader->data.minbounds.z = compression->position_bounds_1.f2;
 				cb_vs_vertexshader->data.maxbounds.z = compression->position_bounds_1.f3;
 			} else {
 				cb_vs_vertexshader->data.minbounds.x = 0;

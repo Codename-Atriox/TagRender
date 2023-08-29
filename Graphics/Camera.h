@@ -12,6 +12,7 @@ public:
 	const XMMATRIX& GetViewMatrix() const;
 	const XMMATRIX& GetProjectionMatrix() const;
 
+	float speed = 0.1f;
 private:
 	void UpdateMatrix() override;
 

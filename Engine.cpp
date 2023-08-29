@@ -48,18 +48,23 @@ void Engine::Update()
 					0);
 			}
 		}
+		if	    (me.GetType() == MouseEvent::EventType::WheelDown)
+			gfx.camera.speed *= 0.9;
+		else if (me.GetType() == MouseEvent::EventType::WheelUp)
+			gfx.camera.speed *= 1.1;
+		
 	}
 
 	//this->gfx.gameObject.AdjustRotation(0.0f, 0.001f*DeltaTime, 0.0f);
 
 	 // translate key inputs to camera movement
-	float cameraSpeed = 0.008f;
-	if (keyboard.IsKeyPressed(VK_SHIFT))
-	{
-		cameraSpeed = 0.4f;
-	}
+	//float cameraSpeed = 0.008f;
+	//if (keyboard.IsKeyPressed(VK_SHIFT))
+	//{
+	//	cameraSpeed = 0.4f;
+	//}
 
-	float deltaSpeed = cameraSpeed * DeltaTime;
+	float deltaSpeed = gfx.camera.speed * DeltaTime;
 
 	if (keyboard.IsKeyPressed('W'))
 	{
