@@ -331,16 +331,17 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="vertexshader.hlsl">
+    <FxCompile Include="Slipspace\Shaders\vertexshader.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
-    <FxCompile Include="pixelshader.hlsl">
+    <FxCompile Include="Slipspace\Shaders\pixelshader.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
-    <FxCompile Include="pixelshader_nolight.hlsl">
+    <FxCompile Include="Slipspace\Shaders\Old\pixelshader_nolight.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
-    <FxCompile Include="generic_vertexshader.hlsl" />
+    <FxCompile Include="Slipspace\Shaders\generic_vertexshader.hlsl" />
+    <FxCompile Include="Slipspace\Shaders\generic_pixelshader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

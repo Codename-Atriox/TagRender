@@ -59,18 +59,6 @@ float4 main(PS_INPUT input) : SV_TARGET
     // specularity shouldn't include color
     
     
-    // DYNAMIC LIGHTING
-    //float3 vectorToLight = normalize(dynamicLightPosition - input.inWorldPos); 
-    //float3 diffuseLightIntensity = max(dot(vectorToLight, input.inNormal), 0);
-    //float distanceToLight = distance(dynamicLightPosition, input.inWorldPos);
-    //float attenuationFactor = 1 / (dynamicLightAttenuation_b + dynamicLightAttenuation_b * distanceToLight + dynamicLightAttenuation_c * pow(distanceToLight, 2));
-    //diffuseLightIntensity *= attenuationFactor;
-    //float3 diffuseLight = diffuseLightIntensity * dynamicLightStrength * dynamicLightcolor;
-    //float3 appliedLight = ambientLight;
-    //appliedLight += diffuseLight;
-    
-    
-    
     float3 finalColor = sampleColor * (ambientLight + directionalLight + specularLight);
     return float4(finalColor, 1.0f);
 }

@@ -61,11 +61,16 @@ bool Graphics::InitializeDirectX(HWND hwnd)
 		scd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 
+		D3D11_CREATE_DEVICE_FLAG device_flags = (D3D11_CREATE_DEVICE_FLAG)0;
+		#if defined(DEBUG) || defined(_DEBUG)  
+			device_flags = D3D11_CREATE_DEVICE_FLAG::D3D11_CREATE_DEVICE_DEBUG;
+		#endif
+
 		HRESULT hr;
 		hr = D3D11CreateDeviceAndSwapChain(adapters[0].pAdapter,
 			D3D_DRIVER_TYPE_UNKNOWN,
 			NULL, // SOFTWARE DRIVER TYPE
-			NULL, // FLAGS FOR RUNTIME LAYERS
+			device_flags, // FLAGS FOR RUNTIME LAYERS
 			NULL, // FEATURE LEVELS ARRAY
 			0,    // # OF FEATURE LEVELS IN ARRAY
 			D3D11_SDK_VERSION,
@@ -110,6 +115,8 @@ bool Graphics::InitializeDirectX(HWND hwnd)
 
 		// RASTERIZER SETUP
 		CD3D11_RASTERIZER_DESC rasterizerDesc(D3D11_DEFAULT);
+		rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_FRONT;
+		rasterizerDesc.FrontCounterClockwise = false;
 		hr = this->device->CreateRasterizerState(&rasterizerDesc, this->rasterizerState.GetAddressOf());
 		COM_ERROR_IF_FAILED(hr, "Failed to create rasterizer state");
 
@@ -161,35 +168,39 @@ bool Graphics::InitializeShaders()
 {
 	std::wstring shaderfolder = L"D:\\Projects\\VS\\TagRender\\x64\\Debug\\";
 	
-
+	// /////////////////// //
+	// CUSTOM HALO SHADER //
+	// ///////////////// //
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
 		{"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R16G16B16A16_UINT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{"UV0", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0  },
-		{"NORMAL", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0  },
-	};
-	UINT numElements = ARRAYSIZE(layout);
+		{"TEXCOORD", 0, DXGI_FORMAT::DXGI_FORMAT_R16G16_UINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0  },
+		{"TEXCOORD", 1, DXGI_FORMAT::DXGI_FORMAT_R16G16_UINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0  },
+		{"TEXCOORD", 2, DXGI_FORMAT::DXGI_FORMAT_R16G16_UINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0  },
+		{"COLOR", 0, DXGI_FORMAT::DXGI_FORMAT_R32_UINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0  },
+		{"NORMAL", 0, DXGI_FORMAT::DXGI_FORMAT_R32_UINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0  },
+		{"TANGENT", 0, DXGI_FORMAT::DXGI_FORMAT_R32_UINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0  },
 
-	if (!vertexshader.Initialize(this->device, shaderfolder + L"vertexshader.cso", layout, numElements))
+	};
+	if (!vertexshader.Initialize(this->device, shaderfolder + L"vertexshader.cso", layout, ARRAYSIZE(layout)))
+		return false;
+	if (!pixelshader.Initialize(this->device, shaderfolder + L"pixelshader.cso"))
 		return false;
 
+	// //////////////////// //
+	// GIZMO OBJECT SHADER //
+	// ////////////////// //
 	D3D11_INPUT_ELEMENT_DESC generic_layout[] =
 	{
 		{"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{"TEXCOORD", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0  },
 		{"NORMAL", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0  },
 	};
-	UINT generic_numElements = ARRAYSIZE(generic_layout);
-
-	if (!generic_vertexshader.Initialize(this->device, shaderfolder + L"generic_vertexshader.cso", generic_layout, generic_numElements))
+	if (!generic_vertexshader.Initialize(this->device, shaderfolder + L"generic_vertexshader.cso", generic_layout, ARRAYSIZE(generic_layout)))
+		return false;
+	if (!generic_pixelshader.Initialize(this->device, shaderfolder + L"generic_pixelshader.cso"))
 		return false;
 
-
-	if (!pixelshader.Initialize(this->device, shaderfolder + L"pixelshader.cso"))
-		return false;
-
-	if (!pixelshader_nolight.Initialize(this->device, shaderfolder + L"pixelshader_nolight.cso"))
-		return false;
 
 	return true;
 }
@@ -283,7 +294,7 @@ void Graphics::RenderFrame()
 	//this->deviceContext->OMSetBlendState(this->blendState.Get(), NULL, 0xFFFFFFFF);
 	this->deviceContext->PSSetSamplers(0, 1, this->samplerState.GetAddressOf());
 	this->deviceContext->VSSetShader(generic_vertexshader.GetShader(), NULL, 0);
-	this->deviceContext->PSSetShader(pixelshader.GetShader(), NULL, 0);
+	this->deviceContext->PSSetShader(generic_pixelshader.GetShader(), NULL, 0);
 
 	// render a test element
 	Vertex v[] =
@@ -346,6 +357,7 @@ void Graphics::RenderFrame()
 
 	this->deviceContext->IASetInputLayout(this->vertexshader.GetInputLayout());
 	this->deviceContext->VSSetShader(vertexshader.GetShader(), NULL, 0);
+	this->deviceContext->PSSetShader(pixelshader.GetShader(), NULL, 0);
 
 
 	//static float alpha = 0.5f;

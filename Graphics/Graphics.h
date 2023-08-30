@@ -39,7 +39,7 @@ private:
 	VertexShader generic_vertexshader;
 	VertexShader vertexshader;
 	PixelShader pixelshader;
-	PixelShader pixelshader_nolight;
+	PixelShader generic_pixelshader;
 	ConstantBuffer<CB_VS_generic_vertexshader> cb_vs_generic_vertexshader;
 	ConstantBuffer<CB_VS_vertexshader> cb_vs_vertexshader;
 	ConstantBuffer<CB_PS_light> cb_ps_light;
