@@ -18,15 +18,28 @@ cbuffer perObjectBuffer : register(b0){
 };
 
 
-struct VS_INPUT{
+struct VS_I_POS{
     min16uint4 inPos : POSITION;
+};
+struct VS_I_UV0{
     min16uint2 inUV0 : TEXCOORD;
+};
+struct VS_I_UV1{
     min16uint2 inUV1 : TEXCOORD;
+};
+struct VS_I_UV2{
     min16uint2 inUV2 : TEXCOORD;
-    uint     inColor : COLOR;   // 8,8,8,8 (ARGB)
+};
+struct VS_I_COLOR{
+    uint inColor : COLOR;   // 8,8,8,8 (ARGB)
+};
+struct VS_I_NORMAL{
     uint    inNormal : NORMAL;  // note: is packed very weirdly (10,10,10,2)
+};
+struct VS_I_TANGENT{
     uint   inTangent : TANGENT; // 8,8,8,8 packed as 4byte (x,y,z, NULL?)
 };
+
 struct VS_OUTPUT{
     float4 outPosition : SV_POSITION;
     float2 outUV0 : TEXCOORD0;
@@ -40,11 +53,11 @@ struct VS_OUTPUT{
     float3 outCamDirection : CAM_DIRECTION;
 };
 
-VS_OUTPUT main(VS_INPUT input)
+VS_OUTPUT main(VS_I_POS pos, VS_I_UV0 uv0, VS_I_UV1 uv1, VS_I_UV2 uv2, VS_I_COLOR color, VS_I_NORMAL normal, VS_I_TANGENT tangent)
 {
     VS_OUTPUT output;
     // fixup geo position
-    float3 decompressed_position = float3(input.inPos.xyz) / float(0xffff); // positions are normalized, meaning they are between 0.0 & 1.0
+    float3 decompressed_position = float3(pos.inPos.xyz) / float(0xffff); // positions are normalized, meaning they are between 0.0 & 1.0
     decompressed_position *= pos_max - pos_min;
     decompressed_position += pos_min;
     
@@ -52,11 +65,11 @@ VS_OUTPUT main(VS_INPUT input)
     float2 decompressed_UV1 = float3(0, 0, 0);
     float2 decompressed_UV2 = float3(0, 0, 0);
     
-    float4 decompressed_color   = float4( ((input.inColor >> 16) & 0xff) / 256.0, ((input.inColor >> 8) & 0xff) / 256.0, (input.inColor & 0xff) / 256.0, (input.inColor >> 24) / 256.0);
+    float4 decompressed_color = float4(((color.inColor >> 16) & 0xff) / 256.0, ((color.inColor >> 8) & 0xff) / 256.0, (color.inColor & 0xff) / 256.0, (color.inColor >> 24) / 256.0);
     
-    float norm_x = (((input.inNormal >> 20) & 0x3ff) / 511.0) - 1.0;
-    float norm_y = (((input.inNormal >> 10) & 0x3ff) / 511.0) - 1.0;
-    float norm_z = ((input.inNormal & 0x3ff) / 511.0) - 1.0;
+    float norm_x = (((normal.inNormal >> 20) & 0x3ff) / 511.0) - 1.0;
+    float norm_y = (((normal.inNormal >> 10) & 0x3ff) / 511.0) - 1.0;
+    float norm_z = ((normal.inNormal & 0x3ff) / 511.0) - 1.0;
     
     float3 decompressed_normal = float3(norm_x, norm_y, norm_z);
     float3 decompressed_tangent = float3(0, 0, 0);

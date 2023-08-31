@@ -13,7 +13,7 @@ public:
 		render_module_window(Modules, device);
 		render_loaded_tags_window(Modules);
 		render_bitmap_window(Modules, device);
-
+		runtimegeo_window();
 
 	}
 	const char* module_load_filters = "module";
@@ -356,6 +356,24 @@ public:
 
 	}
 
+	void runtimegeo_window() {
+		for (uint32_t i = 0; i < OpenRuntimeGeos.Size(); i++) {
+			Tag* tag = OpenRuntimeGeos[i];
+			ImGui::PushID(tag->tagID);
+			bool window_is_open = true;
+			if (!ImGui::Begin(tag->tagname.c_str(), &window_is_open) && window_is_open) {
+				ImGui::End();
+				ImGui::PopID();
+				continue;
+			}
+			ImGui::DragInt("Active Mesh", &tag->preview_1, 0.1f, 0, 100);
+			ImGui::DragInt("Active Lod", &tag->preview_2, 0.1f, 0, 100);
+			ImGui::DragInt("Active Part", &tag->preview_3, 0.1f, 0, 100);
+			ImGui::End();
+			ImGui::PopID();
+		}
+	}
+
 #include <iostream>
 #include <fstream>
 	CTList<Tag> OpenRuntimeGeos;
@@ -404,15 +422,24 @@ public:
 
 
 			for (int m_index = 0; m_index < runtime_geo->render_geometry.meshes.count; m_index++) {
+				if (tag->preview_1 != m_index) continue;
 				rtgo::s_mesh* current_mesh = runtime_geo->render_geometry.meshes[m_index];
 
 				for (int lod_index = 0; lod_index < current_mesh->LOD_render_data.count; lod_index++) {
+					if (tag->preview_2 != lod_index) continue;
 					rtgo::LODRenderData* current_lod = current_mesh->LOD_render_data[lod_index];
 
 					uint16_t ibuffer_index = current_lod->index_buffer_index;
 
 					rtgo::RasterizerIndexBuffer* index_buffer = geo_resource->pc_index_buffers[current_lod->index_buffer_index];
-					rtgo::RasterizerVertexBuffer* vert_buffer = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[0].vertex_buffer_index];
+
+					rtgo::RasterizerVertexBuffer* vert_buffer    = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[0].vertex_buffer_index];
+					rtgo::RasterizerVertexBuffer* uv0_buffer     = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[1].vertex_buffer_index];
+					//rtgo::RasterizerVertexBuffer* uv1_buffer     = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[2].vertex_buffer_index];
+					//rtgo::RasterizerVertexBuffer* uv2_buffer     = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[3].vertex_buffer_index];
+					rtgo::RasterizerVertexBuffer* color_buffer   = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[4].vertex_buffer_index];
+					rtgo::RasterizerVertexBuffer* norm_buffer    = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[5].vertex_buffer_index];
+					rtgo::RasterizerVertexBuffer* tangent_buffer = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[6].vertex_buffer_index];
 
 					/* all 'vertex buffer indicies' meanings via slot/index
 					*  0 : Position (wordVector4DNormalized)
@@ -470,16 +497,35 @@ public:
 						//string filename = tag->tagname + "_m" + std::to_string(m_index) + "_l" + std::to_string(lod_index) + "_p" + std::to_string(part_index);
 						//std::ofstream out("C:\\Users\\Joe bingle\\Downloads\\test\\" + filename + ".obj");
 						//out << "o Test" << "\n";
+						//rtgo::s_compression_info* compression = runtime_geo->render_geometry.compression_info[0];
 						//for (int vi = 0; vi < vert_buffer->count; vi++) {
-						//	uint64_t float4d =  *((uint64_t*)((char*)geo_resource->Runtime_Data + vert_buffer->offset) + vi);
-						//	uint16_t f1 = (float4d >> 48) & 0xffff;
-						//	uint16_t f2 = (float4d >> 32) & 0xffff;
-						//	uint16_t f3 = (float4d >> 16) & 0xffff;
-						//	uint16_t f4 = (float4d >> 00) & 0xffff;
-						//	out << "v " << f4 << " " << f3 << " " << f2 << "\n"; // " " << f1 << "\n";
-						//	//out << "v " << (int16_t)f4 << " " << (int16_t)f3 << " " << (int16_t)f2 << "\n"; // ", " << (int16_t)f1 << "\n";
-						//	//out << "v " << half_to_float(swap_bytes(f4)) << " " << half_to_float(swap_bytes(f3)) << " " << half_to_float(swap_bytes(f2)) << " " << half_to_float(swap_bytes(f1)) << "\n";
-						//	//out << "v " << half_to_float(f4) << " " << half_to_float(f3) << " " << half_to_float(f2) << "\n"; // " " << half_to_float(f1) << "\n";
+						//	uint64_t float4d = *((uint64_t*)((char*)geo_resource->Runtime_Data + vert_buffer->offset) + vi);
+
+						//	float w = (float)((float4d >> 48) & 0xffff) / 65535.0;
+
+						//	float x = (float)(float4d & 0xffff) / 65535.0;
+						//	x *= compression->position_bounds_0.f2 - compression->position_bounds_0.f1;
+						//	x += compression->position_bounds_0.f1;
+						//	float y = (float)((float4d >> 16) & 0xffff) / 65535.0;
+						//	y *= compression->position_bounds_1.f1 - compression->position_bounds_0.f3;
+						//	y += compression->position_bounds_0.f3;
+						//	float z = (float)((float4d >> 32) & 0xffff) / 65535.0;
+						//	z *= compression->position_bounds_1.f3 - compression->position_bounds_1.f2;
+						//	z += compression->position_bounds_1.f2;
+						//	out << "v " << x << " " << y << " " << z << " # " << w << "\n";
+						//}
+						//// repeat the process for the vertex normals
+						//for (int vi = 0; vi < norm_buffer->count; vi++) {
+						//	uint32_t* norm4d_address = (uint32_t*)((char*)geo_resource->Runtime_Data + norm_buffer->offset) + vi;
+						//	uint32_t norm4d = *norm4d_address;
+						//	// these values are signed
+						//	float nx = ((float)( norm4d        & 0x3ff) / 511.0) - 1.0;
+						//	float ny = ((float)((norm4d >> 10) & 0x3ff) / 511.0) - 1.0;
+						//	float nz = ((float)((norm4d >> 20) & 0x3ff) / 511.0) - 1.0;
+						//	float nw = norm4d >> 30;
+
+						//	out << "vn " << nx << " " << ny << " " << nz << " # " << nw << "\n";
+
 						//}
 
 
