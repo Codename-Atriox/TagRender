@@ -1,5 +1,4 @@
 #pragma once
-#include "Utilities/UI_Bitmap.h"
 #include "../Tags/TagContainers.h"
 
 #include "../../Utilities/NFD/include/nfd.h"
@@ -379,187 +378,23 @@ public:
 	CTList<Tag> OpenRuntimeGeos;
 	void render_runtimegeo_window(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ConstantBuffer<CB_VS_vertexshader>* cb_vs_vertexshader, const XMMATRIX& viewProjectionMatrix) {
 
-		XMMATRIX worldMatrix = XMMatrixRotationRollPitchYaw(0,0,0) * XMMatrixTranslation(0,0,0);
 
 
 
 		for (uint32_t i = 0; i < OpenRuntimeGeos.Size(); i++) {
 			Tag* tag = OpenRuntimeGeos[i];
 
-
-			rtgo::RuntimeGeoTag* runtime_geo = (rtgo::RuntimeGeoTag*)tag->tag_data;
-			// no support for multiple 'mesh reosurce groups' yet, throw exception
-			if (runtime_geo->render_geometry.mesh_package.mesh_resource_groups.count != 1)
-				throw exception("bad number of resource groups in runtime geo");
-			// buffer structs
-			rtgo::RenderGeometryMeshPackageResourceGroup* runtime_geo_group = runtime_geo->render_geometry.mesh_package.mesh_resource_groups[0];
-			// double check to make sure the file exists as expected, we dont know how non-chunked models work yet
-			if (runtime_geo_group->mesh_resource.is_chunked_resource == 0)
-				throw exception("non-chunked geo resources are not yet supported!!!");
-			rtgo::s_render_geometry_api_resource* geo_resource = runtime_geo_group->mesh_resource.content_ptr;
-
-			// set constant buffer params
-			deviceContext->VSSetConstantBuffers(0, 1, cb_vs_vertexshader->GetAddressOf());
-			cb_vs_vertexshader->data.wvpMatrix = DirectX::XMMatrixIdentity() * worldMatrix * viewProjectionMatrix;
-			cb_vs_vertexshader->data.worldMatrix = DirectX::XMMatrixIdentity() * worldMatrix;
-			if (runtime_geo->render_geometry.compression_info.count > 0) {
-				rtgo::s_compression_info* compression = runtime_geo->render_geometry.compression_info[0];
-				cb_vs_vertexshader->data.minbounds.x = compression->position_bounds_0.f1;
-				cb_vs_vertexshader->data.maxbounds.x = compression->position_bounds_0.f2;
-				cb_vs_vertexshader->data.minbounds.y = compression->position_bounds_0.f3;
-				cb_vs_vertexshader->data.maxbounds.y = compression->position_bounds_1.f1;
-				cb_vs_vertexshader->data.minbounds.z = compression->position_bounds_1.f2;
-				cb_vs_vertexshader->data.maxbounds.z = compression->position_bounds_1.f3;
-			} else {
-				cb_vs_vertexshader->data.minbounds.x = 0;
-				cb_vs_vertexshader->data.minbounds.y = 0;
-				cb_vs_vertexshader->data.minbounds.z = 0;
-				cb_vs_vertexshader->data.maxbounds.x = 0;
-				cb_vs_vertexshader->data.maxbounds.y = 0;
-				cb_vs_vertexshader->data.maxbounds.z = 0;
+			if (tag->tag_FourCC == Tag::rtgo) {
+				rtgo::RuntimeGeoTag* runtime_geo = (rtgo::RuntimeGeoTag*)tag->tag_data;
+				render_struct_render_geometry(&runtime_geo->render_geometry, tag, device, deviceContext, cb_vs_vertexshader, viewProjectionMatrix);
+			} 
+			else if (tag->tag_FourCC == Tag::mode) {
+				rtgo::RuntimeGeoTag* runtime_geo = (mode::RuntimeGeoTag*)tag->tag_data;
+				render_struct_render_geometry(&runtime_geo->render_geometry, tag, device, deviceContext, cb_vs_vertexshader, viewProjectionMatrix);
 			}
-			cb_vs_vertexshader->ApplyChanges();
-
-
-			for (int m_index = 0; m_index < runtime_geo->render_geometry.meshes.count; m_index++) {
-				if (tag->preview_1 != m_index) continue;
-				rtgo::s_mesh* current_mesh = runtime_geo->render_geometry.meshes[m_index];
-
-				for (int lod_index = 0; lod_index < current_mesh->LOD_render_data.count; lod_index++) {
-					if (tag->preview_2 != lod_index) continue;
-					rtgo::LODRenderData* current_lod = current_mesh->LOD_render_data[lod_index];
-
-					uint16_t ibuffer_index = current_lod->index_buffer_index;
-
-					rtgo::RasterizerIndexBuffer* index_buffer = geo_resource->pc_index_buffers[current_lod->index_buffer_index];
-
-					rtgo::RasterizerVertexBuffer* vert_buffer    = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[0].vertex_buffer_index];
-					rtgo::RasterizerVertexBuffer* uv0_buffer     = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[1].vertex_buffer_index];
-					//rtgo::RasterizerVertexBuffer* uv1_buffer     = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[2].vertex_buffer_index];
-					//rtgo::RasterizerVertexBuffer* uv2_buffer     = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[3].vertex_buffer_index];
-					rtgo::RasterizerVertexBuffer* color_buffer   = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[4].vertex_buffer_index];
-					rtgo::RasterizerVertexBuffer* norm_buffer    = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[5].vertex_buffer_index];
-					rtgo::RasterizerVertexBuffer* tangent_buffer = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[6].vertex_buffer_index];
-
-					/* all 'vertex buffer indicies' meanings via slot/index
-					*  0 : Position (wordVector4DNormalized)
-					*  1 : UV0 (wordVector2DNormalized)
-					*  2 : UV1 (wordVector2DNormalized)
-					*  3 : UV2 (wordVector2DNormalized)
-					*  4 : Color (byteARGBColor)
-					*  5 : Normal (10_10_10_10_2_signedNormalizedPackedAsUnorm)
-					*  6 : Tangent (byteUnitVector3D)
-					*  7 :
-					*  8 :
-					*  9 :
-					* 10 :
-					* 11 :
-					* 12 :
-					* 13 :
-					* 14 :
-					* 15 :
-					* 16 :
-					* 17 :
-					* 18 :
-					* 19 :
-					*/
-					ID3D11Buffer* vert_buffers[19] = {};
-					UINT vert_strides[19] = {};
-					UINT vert_offsets[19] = {};
-					for (int vert_buffer_index = 0; vert_buffer_index < 19; vert_buffer_index++) { // statically assigned length because how do we even measure that
-						if (current_lod->vertex_buffer_indices[vert_buffer_index].vertex_buffer_index == 65535)
-							continue;
-						rtgo::RasterizerVertexBuffer* vert_buffer = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[vert_buffer_index].vertex_buffer_index];
-						vert_buffers[vert_buffer_index] = (ID3D11Buffer*)vert_buffer->m_resource;
-						vert_strides[vert_buffer_index] = vert_buffer->stride;
-						vert_offsets[vert_buffer_index] = 0; // im pretty sure we do not offset these, we only offset the indicies
-					}
-					// then apply the vertex buffers, as they do not change between mesh part
-					// map the stride to a format
-					DXGI_FORMAT index_format = (DXGI_FORMAT)0;
-					switch (index_buffer->stride) {
-					case 2:  index_format = DXGI_FORMAT::DXGI_FORMAT_R16_UINT; break;
-					case 4:  index_format = DXGI_FORMAT::DXGI_FORMAT_R32_UINT; throw exception("unexpected length"); break;
-					default: throw exception("invalid index buffer stride (has to be either 2 or 4 bytes!!!)");
-					}
-
-
-
-
-					// now loop through all parts & draw
-					for (int part_index = 0; part_index < current_lod->parts.count; part_index++) {
-						rtgo::s_part* mesh_part = current_lod->parts[part_index];
-						deviceContext->IASetVertexBuffers(0, 19, vert_buffers, vert_strides, vert_offsets);
-						deviceContext->IASetIndexBuffer((ID3D11Buffer*)index_buffer->m_resource, index_format, 0);
-						deviceContext->DrawIndexed(mesh_part->index_count, mesh_part->index_start, 0);
-
-						// export mesh // DEBUG //
-						//string filename = tag->tagname + "_m" + std::to_string(m_index) + "_l" + std::to_string(lod_index) + "_p" + std::to_string(part_index);
-						//std::ofstream out("C:\\Users\\Joe bingle\\Downloads\\test\\" + filename + ".obj");
-						//out << "o Test" << "\n";
-						//rtgo::s_compression_info* compression = runtime_geo->render_geometry.compression_info[0];
-						//for (int vi = 0; vi < vert_buffer->count; vi++) {
-						//	uint64_t float4d = *((uint64_t*)((char*)geo_resource->Runtime_Data + vert_buffer->offset) + vi);
-
-						//	float w = (float)((float4d >> 48) & 0xffff) / 65535.0;
-
-						//	float x = (float)(float4d & 0xffff) / 65535.0;
-						//	x *= compression->position_bounds_0.f2 - compression->position_bounds_0.f1;
-						//	x += compression->position_bounds_0.f1;
-						//	float y = (float)((float4d >> 16) & 0xffff) / 65535.0;
-						//	y *= compression->position_bounds_1.f1 - compression->position_bounds_0.f3;
-						//	y += compression->position_bounds_0.f3;
-						//	float z = (float)((float4d >> 32) & 0xffff) / 65535.0;
-						//	z *= compression->position_bounds_1.f3 - compression->position_bounds_1.f2;
-						//	z += compression->position_bounds_1.f2;
-						//	out << "v " << x << " " << y << " " << z << " # " << w << "\n";
-						//}
-						//// repeat the process for the vertex normals
-						//for (int vi = 0; vi < norm_buffer->count; vi++) {
-						//	uint32_t* norm4d_address = (uint32_t*)((char*)geo_resource->Runtime_Data + norm_buffer->offset) + vi;
-						//	uint32_t norm4d = *norm4d_address;
-						//	// these values are signed
-						//	float nx = ((float)( norm4d        & 0x3ff) / 511.0) - 1.0;
-						//	float ny = ((float)((norm4d >> 10) & 0x3ff) / 511.0) - 1.0;
-						//	float nz = ((float)((norm4d >> 20) & 0x3ff) / 511.0) - 1.0;
-						//	float nw = norm4d >> 30;
-
-						//	out << "vn " << nx << " " << ny << " " << nz << " # " << nw << "\n";
-
-						//}
-
-
-						//for (int ii = 0; ii < mesh_part->index_count; ii += 3) {
-						//	uint16_t* index_ptr = (uint16_t*)((char*)geo_resource->Runtime_Data + index_buffer->offset) + mesh_part->index_start + ii;
-						//	out << "f " << ((*index_ptr)+1) << " " << (*(index_ptr + 1)+1) << " " << (*(index_ptr + 2)+1) << "\n";
-						//}
-
-					}
-
-					// debugging to peep at the structures
-
-					//std::ofstream out("C:\\Users\\Joe bingle\\Downloads\\test\\oddmodel.txt");
-					//rtgo::RasterizerVertexBuffer* vb = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[0].vertex_buffer_index];
-					//for (int i = 0; i < vb->count; i++) {
-					//	uint64_t float4d = *((uint64_t*)((char*)geo_resource->Runtime_Data + vb->offset) + i);
-					//	uint16_t f1 = (float4d >> 48) & 0xffff;
-					//	uint16_t f2 = (float4d >> 32) & 0xffff;
-					//	uint16_t f3 = (float4d >> 16) & 0xffff;
-					//	uint16_t f4 = (float4d >> 00) & 0xffff;
-					//	out << f1 << ',' << f2 << ',' << f3 << ',' << f4 << '\r';
-					//}
-
-					//std::ofstream outfile("C:\\Users\\Joe bingle\\Downloads\\test\\oddmodel.bin", std::ios::out | std::ios::binary);
-					//outfile.write((((char*)geo_resource->Runtime_Data) + vb->offset), vb->count * vb->stride); //no need to cast
-					//OpenRuntimeGeos.RemoveAt(i);
-					//i--;
-					//return;
-				}
-
+			else {
+				throw exception("unsupported render object type, idk how we got here");
 			}
-
-			//OpenRuntimeGeos.RemoveAt(i);
-			//i--;
 		}
 
 
@@ -568,6 +403,185 @@ public:
 
 
 	}
+	
+	void render_struct_render_geometry(rtgo::s_render_geometry* render_geo, Tag* tag, ID3D11Device* device, ID3D11DeviceContext* deviceContext, ConstantBuffer<CB_VS_vertexshader>* cb_vs_vertexshader, const XMMATRIX& viewProjectionMatrix) {
+		// tag can ONLY be used for storing preview values, as this will support multiple types
+
+		// no support for multiple 'mesh reosurce groups' yet, throw exception
+		if (render_geo->mesh_package.mesh_resource_groups.count != 1)
+			throw exception("bad number of resource groups in runtime geo");
+		// buffer structs
+		rtgo::RenderGeometryMeshPackageResourceGroup* runtime_geo_group = render_geo->mesh_package.mesh_resource_groups[0];
+		// double check to make sure the file exists as expected, we dont know how non-chunked models work yet
+		if (runtime_geo_group->mesh_resource.is_chunked_resource == 0)
+			throw exception("non-chunked geo resources are not yet supported!!!");
+		rtgo::s_render_geometry_api_resource* geo_resource = runtime_geo_group->mesh_resource.content_ptr;
+
+		XMMATRIX worldMatrix = XMMatrixRotationRollPitchYaw(0, 0, 0) * XMMatrixTranslation(0, 0, 0); // we need to calculate this elsewhere i think
+		// set constant buffer params
+		deviceContext->VSSetConstantBuffers(0, 1, cb_vs_vertexshader->GetAddressOf());
+		cb_vs_vertexshader->data.wvpMatrix = DirectX::XMMatrixIdentity() * worldMatrix * viewProjectionMatrix;
+		cb_vs_vertexshader->data.worldMatrix = DirectX::XMMatrixIdentity() * worldMatrix;
+		if (render_geo->compression_info.count > 0) {
+			rtgo::s_compression_info* compression = render_geo->compression_info[0];
+			cb_vs_vertexshader->data.minbounds.x = compression->position_bounds_0.f1;
+			cb_vs_vertexshader->data.maxbounds.x = compression->position_bounds_0.f2;
+			cb_vs_vertexshader->data.minbounds.y = compression->position_bounds_0.f3;
+			cb_vs_vertexshader->data.maxbounds.y = compression->position_bounds_1.f1;
+			cb_vs_vertexshader->data.minbounds.z = compression->position_bounds_1.f2;
+			cb_vs_vertexshader->data.maxbounds.z = compression->position_bounds_1.f3;
+		}
+		else { // uh what the hell do we do here? we still need to pass something into the buffer struct
+			throw exception("non-compressed position bounds are currently unsupported");
+			cb_vs_vertexshader->data.minbounds.x = 0;
+			cb_vs_vertexshader->data.minbounds.y = 0;
+			cb_vs_vertexshader->data.minbounds.z = 0;
+			cb_vs_vertexshader->data.maxbounds.x = 0;
+			cb_vs_vertexshader->data.maxbounds.y = 0;
+			cb_vs_vertexshader->data.maxbounds.z = 0;
+		}
+		cb_vs_vertexshader->ApplyChanges();
+
+
+		for (int m_index = 0; m_index < render_geo->meshes.count; m_index++) {
+			if (tag->preview_1 != m_index) continue;
+			rtgo::s_mesh* current_mesh = render_geo->meshes[m_index];
+
+			for (int lod_index = 0; lod_index < current_mesh->LOD_render_data.count; lod_index++) {
+				if (tag->preview_2 != lod_index) continue;
+				rtgo::LODRenderData* current_lod = current_mesh->LOD_render_data[lod_index];
+
+				uint16_t ibuffer_index = current_lod->index_buffer_index;
+
+				rtgo::RasterizerIndexBuffer* index_buffer = geo_resource->pc_index_buffers[current_lod->index_buffer_index];
+
+				rtgo::RasterizerVertexBuffer* vert_buffer = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[0].vertex_buffer_index];
+				rtgo::RasterizerVertexBuffer* uv0_buffer = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[1].vertex_buffer_index];
+				//rtgo::RasterizerVertexBuffer* uv1_buffer     = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[2].vertex_buffer_index];
+				//rtgo::RasterizerVertexBuffer* uv2_buffer     = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[3].vertex_buffer_index];
+				rtgo::RasterizerVertexBuffer* color_buffer = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[4].vertex_buffer_index];
+				rtgo::RasterizerVertexBuffer* norm_buffer = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[5].vertex_buffer_index];
+				rtgo::RasterizerVertexBuffer* tangent_buffer = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[6].vertex_buffer_index];
+
+				/* all 'vertex buffer indicies' meanings via slot/index
+				*  0 : Position (wordVector4DNormalized)
+				*  1 : UV0 (wordVector2DNormalized)
+				*  2 : UV1 (wordVector2DNormalized)
+				*  3 : UV2 (wordVector2DNormalized)
+				*  4 : Color (byteARGBColor)
+				*  5 : Normal (10_10_10_10_2_signedNormalizedPackedAsUnorm)
+				*  6 : Tangent (byteUnitVector3D)
+				*  7 :
+				*  8 :
+				*  9 :
+				* 10 :
+				* 11 :
+				* 12 :
+				* 13 :
+				* 14 :
+				* 15 :
+				* 16 :
+				* 17 :
+				* 18 :
+				* 19 :
+				*/
+				ID3D11Buffer* vert_buffers[19] = {};
+				UINT vert_strides[19] = {};
+				UINT vert_offsets[19] = {};
+				for (int vert_buffer_index = 0; vert_buffer_index < 19; vert_buffer_index++) { // statically assigned length because how do we even measure that
+					if (current_lod->vertex_buffer_indices[vert_buffer_index].vertex_buffer_index == 65535)
+						continue;
+					rtgo::RasterizerVertexBuffer* vert_buffer = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[vert_buffer_index].vertex_buffer_index];
+					vert_buffers[vert_buffer_index] = (ID3D11Buffer*)vert_buffer->m_resource;
+					vert_strides[vert_buffer_index] = vert_buffer->stride;
+					vert_offsets[vert_buffer_index] = 0; // im pretty sure we do not offset these, we only offset the indicies
+				}
+				// then apply the vertex buffers, as they do not change between mesh part
+				// map the stride to a format
+				DXGI_FORMAT index_format = (DXGI_FORMAT)0;
+				switch (index_buffer->stride) {
+				case 2:  index_format = DXGI_FORMAT::DXGI_FORMAT_R16_UINT; break;
+				case 4:  index_format = DXGI_FORMAT::DXGI_FORMAT_R32_UINT; throw exception("unexpected length"); break;
+				default: throw exception("invalid index buffer stride (has to be either 2 or 4 bytes!!!)");
+				}
+
+
+
+
+				// now loop through all parts & draw
+				for (int part_index = 0; part_index < current_lod->parts.count; part_index++) {
+					rtgo::s_part* mesh_part = current_lod->parts[part_index];
+					deviceContext->IASetVertexBuffers(0, 19, vert_buffers, vert_strides, vert_offsets);
+					deviceContext->IASetIndexBuffer((ID3D11Buffer*)index_buffer->m_resource, index_format, 0);
+					deviceContext->DrawIndexed(mesh_part->index_count, mesh_part->index_start, 0);
+
+					// export mesh // DEBUG //
+					//string filename = tag->tagname + "_m" + std::to_string(m_index) + "_l" + std::to_string(lod_index) + "_p" + std::to_string(part_index);
+					//std::ofstream out("C:\\Users\\Joe bingle\\Downloads\\test\\" + filename + ".obj");
+					//out << "o Test" << "\n";
+					//rtgo::s_compression_info* compression = runtime_geo->render_geometry.compression_info[0];
+					//for (int vi = 0; vi < vert_buffer->count; vi++) {
+					//	uint64_t float4d = *((uint64_t*)((char*)geo_resource->Runtime_Data + vert_buffer->offset) + vi);
+
+					//	float w = (float)((float4d >> 48) & 0xffff) / 65535.0;
+
+					//	float x = (float)(float4d & 0xffff) / 65535.0;
+					//	x *= compression->position_bounds_0.f2 - compression->position_bounds_0.f1;
+					//	x += compression->position_bounds_0.f1;
+					//	float y = (float)((float4d >> 16) & 0xffff) / 65535.0;
+					//	y *= compression->position_bounds_1.f1 - compression->position_bounds_0.f3;
+					//	y += compression->position_bounds_0.f3;
+					//	float z = (float)((float4d >> 32) & 0xffff) / 65535.0;
+					//	z *= compression->position_bounds_1.f3 - compression->position_bounds_1.f2;
+					//	z += compression->position_bounds_1.f2;
+					//	out << "v " << x << " " << y << " " << z << " # " << w << "\n";
+					//}
+					//// repeat the process for the vertex normals
+					//for (int vi = 0; vi < norm_buffer->count; vi++) {
+					//	uint32_t* norm4d_address = (uint32_t*)((char*)geo_resource->Runtime_Data + norm_buffer->offset) + vi;
+					//	uint32_t norm4d = *norm4d_address;
+					//	// these values are signed
+					//	float nx = ((float)( norm4d        & 0x3ff) / 511.0) - 1.0;
+					//	float ny = ((float)((norm4d >> 10) & 0x3ff) / 511.0) - 1.0;
+					//	float nz = ((float)((norm4d >> 20) & 0x3ff) / 511.0) - 1.0;
+					//	float nw = norm4d >> 30;
+
+					//	out << "vn " << nx << " " << ny << " " << nz << " # " << nw << "\n";
+
+					//}
+
+
+					//for (int ii = 0; ii < mesh_part->index_count; ii += 3) {
+					//	uint16_t* index_ptr = (uint16_t*)((char*)geo_resource->Runtime_Data + index_buffer->offset) + mesh_part->index_start + ii;
+					//	out << "f " << ((*index_ptr)+1) << " " << (*(index_ptr + 1)+1) << " " << (*(index_ptr + 2)+1) << "\n";
+					//}
+
+				}
+
+				// debugging to peep at the structures
+
+				//std::ofstream out("C:\\Users\\Joe bingle\\Downloads\\test\\oddmodel.txt");
+				//rtgo::RasterizerVertexBuffer* vb = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[0].vertex_buffer_index];
+				//for (int i = 0; i < vb->count; i++) {
+				//	uint64_t float4d = *((uint64_t*)((char*)geo_resource->Runtime_Data + vb->offset) + i);
+				//	uint16_t f1 = (float4d >> 48) & 0xffff;
+				//	uint16_t f2 = (float4d >> 32) & 0xffff;
+				//	uint16_t f3 = (float4d >> 16) & 0xffff;
+				//	uint16_t f4 = (float4d >> 00) & 0xffff;
+				//	out << f1 << ',' << f2 << ',' << f3 << ',' << f4 << '\r';
+				//}
+
+				//std::ofstream outfile("C:\\Users\\Joe bingle\\Downloads\\test\\oddmodel.bin", std::ios::out | std::ios::binary);
+				//outfile.write((((char*)geo_resource->Runtime_Data) + vb->offset), vb->count * vb->stride); //no need to cast
+				//OpenRuntimeGeos.RemoveAt(i);
+				//i--;
+				//return;
+			}
+
+		}
+	}
+	
+	/* // useless junk
 	uint16_t swap_bytes(uint16_t target) {
 		uint16_t upper_to_lower = target >> 8;
 		uint16_t lower_to_upper = target << 8;
@@ -622,4 +636,5 @@ public:
 		// calculate double
 		return sign * expontent_result * out_mantisa;
 	}
+	*/
 };
