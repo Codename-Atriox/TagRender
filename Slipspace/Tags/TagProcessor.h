@@ -9,6 +9,7 @@
 
 #include "TagStructs/bitm.h"
 #include "TagStructs/rtgo.h"
+#include "TagStructs/mode.h"
 #include "../../Utilities/CTList.h"
 
 
@@ -32,7 +33,10 @@ public:
     Module* GetModule_FromTag(Tag* tag);
 
     BitmapResource* BITM_GetTexture(Tag* tag, ID3D11Device* device, int32_t target_resource = -1, bool load_next_best = true);
+
     void RTGO_loadbuffers(Tag* tag, ID3D11Device* device);
+    void MODE_loadbuffers(Tag* tag, ID3D11Device* device);
+    void parse_render_geometry(rtgo::s_render_geometry* geo, Tag* tag, ID3D11Device* device);
 
     HRESULT OpenTagResource(Tag* tag, uint32_t resource_index, char* resource_out_buffer, uint32_t buffer_size);
     bool IsTagResourceHd1(Tag* tag, uint32_t resource_index);

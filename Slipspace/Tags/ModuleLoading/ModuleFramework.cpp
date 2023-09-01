@@ -282,7 +282,8 @@ void Module::Processtag(char* tag_bytes, module_file* file_header, char*& _Out_d
 	current_byte_offset += static_cast<uint64_t>(header->TagReferenceCount) * tag_fixup_reference_size;
 
 	offsets->string_table_offset = current_byte_offset;
-	current_byte_offset += header->StringTableSize;
+	// idk why this isn't commented out yet, but why do some tags still have this value set. thanks john halo
+	//current_byte_offset += header->StringTableSize;
 
 	offsets->zoneset_info_offset = current_byte_offset;
 	current_byte_offset += header->ZoneSetDataSize; // unsure if this includes the header or just all the elements
@@ -297,6 +298,9 @@ void Module::Processtag(char* tag_bytes, module_file* file_header, char*& _Out_d
 	offsets->data_1_offset = header->HeaderSize - current_byte_offset;
 	offsets->data_2_offset = offsets->data_1_offset + header->DataSize;
 	offsets->data_3_offset = offsets->data_2_offset + header->ResourceDataSize;
+	// failsafe see if the numbers are HUGE (they should not be HUGE)
+	if ((int64_t)offsets->data_1_offset < 0 || (int64_t)offsets->data_2_offset < 0 || (int64_t)offsets->data_3_offset < 0)
+		throw exception("very bad offsets detected!!!");
 
 	// now we note any unmapped data segments in the file
 

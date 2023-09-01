@@ -6,7 +6,7 @@
 ; SOURCE PLUGIN: mode
 ; GENERATED TIMESTAMP: 01/09/2023 -> 12:05:28 AM
 */
-
+#pragma once
 #include "commons.h"
 #pragma pack(push, 1)
 
@@ -130,19 +130,19 @@ namespace mode {
 	};
 
 	// /////////////// //
-	// ENUM REFERENCES //
+	// enum class REFERENCES //
 	// /////////////// //
 
-	enum RenderModelMeshResourcePackingPolicy : uint32_t {
+	enum class RenderModelMeshResourcePackingPolicy : uint32_t {
 		Single_resource = 0,
 		Resource_per_mesh_permutation = 1,
 	};
-	enum RenderModelDefaultLoadVariantPolicy : uint8_t {
+	enum class RenderModelDefaultLoadVariantPolicy : uint8_t {
 		All_Variants = 0,
 		First_Variant = 1,
 		No_Variant = 2,
 	};
-	enum e_render_model_node_procedure : uint8_t {
+	enum class e_render_model_node_procedure : uint8_t {
 		NONE = 0,
 		multiply_rotation = 1,
 		copy_scaled_twist = 2,
@@ -150,19 +150,19 @@ namespace mode {
 		copy_local_orientation = 4,
 		copy_scaled_twist_legacy = 5,
 	};
-	enum e_render_model_node_procedure_axis : uint8_t {
+	enum class e_render_model_node_procedure_axis : uint8_t {
 		ALL = 0,
 		Yaw__Maya_Y_ = 1,
 		Pitch__Maya_X_ = 2,
 		Roll__Maya_Z_ = 3,
 	};
-	enum ErrorReportTypes : uint8_t {
+	enum class ErrorReportTypes : uint8_t {
 		silent = 0,
 		comment = 1,
 		warning = 2,
 		error = 3,
 	};
-	enum AlphaBlendMode : uint8_t {
+	enum class AlphaBlendMode : uint8_t {
 		opaque = 0,
 		additive = 1,
 		multiply = 2,
@@ -236,14 +236,14 @@ namespace mode {
 		decal_sss_blend = 70,
 		Hud_Damage_Alpha_Blend = 71,
 	};
-	enum e_error_report_source : uint8_t {
+	enum class e_error_report_source : uint8_t {
 		none = 0,
 		structure = 1,
 		poop = 2,
 		lightmap = 3,
 		pathfinding = 4,
 	};
-	enum VertexType : uint8_t {
+	enum class VertexType : uint8_t {
 		world = 0,
 		rigid = 1,
 		skinned = 2,
@@ -265,7 +265,7 @@ namespace mode {
 		decal = 18,
 		removed19 = 19,
 		removed20 = 20,
-		position_only = 21,
+		_position_only = 21,
 		tracer = 22,
 		rigid_boned = 23,
 		removed24 = 24,
@@ -276,7 +276,7 @@ namespace mode {
 		interaction = 29,
 		number_of_standard_vertex_types = 30,
 	};
-	enum IndexBufferPrimitiveType : uint8_t {
+	enum class IndexBufferPrimitiveType: uint8_t{
 		DEFAULT = 0,
 		line_list = 1,
 		line_strip = 2,
@@ -285,11 +285,11 @@ namespace mode {
 		triangle_strip = 5,
 		quad_list = 6,
 	};
-	enum RenderGeometryMeshPackage__Policy : uint16_t {
+	enum class RenderGeometryMeshPackage__Policy : uint16_t {
 		Single_Resource = 0,
 		N_Meshes_Per_Resource = 1,
 	};
-	enum eVertexBufferUsage : uint32_t {
+	enum class eVertexBufferUsage : uint32_t {
 		Position = 0,
 		UV0 = 1,
 		UV1 = 2,
@@ -310,7 +310,7 @@ namespace mode {
 		EdgeIndex = 17,
 		EdgeIndexInfo = 18,
 	};
-	enum eRasterizerVertexFormat : uint32_t {
+	enum class eRasterizerVertexFormat : uint32_t {
 		real = 0,
 		realVector2D = 1,
 		realVector3D = 2,
@@ -454,9 +454,15 @@ namespace mode {
 		_s_argbfloat tension_and_ambient_occlusion;
 		uint32_t target_Id;
 	};
+	struct WordIndex {
+		uint16_t word;
+	};
 	struct s_raw_water_data {
 		_s_tagblock<WordIndex> raw_water_indices;
 		_s_tagblock<s_raw_water_append> raw_water_vertices;
+	};
+	struct GeometryNodeIndex {
+		uint8_t node_index;
 	};
 	struct RawVertex {
 		_s_triplefloat position;
@@ -496,9 +502,6 @@ namespace mode {
 	struct PositioningNodeWeight {
 		float node_weight;
 	};
-	struct GeometryNodeIndex {
-		uint8_t node_index;
-	};
 	struct LODRenderDataVertexBufferIndex {
 		uint16_t vertex_buffer_index;
 	};
@@ -524,6 +527,9 @@ namespace mode {
 		uint16_t budget_vertex_count;
 		uint8_t generated_pad0f9e[2];
 	};
+	struct DwordIndex {
+		uint32_t dword;
+	};
 	struct s_per_mesh_raw_data {
 		_s_tagblock<RawVertex> raw_vertices;
 		_s_tagblock<WordIndex> raw_indices;
@@ -537,6 +543,11 @@ namespace mode {
 		PerMeshRawDataFlags flags;
 		_s_tagblock<i343__LevelBreakdown__RuntimeGeoLevelBreakdownData> level_breakdown_data;
 	};
+	struct error_report_point {
+		_s_triplefloat position;
+		ErrorReportNodeIndex node_indices[4];
+		ErrorReportNodeWeight node_weights[4];
+	};
 	struct ErrorReportQuadPoint {
 		error_report_point point;
 	};
@@ -546,22 +557,11 @@ namespace mode {
 	struct ErrorReportLinePoint {
 		error_report_point point;
 	};
-	struct error_report_point {
-		_s_triplefloat position;
-		ErrorReportNodeIndex node_indices[4];
-		ErrorReportNodeWeight node_weights[4];
-	};
-	struct WordIndex {
-		uint16_t word;
-	};
 	struct RenderGeometryDeformationParameter {
 		uint32_t parameter_name;
 		uint8_t parameter_mode;
 		uint8_t generated_pad8065[3];
 		float constant_input;
-	};
-	struct DwordIndex {
-		uint32_t dword;
 	};
 	struct RenderGeometryMeshPackage__ResourceLookup {
 		int16_t resource_group_index;

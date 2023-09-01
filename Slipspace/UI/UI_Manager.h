@@ -133,8 +133,9 @@ public:
 					else if (ImGui::Button("Close"))
 						OpenBitmaps.Remove(active_tag);
 				} break;
+				case Tag::mode:
 				case Tag::rtgo: {
-					ImGui::Text("Runtime Geo");
+					ImGui::Text("Render Geo");
 					bool is_opened = false;
 					for (int i = 0; i < OpenRuntimeGeos.Size(); i++) {
 						if (OpenRuntimeGeos[i] == active_tag) {
@@ -150,9 +151,6 @@ public:
 					else if (ImGui::Button("Close"))
 						OpenRuntimeGeos.Remove(active_tag);
 				} break;
-				case Tag::mode:
-					ImGui::Text("Model");
-					break;
 				default:
 					ImGui::Text("Tag");
 					break;
@@ -373,36 +371,8 @@ public:
 		}
 	}
 
-#include <iostream>
-#include <fstream>
-	CTList<Tag> OpenRuntimeGeos;
-	void render_runtimegeo_window(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ConstantBuffer<CB_VS_vertexshader>* cb_vs_vertexshader, const XMMATRIX& viewProjectionMatrix) {
-
-
-
-
-		for (uint32_t i = 0; i < OpenRuntimeGeos.Size(); i++) {
-			Tag* tag = OpenRuntimeGeos[i];
-
-			if (tag->tag_FourCC == Tag::rtgo) {
-				rtgo::RuntimeGeoTag* runtime_geo = (rtgo::RuntimeGeoTag*)tag->tag_data;
-				render_struct_render_geometry(&runtime_geo->render_geometry, tag, device, deviceContext, cb_vs_vertexshader, viewProjectionMatrix);
-			} 
-			else if (tag->tag_FourCC == Tag::mode) {
-				rtgo::RuntimeGeoTag* runtime_geo = (mode::RuntimeGeoTag*)tag->tag_data;
-				render_struct_render_geometry(&runtime_geo->render_geometry, tag, device, deviceContext, cb_vs_vertexshader, viewProjectionMatrix);
-			}
-			else {
-				throw exception("unsupported render object type, idk how we got here");
-			}
-		}
-
-
-		
-
-
-
-	}
+//#include <iostream>
+//#include <fstream>
 	
 	void render_struct_render_geometry(rtgo::s_render_geometry* render_geo, Tag* tag, ID3D11Device* device, ID3D11DeviceContext* deviceContext, ConstantBuffer<CB_VS_vertexshader>* cb_vs_vertexshader, const XMMATRIX& viewProjectionMatrix) {
 		// tag can ONLY be used for storing preview values, as this will support multiple types
@@ -579,6 +549,32 @@ public:
 			}
 
 		}
+	}
+	CTList<Tag> OpenRuntimeGeos;
+	void render_runtimegeo_window(ID3D11Device* device, ID3D11DeviceContext* deviceContext, ConstantBuffer<CB_VS_vertexshader>* cb_vs_vertexshader, const XMMATRIX& viewProjectionMatrix) {
+
+		for (uint32_t i = 0; i < OpenRuntimeGeos.Size(); i++) {
+			Tag* tag = OpenRuntimeGeos[i];
+
+			// we're going to pretend they all use the same structure // TODO: verify these are actually the same structs via xml tag structs
+			if (tag->tag_FourCC == Tag::rtgo) {
+				rtgo::RuntimeGeoTag* runtime_geo = (rtgo::RuntimeGeoTag*)tag->tag_data;
+				render_struct_render_geometry(&runtime_geo->render_geometry, tag, device, deviceContext, cb_vs_vertexshader, viewProjectionMatrix);
+			} 
+			else if (tag->tag_FourCC == Tag::mode) {
+				mode::render_model_definition* model_geo = (mode::render_model_definition*)tag->tag_data;
+				render_struct_render_geometry((rtgo::s_render_geometry*)&model_geo->render_geometry, tag, device, deviceContext, cb_vs_vertexshader, viewProjectionMatrix);
+			}
+			else {
+				throw exception("unsupported render object type, idk how we got here");
+			}
+		}
+
+
+		
+
+
+
 	}
 	
 	/* // useless junk

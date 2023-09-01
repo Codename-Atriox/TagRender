@@ -46,8 +46,8 @@ float4 main(PS_INPUT input) : SV_TARGET
 {
     // LOAD TEXTURE COORDS
     //float3 sampleColor = objTexture.Sample(objSamplerState, input.inUV0);
-    float3 sampleColor = input.inWorldPos;
-    //float3 sampleColor = input.inNormal; // 
+    //float3 sampleColor = input.inWorldPos;
+    float3 sampleColor = input.inNormal; // 
     //sampleColor = float3(0.5, 0.5, 0.5);
     // AMBIENT LIGHTING
     float3 ambientLight = ambientLightcolor * ambientLightStrength;
