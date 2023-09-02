@@ -58,8 +58,10 @@ VS_OUTPUT main(VS_I_POS pos, VS_I_UV0 uv0, VS_I_UV1 uv1, VS_I_UV2 uv2, VS_I_COLO
     VS_OUTPUT output;
     // fixup geo position
     float3 decompressed_position = float3(pos.inPos.xyz) / float(0xffff); // positions are normalized, meaning they are between 0.0 & 1.0
-    decompressed_position *= pos_max - pos_min;
-    decompressed_position += pos_min;
+    decompressed_position *= 1 - (-1); // apparently we dont use the compressed position regardless?
+    decompressed_position += (-1);
+    //decompressed_position *= pos_max - pos_min;
+    //decompressed_position += pos_min;
     
     float2 decompressed_UV0 = float3(0, 0, 0);
     float2 decompressed_UV1 = float3(0, 0, 0);
