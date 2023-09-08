@@ -187,6 +187,8 @@
     <ClCompile Include="Graphics\ImGui\imgui_tables.cpp" />
     <ClCompile Include="Graphics\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="Graphics\RenderableGameObject.cpp" />
+    <ClCompile Include="Graphics\Scene.cpp" />
+    <ClCompile Include="Graphics\TexGraphics.cpp" />
     <ClCompile Include="Graphics\Texture.cpp" />
     <ClCompile Include="Keyboard\KeyboarClass.cpp" />
     <ClCompile Include="Keyboard\KeyboardEvent.cpp" />
@@ -230,6 +232,8 @@
     <ClInclude Include="Graphics\ImGui\imstb_truetype.h" />
     <ClInclude Include="Graphics\IndexBuffer.h" />
     <ClInclude Include="Graphics\RenderableGameObject.h" />
+    <ClInclude Include="Graphics\Scene.h" />
+    <ClInclude Include="Graphics\TexGraphics.h" />
     <ClInclude Include="Graphics\Texture.h" />
     <ClInclude Include="Keyboard\KeybaordEvent.h" />
     <ClInclude Include="Keyboard\KeyboardClass.h" />
@@ -240,6 +244,7 @@
     <ClInclude Include="Mouse\MouseEvent.h" />
     <ClInclude Include="RenderWindow.h" />
     <ClInclude Include="Graphics\Shaders.h" />
+    <ClInclude Include="Slipspace\Logic\RenderGeometry.h" />
     <ClInclude Include="Slipspace\Scene\SlipScene.h" />
     <ClInclude Include="Slipspace\Tags\BitmToDDS.h" />
     <ClInclude Include="Slipspace\Tags\TagContainers.h" />
