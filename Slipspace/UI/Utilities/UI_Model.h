@@ -44,79 +44,38 @@ public:
 			shaderResourceViewMap->Release();
 			delete shaderResourceViewMap;}
 	}
-	void UpdateTexture() {
+	void UpdateTexture(XMMATRIX projection) {
 		gfx->deviceContext->OMSetRenderTargets(1, &renderTargetViewMap, depthStencilView);
 		// convert position & rotation into matrix
-		mapView = XMMatrixRotationRollPitchYaw(rot.x, rot.y, rot.z) * XMMatrixTranslation(pos.x, pos.y, pos.z);
 
 		gfx->deviceContext->OMSetDepthStencilState(depthStencilState, 0);
 		// set render target & clear it
 		gfx->deviceContext->ClearRenderTargetView(renderTargetViewMap, background);
 		gfx->deviceContext->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-		// DEBUG // DEBUG // DEBUG //
-			// render a test element
-		Vertex v[] = {
-			Vertex(-0.5f,-0.5f,-0.5f,  0.0f,1.0f,  0.0f,0.0f,0.0f), // FRONT bottom left
-			Vertex(-0.5f, 0.5f,-0.5f,  0.0f,0.0f,  0.0f,0.0f,0.0f), // FRONT top left
-			Vertex(0.5f, 0.5f,-0.5f,  1.0f,0.0f,  0.0f,0.0f,0.0f), // FRONT top right
-			Vertex(0.5f,-0.5f,-0.5f,  1.0f,1.0f,  0.0f,0.0f,0.0f), // FRONT bottom right
-
-			Vertex(-0.5f,-0.5f, 0.5f,  0.0f,1.0f,  0.0f,0.0f,0.0f), // BACK bottom left
-			Vertex(-0.5f, 0.5f, 0.5f,  0.0f,0.0f,  0.0f,0.0f,0.0f), // BACK top left
-			Vertex(0.5f, 0.5f, 0.5f,  1.0f,0.0f,  0.0f,0.0f,0.0f), // BACK top right
-			Vertex(0.5f,-0.5f, 0.5f,  1.0f,1.0f,  0.0f,0.0f,0.0f), // BACK bottom right
-		};
-
-		VertexBuffer<Vertex> test_vert_buffer = {};
-		// LOAD VERTEX DATA
-		HRESULT hr = test_vert_buffer.Initialize(gfx->device.Get(), v, ARRAYSIZE(v));   // gfx->device->CreateBuffer(&vertexBufferDesc, &vertexBufferData, gfx->vertexBuffer.GetAddressOf());
-		COM_ERROR_IF_FAILED(hr, "Failed to create vertex buffer");
-
-		DWORD indicies[] = {
-			0, 1, 2, // front 
-			0, 2, 3, // front
-			4, 7, 6, // back
-			4, 6, 5, // back
-			3, 2, 6, // right
-			3, 6, 7, // right
-			4, 5, 1, // left
-			4, 1, 0, // left
-			1, 5, 6, // top
-			1, 6, 2, // top
-			0, 3, 7, // bottom
-			0, 7, 4  // bottom
-		};
-
-		// LOAD INDEX DATA
-		IndexBuffer test_index_buffer = {};
-		hr = test_index_buffer.Initialize(gfx->device.Get(), indicies, ARRAYSIZE(indicies)); // device->CreateBuffer(&indexBufferDesc, &indexBufferData, indiciesBuffer.GetAddressOf());
-		COM_ERROR_IF_FAILED(hr, "Failed to create indicies buffer");
-
-		// render test data
-		gfx->deviceContext->VSSetConstantBuffers(0, 1, gfx->cb_vs_generic_vertexshader.GetAddressOf());
-
-
-		XMMATRIX worldMatrix = XMMatrixRotationRollPitchYaw(0, 0, 0) * XMMatrixTranslation(0, 0, 0);
-
-		gfx->deviceContext->VSSetConstantBuffers(0, 1, gfx->cb_vs_generic_vertexshader.GetAddressOf());
-		gfx->cb_vs_generic_vertexshader.data.wvpMatrix = DirectX::XMMatrixIdentity() * worldMatrix * (mapView * mapProjection);
-		gfx->cb_vs_generic_vertexshader.data.worldMatrix = DirectX::XMMatrixIdentity() * worldMatrix;
-		gfx->cb_vs_generic_vertexshader.ApplyChanges();
-
-
-
-		UINT offset = 0;
-		gfx->deviceContext->IASetVertexBuffers(0, 1, test_vert_buffer.GetAddressOf(), test_vert_buffer.StridePtr(), &offset);
-		gfx->deviceContext->IASetIndexBuffer(test_index_buffer.Get(), DXGI_FORMAT::DXGI_FORMAT_R32_UINT, 0);
-		gfx->deviceContext->DrawIndexed(test_index_buffer.IndexCount(), 0, 0);
-		// end test section
-
+		
+		//XMMATRIX worldMatrix = XMMatrixRotationRollPitchYaw(0,0,0) * XMMatrixTranslation(0,0,0);
+		XMMATRIX worldMatrix = XMMatrixRotationRollPitchYaw(rot.x, rot.y, rot.z) * XMMatrixTranslation(pos.x, pos.z, pos.y);
+		// restore renderer
+		gfx->deviceContext->VSSetConstantBuffers(0, 1, gfx->cb_vs_vertexshader.GetAddressOf());
 		gfx->deviceContext->IASetInputLayout(gfx->vertexshader.GetInputLayout());
 		gfx->deviceContext->VSSetShader(gfx->vertexshader.GetShader(), NULL, 0);
 		gfx->deviceContext->PSSetShader(gfx->pixelshader.GetShader(), NULL, 0);
 
-		// DEBUG // DEBUG // DEBUG //
+
+
+
+
+		//XMMATRIX camRotationMatrix = XMMatrixRotationRollPitchYaw(rot.x, rot.y, rot.z);
+
+		//// calc camera vector?
+		//XMVECTOR camTarget = XMVector3TransformCoord(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), camRotationMatrix);
+		//// adjust cam position
+		//XMVECTOR posVector = XMLoadFloat3(&pos);
+		//camTarget += posVector;
+		//// calc up direction
+		//XMVECTOR upDir = XMVector3TransformCoord(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), camRotationMatrix);
+		//// rebuild the view matrix
+		//mapView = XMMatrixLookAtLH(posVector, camTarget, upDir);
 
 
 
@@ -125,10 +84,9 @@ public:
 
 
 
+		XMMATRIX projec_matrix = mapView* mapProjection;
 
-
-
-		RenderGeometry::render(obj, gfx, mapView, mapProjection, mesh_index, lod_index);
+		RenderGeometry::render(obj, gfx, worldMatrix, projec_matrix, mesh_index, lod_index);
 	}
 	void InitTexture(uint32_t width, uint32_t height) {
 		D3D11_TEXTURE2D_DESC textureDesc;
@@ -199,21 +157,38 @@ public:
 		hr = gfx->device->CreateDepthStencilState(&depthstencildesc, &depthStencilState);
 		if (FAILED(hr)) throw exception("Failed to create depth stencil state");
 
-		// Build an orthographic projection matrix
 
 		
 
 		float fovRadians = (90.0f / 360.0f) * XM_2PI;
 
-		mapProjection = XMMatrixPerspectiveFovLH(fovRadians, 1.0f, 0.1f, 300000.0f);
 		//mapProjection = XMMatrixOrthographicLH(512, 512, 1.0f, 1000.0f);
+		mapProjection = XMMatrixPerspectiveFovLH(fovRadians, 1.0f, 0.1f, 300000.0f);
 
-		XMVECTOR mapCamUp = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+		//XMVECTOR mapCamUp = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
 
 		//mapView = XMMatrixLookAtLH(mapCamPosition, mapCamTarget, mapCamUp);
 
 		// complete a single render
 		//UpdateTexture();
+		// calc rotation
+		XMMATRIX camRotationMatrix = XMMatrixRotationRollPitchYaw(0.0, 0.0, 0.0);
+
+		// calc camera vector?
+		XMVECTOR camTarget = XMVector3TransformCoord(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), camRotationMatrix);
+		// adjust cam position
+		XMFLOAT3 pos = XMFLOAT3(0.0f, 0.0f, -2.0f);
+		XMVECTOR posVector = XMLoadFloat3(&pos);
+		camTarget += posVector;
+		// calc up direction
+		XMVECTOR upDir = XMVector3TransformCoord(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), camRotationMatrix);
+		// rebuild the view matrix
+		mapView = XMMatrixLookAtLH(posVector, camTarget, upDir);
+
+
+
+		//const XMVECTOR DEFAULT_FORWARD_VECTOR = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+		//const XMVECTOR DEFAULT_UP_VECTOR = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 	}
 };
 
@@ -222,7 +197,7 @@ public:
 	void AddWindow(Tag* tag, Graphics* gfx) {
 		if (!IsOpen(tag))
 			// then open it & init window
-			Windows.Append(new ModelWindow(gfx, tag, 256, 256));
+			Windows.Append(new ModelWindow(gfx, tag, 1024, 1024));
 	}
 	void RemoveWindow(Tag* tag) {
 		int target = GetWindowIndex(tag);
@@ -236,10 +211,10 @@ public:
 		return (GetWindowIndex(tag) != -1);
 	}
 	// must be called before rending the DX11 scene, as it will interfere with the render targets
-	void Prerender() {
+	void Prerender(XMMATRIX projection) {
 		for (int i = 0; i < Windows.Size(); i++) {
 			ModelWindow* curr_window = Windows[i];
-			curr_window->UpdateTexture();
+			curr_window->UpdateTexture(projection);
 		}
 	}
 	void RenderWindows() {
@@ -253,10 +228,15 @@ public:
 				ImGui::PopID();
 				continue;
 			}
+			ImGui::Text("Meshes [%d]", RenderGeometry::get_mesh_count(curr_window->obj));
+			ImGui::Text("LODs [%d]", RenderGeometry::get_lod_count(curr_window->obj, curr_window->mesh_index));
+			ImGui::Text("Parts [%d]", RenderGeometry::get_parts_count(curr_window->obj, curr_window->mesh_index, curr_window->lod_index));
+			ImGui::Text("Verts [%d]", RenderGeometry::get_verts_count(curr_window->obj, curr_window->mesh_index, curr_window->lod_index));
+
 			ImGui::DragInt("Active Mesh", &curr_window->mesh_index, 0.1f, 0, 100);
 			ImGui::DragInt("Active Lod", &curr_window->lod_index, 0.1f, 0, 100);
-			ImGui::DragFloat3("Pos", &curr_window->pos.x, 0.3);
-			ImGui::DragFloat3("Rot", &curr_window->rot.x, 0.3);
+			ImGui::DragFloat3("Pos", &curr_window->pos.x, 0.05f);
+			ImGui::DragFloat3("Rot", &curr_window->rot.x, 0.05f);
 
 			ImGui::Image((void*)curr_window->shaderResourceViewMap, ImVec2(256, 256));
 			//ImGui::DragInt("Active Part", &curr_window->, 0.1f, 0, 100);

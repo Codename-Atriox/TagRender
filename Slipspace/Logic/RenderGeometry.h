@@ -14,6 +14,49 @@ public:
 			throw exception("Not a model supporting tag!!");
 		}
 	}
+	static uint32_t get_mesh_count(Tag* tag) {
+		rtgo::s_render_geometry* render_geo = get_s_render_geometry_ptr(tag);
+		if (render_geo == nullptr) return 0; // not possible, but just incase we want to remove the exception at some stage
+		return render_geo->meshes.count;
+	}
+	static uint32_t get_lod_count(Tag* tag, uint32_t mesh_index) {
+		rtgo::s_render_geometry* render_geo = get_s_render_geometry_ptr(tag);
+		if (render_geo == nullptr) return 0;
+		if (mesh_index >= render_geo->meshes.count || mesh_index < 0) 
+			return 0; // not a valid mesh
+		rtgo::s_mesh* current_mesh = render_geo->meshes[mesh_index];
+
+		return current_mesh->LOD_render_data.count;
+	}
+	static uint32_t get_parts_count(Tag* tag, uint32_t mesh_index, uint32_t lod_index) {
+		rtgo::s_render_geometry* render_geo = get_s_render_geometry_ptr(tag);
+		if (render_geo == nullptr) return 0;
+		if (mesh_index >= render_geo->meshes.count || mesh_index < 0) 
+			return 0; // not a valid mesh
+		rtgo::s_mesh* current_mesh = render_geo->meshes[mesh_index];
+		if (lod_index >= current_mesh->LOD_render_data.count || lod_index < 0) 
+			return 0; // do not render
+		rtgo::LODRenderData* current_lod = current_mesh->LOD_render_data[lod_index];
+
+		return current_lod->parts.count;
+	}
+	// this will count the verts from all parts, as we do not separate parts when we render yet
+	static uint32_t get_verts_count(Tag* tag, uint32_t mesh_index, uint32_t lod_index) {
+		rtgo::s_render_geometry* render_geo = get_s_render_geometry_ptr(tag);
+		if (render_geo == nullptr) return 0;
+		if (mesh_index >= render_geo->meshes.count || mesh_index < 0)
+			return 0; // not a valid mesh
+		rtgo::s_mesh* current_mesh = render_geo->meshes[mesh_index];
+		if (lod_index >= current_mesh->LOD_render_data.count || lod_index < 0)
+			return 0; // do not render
+		rtgo::LODRenderData* current_lod = current_mesh->LOD_render_data[lod_index];
+
+		uint32_t verts_count = 0;
+		for (int part_index = 0; part_index < current_lod->parts.count; part_index++)
+			verts_count += current_lod->parts[part_index]->budget_vertex_count;
+		return verts_count;
+	}
+
 	// constructor basically
 	static void build_buffers(Tag* tag) {
 		
@@ -73,7 +116,7 @@ public:
 		if (mesh_index >= render_geo->meshes.count || mesh_index < 0) return; // do not render
 		rtgo::s_mesh* current_mesh = render_geo->meshes[mesh_index];
 
-		if (lod_index >= render_geo->meshes.count || lod_index < 0) return; // do not render
+		if (lod_index >= current_mesh->LOD_render_data.count || lod_index < 0) return; // do not render
 		rtgo::LODRenderData* current_lod = current_mesh->LOD_render_data[lod_index];
 
 

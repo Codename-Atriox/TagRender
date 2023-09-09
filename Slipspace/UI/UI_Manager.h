@@ -9,8 +9,8 @@ class UI {
 private:
 	ModelsManager models;
 public:
-	void pre_render() {
-		models.Prerender();
+	void pre_render(XMMATRIX projection) {
+		models.Prerender(projection);
 	}
 	void render_UI(Graphics* gfx) {
 		render_module_window(gfx);

@@ -219,12 +219,13 @@ void Scene::RenderFrame()
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
+
 	gfx.swapchain->Present(1, NULL); // 0 for no VSYNC, 1 for VSYNC
+	ui.pre_render(camera.GetViewMatrix() * camera.GetProjectionMatrix()); // call to generate/update our rendered images used in the UI
 
 
 	// just do this after so it doesn't mess up anything
 	// it'll have to have a 1frame delay on any input anyway i guess
-	ui.pre_render(); // call to generate/update our rendered images used in the UI
 
 
 }
