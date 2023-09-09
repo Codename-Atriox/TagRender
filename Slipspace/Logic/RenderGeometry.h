@@ -175,6 +175,27 @@ public:
 		default: throw exception("invalid index buffer stride (has to be either 2 or 4 bytes!!!)");
 		}
 
+
+		// set index mode
+		D3D_PRIMITIVE_TOPOLOGY index_mode = D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
+		switch (current_mesh->index_buffer_type) {
+		case rtgo::IndexBufferPrimitiveType::line_list:
+			index_mode = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
+			break;
+		case rtgo::IndexBufferPrimitiveType::line_strip:
+			index_mode = D3D_PRIMITIVE_TOPOLOGY_LINESTRIP;
+			break;
+		case rtgo::IndexBufferPrimitiveType::triangle_list:
+			index_mode = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+			break;
+		case rtgo::IndexBufferPrimitiveType::triangle_strip:
+			index_mode = D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+			break;
+		default:
+			throw exception("Unsupported index buffer type!!! should be either tri/line list/strip");
+		}
+		gfx->deviceContext->IASetPrimitiveTopology(index_mode);
+
 		// now loop through all parts & draw
 		gfx->deviceContext->IASetVertexBuffers(0, 19, vert_buffers, vert_strides, vert_offsets);
 		gfx->deviceContext->IASetIndexBuffer((ID3D11Buffer*)index_buffer->m_resource, index_format, 0);
