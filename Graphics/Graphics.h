@@ -13,7 +13,6 @@
 //#include "RenderableGameObject.h"
 //#include "Light.h"
 #include "Camera.h" // too lazy to fix this. // holy i hate c++ includes
-#include "../Slipspace/Tags/TagProcessor.h"
 
 
 class Graphics
@@ -33,8 +32,6 @@ public:
 
 	ConstantBuffer<CB_VS_generic_vertexshader> cb_vs_generic_vertexshader;
 	ConstantBuffer<CB_VS_vertexshader> cb_vs_vertexshader;
-
-	ModuleManager Modules;
 
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> depthStencilView;
 

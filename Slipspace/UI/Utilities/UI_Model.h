@@ -1,5 +1,5 @@
 #pragma once
-#include "../../Logic/RenderGeometry.h"
+#include "../Slipspace/Tags/TagProcessor.h"
 
 class ModelWindow {
 private:

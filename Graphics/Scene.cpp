@@ -4,6 +4,7 @@
 bool Scene::Init(HWND hwnd, int width, int height) {
 	fpsTimer.Start();
 
+	ui.init(&gfx, &Modules);
 
 	if (!gfx.Initialize(hwnd, width, height))
 		return false;
@@ -213,7 +214,7 @@ void Scene::RenderFrame()
 
 
 
-	ui.render_UI(&gfx); // call to handle our Slipspace interface UI
+	ui.render_UI(); // call to handle our Slipspace interface UI
 
 	// IM GUI DRAW
 	ImGui::Render();

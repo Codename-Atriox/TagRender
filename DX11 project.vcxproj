@@ -199,6 +199,7 @@
     <ClCompile Include="Mouse\MouseClass.cpp" />
     <ClCompile Include="RenderWindow.cpp" />
     <ClCompile Include="Graphics\Shaders.cpp" />
+    <ClCompile Include="Slipspace\Logic\RenderGeometry.cpp" />
     <ClCompile Include="Slipspace\Scene\SlipScene.cpp" />
     <ClCompile Include="Slipspace\Tags\ModuleLoading\ModuleFramework.cpp" />
     <ClCompile Include="Slipspace\Tags\ModuleLoading\oodle\oodle.cpp" />

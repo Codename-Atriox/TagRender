@@ -1,5 +1,4 @@
 #pragma once
-#include "Graphics.h"
 #include "../Slipspace/UI/UI_Manager.h"
 
 class Scene {
@@ -10,6 +9,7 @@ public:
 	void RenderFrame();
 	Camera camera;
 private:
+	ModuleManager Modules;
 	UI ui;
 	Graphics gfx; // so it can be accessed by
 

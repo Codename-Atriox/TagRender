@@ -51,7 +51,7 @@ Tag* ModuleManager::GetTag(uint32_t tagID) {
 			return loaded_tags[i];
 	return (Tag*)0;
 }
-Tag* ModuleManager::OpenTag(uint32_t tagID, ID3D11Device* device){
+Tag* ModuleManager::OpenTag(uint32_t tagID, Graphics* gfx){
 	// first check if the tag already exists
 	Tag* new_tag = GetTag(tagID);
 	if (new_tag != (Tag*)0) return new_tag;
@@ -77,13 +77,13 @@ Tag* ModuleManager::OpenTag(uint32_t tagID, ID3D11Device* device){
 
         // then do any processing required for the tag
         // and for every tag, we're going to use that anytag blank slot to point to our tag header structure thing // so then we can use it for things like dependency arrays etc
-        ((rtgo::AnyTag_struct_definition*)new_tag->tag_data)->vtable_space = (long)new_tag; // cursed
+        //((rtgo::AnyTag_struct_definition*)new_tag->tag_data)->vtable_space = (long)new_tag; // cursed
         switch (new_tag->tag_FourCC) {
         case Tag::rtgo:
-            RTGO_loadbuffers(new_tag, device);
-            break;
         case Tag::mode:
-            MODE_loadbuffers(new_tag, device);
+            Module* parent_module = GetModule_FromTag(new_tag);
+            if (parent_module == 0) throw exception("new renderable tag has no parent module!!");
+            RenderGeometry::build_buffers(new_tag, gfx, parent_module);
             break;
         }
 
@@ -449,130 +449,4 @@ BitmapResource* ModuleManager::BITM_GetTexture(Tag* tag, ID3D11Device* device, i
 }
 
 
-void ModuleManager::parse_render_geometry(rtgo::s_render_geometry* geo, Tag* tag, ID3D11Device* device) {
 
-    //rtgo::RuntimeGeoTag* runtime_geo = (rtgo::RuntimeGeoTag*)tag->tag_data;
-    // no support for multiple 'mesh reosurce groups' yet, throw exception
-    if (geo->mesh_package.mesh_resource_groups.count != 1)
-        throw exception("bad number of resource groups in runtime geo");
-
-    if (geo->mesh_package.mesh_resource_groups.count == 0)
-        throw exception("tag has no mesh resource groups!!!");
-    if (geo->mesh_package.mesh_resource_groups.count != 1)
-        throw exception("currently render geos with only 1 resource group are supported!!!");
-
-    rtgo::RenderGeometryMeshPackageResourceGroup* current_runtime_geo_group = geo->mesh_package.mesh_resource_groups[0];
-    // double check to make sure the file exists as expected, we dont know how non-chunked models work yet
-    if (current_runtime_geo_group->mesh_resource.is_chunked_resource == 0)
-        throw exception("non-chunked geo resources are not yet supported!!!");
-
-    rtgo::s_render_geometry_api_resource* current_geo_resource = current_runtime_geo_group->mesh_resource.content_ptr;
-
-    // first we have to iterate through all resources & write their contents to the buffers
-    // all buffer datas will go into the one char buffer, which we then give the reference to the thing
-
-    // find total buffer size
-    uint64_t buffer_size = 0;
-
-    // cache offsets of all buffers
-    if (current_geo_resource->Streaming_Buffers.count == 0) throw exception("no streaming buffers to pull from!!!");
-    uint64_t* offsets = new uint64_t[current_geo_resource->Streaming_Buffers.count];
-
-    for (int i = 0; i < current_geo_resource->Streaming_Buffers.count; i++) {
-        offsets[i] = buffer_size;
-        buffer_size += current_geo_resource->Streaming_Buffers[i]->buffer_size;
-    }
-    char* streaming_buffer = new char[buffer_size];
-
-    for (uint32_t i = 0; i < current_geo_resource->Streaming_Chunks.count; i++) {
-        // loop through all buffers
-        rtgo::StreamingGeometryChunk* curr_buffer_chunk = current_geo_resource->Streaming_Chunks[i];
-        uint64_t buffer_offset = offsets[curr_buffer_chunk->buffer_index];
-        if (curr_buffer_chunk->buffer_start > curr_buffer_chunk->buffer_end)
-            throw exception("bad buffer indicies");
-        if (curr_buffer_chunk->buffer_end > buffer_size)
-            throw exception("buffer end index overflows buffer size!!");
-        if (curr_buffer_chunk->buffer_start == curr_buffer_chunk->buffer_end)
-            break; // using a break instead because if any other buffer beyonds this one does have information, then this would be error prone
-        //continue; // this buffer has no content, thus likely no resource file
-
-    // then just dump the data in
-        if (FAILED(OpenTagResource(tag, i, streaming_buffer + (buffer_offset + curr_buffer_chunk->buffer_start), curr_buffer_chunk->buffer_end - curr_buffer_chunk->buffer_start)))
-            throw exception("resource chunk failed to load");
-    }
-    delete[] offsets;
-    // leave a pointer to the buffer array in the runtime data slot, so it can be cleaned up later
-    current_geo_resource->Runtime_Data = (uint64_t)streaming_buffer;
-
-    // now we load to fill in the buffers for each of the d3d11 buffer things
-    // which ironically all require us to create new d3dbuffers, because appanrently we couldn't just build them into the structs
-
-    // iterate through buffers and generate D3D11 buffers
-    for (uint32_t i = 0; i < current_geo_resource->pc_vertex_buffers.count; i++) {
-        rtgo::RasterizerVertexBuffer* vert_buffer = current_geo_resource->pc_vertex_buffers[i];
-
-        D3D11_BUFFER_DESC vertexBufferDesc;
-        ZeroMemory(&vertexBufferDesc, sizeof(vertexBufferDesc)); // do we even need to do this?
-
-        vertexBufferDesc.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT; // apparently 343's mapped value is wrong (D3D11_USAGE)vert_buffer->d3dbuffer.usage; // 0
-        vertexBufferDesc.ByteWidth = vert_buffer->d3dbuffer.byte_width; // 144
-        vertexBufferDesc.BindFlags = vert_buffer->d3dbuffer.bind_flags; // 1 'vertex buffer'
-        vertexBufferDesc.CPUAccessFlags = vert_buffer->d3dbuffer.cpu_flags; // 0
-        vertexBufferDesc.MiscFlags = 0; // vert_buffer->d3dbuffer.misc_flags; // 32 // this causes issues for the first 2 buffers
-
-        D3D11_SUBRESOURCE_DATA vertexBufferData;
-        ZeroMemory(&vertexBufferData, sizeof(vertexBufferData));
-        if (vert_buffer->d3dbuffer.d3d_buffer.data_size != 0)
-            throw exception("render geo with non-chunked data is not currently supported!! because i have no idea what could be contained in this buffer!!");
-        vertexBufferData.pSysMem = streaming_buffer + vert_buffer->offset;
-
-        ID3D11Buffer* result;
-        HRESULT hr = device->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &result);
-        vert_buffer->m_resource = (int64_t)result;
-        if (FAILED(hr))
-            throw exception("failed to generate d3d11 buffer!!");
-    }
-    // iterate through buffers and generate D3D11 buffers
-    for (uint32_t i = 0; i < current_geo_resource->pc_index_buffers.count; i++) {
-        rtgo::RasterizerIndexBuffer* index_buffer = current_geo_resource->pc_index_buffers[i];
-
-        D3D11_BUFFER_DESC indexBufferDesc;
-        ZeroMemory(&indexBufferDesc, sizeof(indexBufferDesc)); // do we even need to do this?
-
-        indexBufferDesc.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT; // not sure why 343's is some weird thing, i think its literally just the enum but as a number   (D3D11_USAGE)index_buffer->d3dbuffer.usage;
-        indexBufferDesc.ByteWidth = index_buffer->d3dbuffer.byte_width;
-        indexBufferDesc.BindFlags = index_buffer->d3dbuffer.bind_flags;
-        indexBufferDesc.CPUAccessFlags = index_buffer->d3dbuffer.cpu_flags;
-        indexBufferDesc.MiscFlags = 0; // index_buffer->d3dbuffer.misc_flags;
-
-        D3D11_SUBRESOURCE_DATA vertexBufferData;
-        ZeroMemory(&vertexBufferData, sizeof(vertexBufferData));
-        if (index_buffer->d3dbuffer.d3d_buffer.data_size != 0)
-            throw exception("render geo with non-chunked data is not currently supported!! because i have no idea what could be contained in this buffer!!");
-        vertexBufferData.pSysMem = streaming_buffer + index_buffer->offset;
-
-        ID3D11Buffer* result = nullptr;
-        HRESULT hr = device->CreateBuffer(&indexBufferDesc, &vertexBufferData, &result);
-        index_buffer->m_resource = (int64_t)result;
-        if (FAILED(hr))
-            throw exception("failed to generate d3d11 buffer!!");
-    }
-    // thats all, we dont have anything to return, because we just wrote everything to the tag
-    // we can now render this data via the interfaces we just created & referencing them using the meshes tagdata struct
-}
-
-void ModuleManager::RTGO_loadbuffers(Tag* tag, ID3D11Device* device) {
-    if (tag->tag_FourCC != Tag::rtgo) // 'bitm'
-        throw exception("tag is not an rtgo");
-    // we need to load all resources into single char buffer, we do not need to store size as all links to buffer are created here
-    // nothing will directly access the pointer, except for cleaing up, which we'll do in a custom struct destructor
-
-    rtgo::RuntimeGeoTag* runtime_geo = (rtgo::RuntimeGeoTag*)tag->tag_data;
-    parse_render_geometry(&runtime_geo->render_geometry, tag, device);
-}
-void ModuleManager::MODE_loadbuffers(Tag* tag, ID3D11Device* device) {
-    if (tag->tag_FourCC != Tag::mode) // 'bitm'
-        throw exception("tag is not an mode");
-    mode::render_model_definition* model_geo = (mode::render_model_definition*)tag->tag_data;
-    parse_render_geometry((rtgo::s_render_geometry*)&model_geo->render_geometry, tag, device);
-}

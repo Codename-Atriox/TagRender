@@ -1,5 +1,4 @@
 #pragma once
-#include "../Tags/TagContainers.h"
 #include "Utilities/UI_Model.h"
 
 #include "../../Utilities/NFD/include/nfd.h"
@@ -8,14 +7,21 @@
 class UI {
 private:
 	ModelsManager models;
+	Graphics* gfx;
+	ModuleManager* modules;
 public:
+	void init(Graphics* gfx, ModuleManager* modules) {
+		this->gfx = gfx;
+		this->modules = modules;
+	}
+
 	void pre_render(XMMATRIX projection) {
 		models.Prerender(projection);
 	}
-	void render_UI(Graphics* gfx) {
-		render_module_window(gfx);
-		render_loaded_tags_window(gfx);
-		render_bitmap_window(gfx);
+	void render_UI() {
+		render_module_window();
+		render_loaded_tags_window();
+		render_bitmap_window();
 		
 		models.RenderWindows();
 	}
@@ -37,21 +43,21 @@ public:
 		tag_UI_groups_buffer[index * 5 + 3] = tag_group & 0xff;
 		tag_UI_groups_buffer[index * 5 + 4] = 0; // null terminator
 	}
-	void render_module_window(Graphics* gfx) {
+	void render_module_window() {
 		ImGui::Begin("Modules");
 		if (ImGui::Button("Open Module")) {
 			char* outpath;
 			if (NFD_OpenDialog(module_load_filters, module_load_defaultpath, &outpath) == NFD_OKAY) {
-				gfx->Modules.OpenModule(string(outpath));
+				modules->OpenModule(string(outpath));
 				if (outpath) delete[] outpath;
 			}
 		}
 		// loaded modules display
-		ImGui::Text("Indexed tags [%d]", gfx->Modules.total_tags);
-		ImGui::Text("Active Modules [%d]", gfx->Modules.open_modules);
+		ImGui::Text("Indexed tags [%d]", modules->total_tags);
+		ImGui::Text("Active Modules [%d]", modules->open_modules);
 
-		for (int i = 0; i < gfx->Modules.open_modules; i++) {
-			Module* menu_active_module = gfx->Modules.GetModule_AtIndex(i);
+		for (int i = 0; i < modules->open_modules; i++) {
+			Module* menu_active_module = modules->GetModule_AtIndex(i);
 
 			ImGui::PushID(i); // need this id and the next level one, because none of these items are actually in a container
 			if (ImGui::CollapsingHeader(menu_active_module->filename.c_str())) {
@@ -79,7 +85,7 @@ public:
 
 						ImGui::SameLine();
 						if (ImGui::Button("Open")) {
-							gfx->Modules.OpenTag(menu_active_tag->GlobalTagId, gfx->device.Get());
+							modules->OpenTag(menu_active_tag->GlobalTagId, gfx);
 						}
 
 					}
@@ -101,17 +107,17 @@ public:
 	// ///////////////// //
 	const uint32_t max_tags_onscreen_count = 5;
 	int32_t loaded_tag_index = 0;
-	void render_loaded_tags_window(Graphics* gfx) {
+	void render_loaded_tags_window() {
 		ImGui::Begin("Tags");
-		ImGui::Text("Loaded Tags [%d]", gfx->Modules.loaded_tags.size());
+		ImGui::Text("Loaded Tags [%d]", modules->loaded_tags.size());
 
 
-		ImGui::DragInt("Selected tag", &loaded_tag_index, 0.1f, 0, gfx->Modules.loaded_tags.size());
+		ImGui::DragInt("Selected tag", &loaded_tag_index, 0.1f, 0, modules->loaded_tags.size());
 		for (uint32_t slot_id = 0; slot_id < max_tags_onscreen_count; slot_id++) {
 			uint32_t tagindex = slot_id + loaded_tag_index;
 			ImGui::PushID(tagindex);
-			if (tagindex < gfx->Modules.loaded_tags.size()) {
-				Tag* active_tag = gfx->Modules.loaded_tags[tagindex];
+			if (tagindex < modules->loaded_tags.size()) {
+				Tag* active_tag = modules->loaded_tags[tagindex];
 
 
 				//ImGui::Text("ID: %08X", active_tag->tagID);
@@ -234,7 +240,7 @@ public:
 		}
 	}
 	CTList<Tag> OpenBitmaps;
-	void render_bitmap_window(Graphics* gfx) {
+	void render_bitmap_window() {
 		// create each window
 		for (uint32_t i = 0; i < OpenBitmaps.Size(); i++) {
 			Tag* open_bitmap = OpenBitmaps[i];
@@ -303,7 +309,7 @@ public:
 					if (!multi_image) ImGui::DragInt("Active MIP", &open_bitmap->preview_1, 0.1f, 0, bitmap_header->bitmaps.count - 1);
 					// then present the actual image
 					if (curr_bitmap->type == BitmapType::_2D_texture) {
-						BitmapResource* last_loaded_image = gfx->Modules.BITM_GetTexture(open_bitmap, gfx->device.Get(), open_bitmap->preview_1, false);
+						BitmapResource* last_loaded_image = modules->BITM_GetTexture(open_bitmap, gfx->device.Get(), open_bitmap->preview_1, false);
 						if (last_loaded_image != nullptr) {
 							ImGui::Text("Resolution: %dx%d", last_loaded_image->Width, last_loaded_image->Height);
 							ImGui::SameLine();

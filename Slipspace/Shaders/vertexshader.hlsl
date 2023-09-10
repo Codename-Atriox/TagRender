@@ -19,25 +19,25 @@ cbuffer perObjectBuffer : register(b0){
 
 
 struct VS_I_POS{
-    min16uint4 inPos : POSITION;
+    float3 inPos : POSITION;
 };
 struct VS_I_UV0{
-    min16uint2 inUV0 : TEXCOORD;
+    float2 inUV0 : TEXCOORD;
 };
 struct VS_I_UV1{
-    min16uint2 inUV1 : TEXCOORD;
+    float2 inUV1 : TEXCOORD;
 };
 struct VS_I_UV2{
-    min16uint2 inUV2 : TEXCOORD;
+    float2 inUV2 : TEXCOORD;
 };
 struct VS_I_COLOR{
-    uint inColor : COLOR;   // 8,8,8,8 (ARGB)
+    float4 inColor : COLOR;   // 8,8,8,8 (ARGB)
 };
 struct VS_I_NORMAL{
-    uint    inNormal : NORMAL;  // note: is packed very weirdly (10,10,10,2)
+    float3    inNormal : NORMAL;  // note: is packed very weirdly (10,10,10,2)
 };
 struct VS_I_TANGENT{
-    uint   inTangent : TANGENT; // 8,8,8,8 packed as 4byte (x,y,z, NULL?)
+    float3   inTangent : TANGENT; // 8,8,8,8 packed as 4byte (x,y,z, NULL?)
 };
 
 struct VS_OUTPUT{
@@ -56,38 +56,17 @@ struct VS_OUTPUT{
 VS_OUTPUT main(VS_I_POS pos, VS_I_UV0 uv0, VS_I_UV1 uv1, VS_I_UV2 uv2, VS_I_COLOR color, VS_I_NORMAL normal, VS_I_TANGENT tangent)
 {
     VS_OUTPUT output;
-    // fixup geo position
-    float3 decompressed_position = float3(pos.inPos.xyz) / float(0xffff); // positions are normalized, meaning they are between 0.0 & 1.0
-    decompressed_position *= 1 - (-1); // apparently we dont use the compressed position regardless?
-    decompressed_position += (-1);
-    //decompressed_position *= pos_max - pos_min;
-    //decompressed_position += pos_min;
     
-    float2 decompressed_UV0 = float3(0, 0, 0);
-    float2 decompressed_UV1 = float3(0, 0, 0);
-    float2 decompressed_UV2 = float3(0, 0, 0);
+    output.outPosition = mul(float4(pos.inPos, 1.0f), wvpMatrix);
+    output.outUV0 = uv0.inUV0;
+    output.outUV1 = uv1.inUV1;
+    output.outUV2 = uv2.inUV2;
     
-    float4 decompressed_color = float4(((color.inColor >> 16) & 0xff) / 256.0, ((color.inColor >> 8) & 0xff) / 256.0, (color.inColor & 0xff) / 256.0, (color.inColor >> 24) / 256.0);
+    output.outColor = color.inColor;
+    output.outNormal = normalize(mul(float4(normal.inNormal, 0.0f), worldMatrix));
+    output.outTangent = tangent.inTangent;
     
-    float norm_x = (((normal.inNormal >> 20) & 0x3ff) / 511.0) - 1.0;
-    float norm_y = (((normal.inNormal >> 10) & 0x3ff) / 511.0) - 1.0;
-    float norm_z = ((normal.inNormal & 0x3ff) / 511.0) - 1.0;
-    
-    float3 decompressed_normal = float3(norm_x, norm_y, norm_z);
-    float3 decompressed_tangent = float3(0, 0, 0);
-    
-    
-    
-    output.outPosition = mul(float4(decompressed_position, 1.0f), wvpMatrix);
-    output.outUV0 = decompressed_UV0;
-    output.outUV1 = decompressed_UV1;
-    output.outUV2 = decompressed_UV2;
-    
-    output.outColor = decompressed_color;
-    output.outNormal = normalize(mul(float4(decompressed_normal, 0.0f), worldMatrix));
-    output.outTangent = decompressed_tangent;
-    
-    output.outWorldPos = mul(float4(decompressed_position, 1.0f), worldMatrix);
+    output.outWorldPos = mul(float4(pos.inPos, 1.0f), worldMatrix);
     output.outCamDirection = normalize(output.outPosition.xyz - camera_position);
     return output;
 }
