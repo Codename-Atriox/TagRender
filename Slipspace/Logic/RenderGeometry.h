@@ -15,7 +15,7 @@ public:
 	// this will count the verts from all parts, as we do not separate parts when we render yet
 	static uint32_t get_verts_count(Tag* tag, uint32_t mesh_index, uint32_t lod_index);
 
-	static void format_buffer(float*& buffer, char* source, rtgo::RasterizerVertexBuffer* buffer_info, uint32_t output_size);
+	static void format_buffer(float*& buffer, uint32_t* source, rtgo::RasterizerVertexBuffer* buffer_info, uint32_t& output_size);
 	static void build_buffers(Tag* tag, Graphics* gfx, Module* modules);
 	
 

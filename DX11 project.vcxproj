@@ -250,11 +250,8 @@
     <ClInclude Include="Slipspace\Tags\BitmToDDS.h" />
     <ClInclude Include="Slipspace\Tags\TagContainers.h" />
     <ClInclude Include="Slipspace\Tags\TagnameFetcher.h" />
-    <ClInclude Include="Slipspace\Tags\TagStructs\levl.h" />
-    <ClInclude Include="Slipspace\Tags\TagStructs\mat .h" />
     <ClInclude Include="Slipspace\Tags\TagStructs\mode.h" />
     <ClInclude Include="Slipspace\Tags\TagStructs\rtgo.h" />
-    <ClInclude Include="Slipspace\Tags\TagStructs\sbsp.h" />
     <ClInclude Include="Utilities\CTList.h" />
     <ClInclude Include="Slipspace\Tags\ModuleLoading\ModuleFramework.h" />
     <ClInclude Include="Slipspace\Tags\ModuleLoading\ModuleStructs.h" />

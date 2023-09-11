@@ -314,19 +314,10 @@
     <ClInclude Include="Slipspace\Tags\TagnameFetcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Slipspace\Tags\TagStructs\levl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Slipspace\Tags\TagStructs\mat .h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Slipspace\Tags\TagStructs\mode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Slipspace\Tags\TagStructs\rtgo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Slipspace\Tags\TagStructs\sbsp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\NFD\include\nfd.h">

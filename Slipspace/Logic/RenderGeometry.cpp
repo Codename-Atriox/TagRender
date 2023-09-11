@@ -55,22 +55,30 @@ uint32_t RenderGeometry::get_verts_count(Tag* tag, uint32_t mesh_index, uint32_t
 	return verts_count;
 }
 
-void RenderGeometry::format_buffer(float*& buffer, char* source, rtgo::RasterizerVertexBuffer* buffer_info, uint32_t output_size) {
+void RenderGeometry::format_buffer(float*& buffer, uint32_t* source, rtgo::RasterizerVertexBuffer* buffer_info, uint32_t& output_size) {
 	// determine expected output length
 	uint32_t output_length = 0;
+	uint32_t output_stride = 0;
 	switch (buffer_info->usage) {
 	case rtgo::eVertexBufferUsage::UV0:
 	case rtgo::eVertexBufferUsage::UV1:
 	case rtgo::eVertexBufferUsage::UV2:
-		output_length = 2; break;
+		output_length = 2;
+		output_stride = 8; 
+		break;
 	case rtgo::eVertexBufferUsage::Position:
 	case rtgo::eVertexBufferUsage::Normal:
 	case rtgo::eVertexBufferUsage::Tangent:
-		output_length = 3; break;
+		output_length = 3; 
+		output_stride = 12;
+		break;
 	case rtgo::eVertexBufferUsage::Color:
-		output_length = 4; break;
+		output_length = 4; 
+		output_stride = 16;
+		break;
 	default: throw exception("unsupported vertex buffer usage format!!");
 	}
+	buffer_info->d3dbuffer.stride = output_stride;
 
 	// then determine source format & convert
 
@@ -79,37 +87,52 @@ void RenderGeometry::format_buffer(float*& buffer, char* source, rtgo::Rasterize
 		if (buffer_info->stride != 8) throw exception("mismatching buffer stride and buffer format!!");
 		if (output_length != 3) throw exception("vertex buffer's expected output size is not compatible with source format!");
 
-		output_size = buffer_info->count * 3 * 4;
-		buffer = new float[buffer_info->count * 3];
+		output_size = buffer_info->count * output_stride;
+		buffer = new float[buffer_info->count * output_length];
 		for (int i = 0; i < buffer_info->count; i++) {
-			buffer[i * 3] = (float)*(uint16_t*)(source + i * 4) / 65535u;
-			buffer[i * 3 + 1] = (float)*(uint16_t*)(source + 2 + i * 4) / 65535u;
-			buffer[i * 3 + 2] = (float)*(uint16_t*)(source + 4 + i * 4) / 65535u;
+			uint32_t block1 = source[i*2];
+			uint32_t block2 = source[(i*2)+1];
+			/*
+			b1: 80E6 6411
+			b2: 0000 DA1F
+			r1 = 25617 / 65535 == 0.3908903639276722 == -0.2182192721446555
+
+			*/
+
+
+			float result1 = (((float)(block1 & 0xffff) / 0xffff) * 2.0f) - 1.0f;
+			float result2 = (((float)(block1 >> 16) / 0xffff) * 2.0f) - 1.0f;
+			float result3 = (((float)(block2 & 0xffff) / 0xffff) * 2.0f) - 1.0f;
+			buffer[(i * 3)] = result1;
+			buffer[(i * 3) + 1] = result2;
+			buffer[(i * 3) + 2] = result3;
 			// unsure what we're supposed to do with the 4th short in the 8byte source thingo
+			
 		}
 		return; }
 	case rtgo::eRasterizerVertexFormat::wordVector2DNormalized: {
 		if (buffer_info->stride != 4) throw exception("mismatching buffer stride and buffer format!!");
 		if (output_length != 2) throw exception("vertex buffer's expected output size is not compatible with source format!");
 
-		output_size = buffer_info->count * 2 * 4;
-		buffer = new float[buffer_info->count * 2];
+		output_size = buffer_info->count * output_stride;
+		buffer = new float[buffer_info->count * output_length];
 		for (int i = 0; i < buffer_info->count; i++) {
-			buffer[i * 2] = (float)*(uint16_t*)(source + i * 4) / 65535u;
-			buffer[i * 2 + 1] = (float)*(uint16_t*)(source + 2 + i * 4) / 65535u;
+			uint32_t block1 = source[i];
+			buffer[(i * 2) + 1] = (float)(block1 & 0xffff) / 0xffff;
+			buffer[(i * 2)] = (float)(block1 >> 16) / 0xffff;
 		}
 		return; }
 	case rtgo::eRasterizerVertexFormat::_10_10_10_2_signedNormalizedPackedAsUnorm: {
 		if (buffer_info->stride != 4) throw exception("mismatching buffer stride and buffer format!!");
 		if (output_length != 3) throw exception("vertex buffer's expected output size is not compatible with source format!");
 
-		output_size = buffer_info->count * 3 * 4;
-		buffer = new float[buffer_info->count * 3];
+		output_size = buffer_info->count * output_stride;
+		buffer = new float[buffer_info->count * output_length];
 		for (int i = 0; i < buffer_info->count; i++) {
-			uint32_t block = *(uint32_t*)(source + i * 4);
-			buffer[i * 3] = ((float)((block >> 20) & 0x3ff) / 1023u - 0.5f) * 2;
-			buffer[i * 3 + 1] = ((float)((block >> 10) & 0x3ff) / 1023u - 0.5f) * 2;
-			buffer[i * 3 + 2] = ((float)(block & 0x3ff) / 1023u - 0.5f) * 2;
+			uint32_t block = source[i];
+			buffer[(i * 3) + 2] = ((float)(block & 0x3ff) / 1023u - 0.5f) * 2;
+			buffer[(i * 3) + 1] = ((float)((block >> 10) & 0x3ff) / 1023u - 0.5f) * 2;
+			buffer[(i * 3)] = ((float)((block >> 20) & 0x3ff) / 1023u - 0.5f) * 2;
 			// no clue what the extra 2 bits are
 		}
 		return; }
@@ -117,26 +140,28 @@ void RenderGeometry::format_buffer(float*& buffer, char* source, rtgo::Rasterize
 		if (buffer_info->stride != 4) throw exception("mismatching buffer stride and buffer format!!");
 		if (output_length != 3) throw exception("vertex buffer's expected output size is not compatible with source format!");
 
-		output_size = buffer_info->count * 3 * 4;
-		buffer = new float[buffer_info->count * 3];
+		output_size = buffer_info->count * output_stride;
+		buffer = new float[buffer_info->count * output_length];
 		for (int i = 0; i < buffer_info->count; i++) {
-			buffer[i * 3] = (float)*(source + i * 4) / 255u;
-			buffer[i * 3 + 1] = (float)*(source + 1 + i * 4) / 255u;
-			buffer[i * 3 + 2] = (float)*(source + 2 + i * 4) / 255u;
-			// unsure what we're supposed to do with the 4th short in the 8byte source thingo
+			uint32_t block1 = source[i];
+			buffer[(i * 3) + 2] = (float)(block1 & 0xff) / 255u;
+			buffer[(i * 3) + 1] = (float)((block1 >> 8) & 0xff) / 255u;
+			buffer[(i * 3)] = (float)((block1 >> 16) & 0xff) / 255u;
+			// i think the 4th byte here is padding
 		}
 		return; }
 	case rtgo::eRasterizerVertexFormat::byteARGBColor: {
 		if (buffer_info->stride != 4) throw exception("mismatching buffer stride and buffer format!!");
 		if (output_length != 4) throw exception("vertex buffer's expected output size is not compatible with source format!");
 
-		output_size = buffer_info->count * 4 * 4;
-		buffer = new float[buffer_info->count * 4];
+		output_size = buffer_info->count * output_stride;
+		buffer = new float[buffer_info->count * output_length];
 		for (int i = 0; i < buffer_info->count; i++) {
-			buffer[i * 4] = (float)*(source + i * 4) / 255u;
-			buffer[i * 4 + 1] = (float)*(source + 1 + i * 4) / 255u;
-			buffer[i * 4 + 2] = (float)*(source + 2 + i * 4) / 255u;
-			buffer[i * 4 + 3] = (float)*(source + 3 + i * 4) / 255u;
+			uint32_t block1 = source[i];
+			buffer[(i * 3) + 3] = (float)(block1 & 0xff) / 255u;
+			buffer[(i * 3) + 2] = (float)((block1 >> 8) & 0xff) / 255u;
+			buffer[(i * 3) + 1] = (float)((block1 >> 16) & 0xff) / 255u;
+			buffer[(i * 3)] = (float)((block1 >> 24) & 0xff) / 255u;
 		}
 		return; }
 	}
@@ -209,13 +234,14 @@ void RenderGeometry::build_buffers(Tag* tag, Graphics* gfx, Module* modules) {
 		// determine whether to get pointer from chunked resource or not
 		if (vert_buffer->d3dbuffer.d3d_buffer.data_size == 0)
 			source_ptr = streaming_buffer + vert_buffer->offset;
-		else source_ptr = vert_buffer->d3dbuffer.d3d_buffer.content_ptr;
+		else 
+			source_ptr = vert_buffer->d3dbuffer.d3d_buffer.content_ptr;
 
 		//throw exception("render geo with non-chunked data is not currently supported!! because i have no idea what could be contained in this buffer!!");
 		float* formatted_buffer = nullptr;
-		uint32_t buffer_size = vert_buffer->d3dbuffer.byte_width;
+		uint32_t buffer_size = vert_buffer->d3dbuffer.byte_width; // this s
 		// test whether usage & format are compatible
-		format_buffer(formatted_buffer, source_ptr, vert_buffer, buffer_size);
+		format_buffer(formatted_buffer, (uint32_t*)source_ptr, vert_buffer, buffer_size);
 		if (formatted_buffer == nullptr)
 			throw exception("failed to format vertex buffer!! (could be unsupported vertex buffer type)");
 
@@ -376,7 +402,7 @@ void RenderGeometry::render(Tag* tag, Graphics* gfx,
 			continue;
 		rtgo::RasterizerVertexBuffer* vert_buffer = geo_resource->pc_vertex_buffers[current_lod->vertex_buffer_indices[vert_buffer_index].vertex_buffer_index];
 		vert_buffers[vert_buffer_index] = (ID3D11Buffer*)vert_buffer->m_resourceView;
-		vert_strides[vert_buffer_index] = vert_buffer->stride;
+		vert_strides[vert_buffer_index] = vert_buffer->d3dbuffer.stride; // we now store the reformatted stride here
 		vert_offsets[vert_buffer_index] = 0; // im pretty sure we do not offset these, we only offset the indicies
 	}
 	// then apply the vertex buffers, as they do not change between mesh part
