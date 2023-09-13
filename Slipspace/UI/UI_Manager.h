@@ -67,7 +67,7 @@ public:
 			if (current_input.size() == 8) {
 				try {
 					uint32_t tagid = stoul(current_input, 0, 16);
-					modules->OpenTag((uint32_t)tagid, gfx);
+					modules->OpenTag((uint32_t)tagid);
 				}
 				catch (exception ex) {
 					// do nothing
@@ -104,7 +104,7 @@ public:
 
 						ImGui::SameLine();
 						if (ImGui::Button("Open")) {
-							modules->OpenTag(menu_active_tag->GlobalTagId, gfx);
+							modules->OpenTag(menu_active_tag->GlobalTagId);
 						}
 
 					}

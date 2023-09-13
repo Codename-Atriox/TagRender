@@ -24,8 +24,8 @@ public:
 
 	module_file* find_tag(uint32_t tagID);
 	int32_t find_tag_index(uint32_t tagID);
-	void GetTagProcessed(uint32_t tagID, char*& output_tag_bytes, char*& output_cleanup_ptr);
-	void GetTagProcessed(module_file* file_ptr, char*& output_tag_bytes, char*& output_cleanup_ptr);
+	void GetTagProcessed(uint32_t tagID, char*& output_tag_bytes, char*& output_cleanup_ptr, void* modules);
+	void GetTagProcessed(module_file* file_ptr, char*& output_tag_bytes, char*& output_cleanup_ptr, void* modules);
 
 	module_file* ReturnResourceHeader(uint32_t tag_index, uint32_t index);
 	module_file* ReturnResourceHeader(module_file* tag_header, uint32_t index);
@@ -72,7 +72,7 @@ private:
 		uint64_t data_3_offset; // alt resource data
 	};
 	uint64_t resolve_datablock_offset(TagStructs::data_block* datar, tag_loading_offsets* offsets);
-	void Processtag(char* tag_bytes, module_file* file_header, char*& _Out_data, char*& _Out_cleanup_ptr);
+	void Processtag(char* tag_bytes, module_file* file_header, char*& _Out_data, char*& _Out_cleanup_ptr, void* modules);
 };
 
 

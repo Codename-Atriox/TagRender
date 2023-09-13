@@ -51,7 +51,7 @@ Tag* ModuleManager::GetTag(uint32_t tagID) {
 			return loaded_tags[i];
 	return (Tag*)0;
 }
-Tag* ModuleManager::OpenTag(uint32_t tagID, Graphics* gfx){
+Tag* ModuleManager::OpenTag(uint32_t tagID){
 	// first check if the tag already exists
 	Tag* new_tag = GetTag(tagID);
 	if (new_tag != (Tag*)0) return new_tag;
@@ -66,7 +66,7 @@ Tag* ModuleManager::OpenTag(uint32_t tagID, Graphics* gfx){
 
 		char* output_tag_bytes;
 		char* output_cleanup_ptr;
-		module_ptr->GetTagProcessed(file_ptr, output_tag_bytes, output_cleanup_ptr);
+		module_ptr->GetTagProcessed(file_ptr, output_tag_bytes, output_cleanup_ptr, this);
 
 
 		Tag* new_tag = new Tag(TagnameProcessor.GetTagname(file_ptr->GlobalTagId), file_ptr->ClassId, file_ptr->GlobalTagId, output_tag_bytes, output_cleanup_ptr, module_ptr->filepath, tag_index);

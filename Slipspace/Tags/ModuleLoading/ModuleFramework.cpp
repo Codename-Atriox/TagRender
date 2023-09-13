@@ -1,5 +1,6 @@
-#include "ModuleFramework.h"
-
+//#include "ModuleFramework.h"
+// trigger warning: WARCRIME // idk how this 
+#include "../TagProcessor.h" // i hope whoever wrote this language is happy with themselves, this is probably the worst language ever holy moly
 
 module_file* Module::find_tag(uint32_t tagID) {
     for (int i = 0; i < header->FileCount; i++) {
@@ -18,20 +19,20 @@ int32_t Module::find_tag_index(uint32_t tagID) {
     return -1;
 }
 
-void Module::GetTagProcessed(uint32_t tagID, char*& output_tag_bytes, char*& output_cleanup_ptr) {
+void Module::GetTagProcessed(uint32_t tagID, char*& output_tag_bytes, char*& output_cleanup_ptr, void* modules) {
     module_file* file_ptr = find_tag(tagID);
     if (file_ptr == 0)
         throw exception("failed to find tag in module");
-    GetTagProcessed(file_ptr, output_tag_bytes, output_cleanup_ptr);
+    GetTagProcessed(file_ptr, output_tag_bytes, output_cleanup_ptr, modules);
 }
-void Module::GetTagProcessed(module_file* file_ptr, char*& output_tag_bytes, char*& output_cleanup_ptr) {
+void Module::GetTagProcessed(module_file* file_ptr, char*& output_tag_bytes, char*& output_cleanup_ptr, void* modules) {
     // read tag from module (ifstream)
     char* raw_tag_bytes = new char[file_ptr->TotalUncompressedSize];
     if (FAILED(GetTagRaw(file_ptr, raw_tag_bytes)))
         throw exception("get tag failed, not allowed!!");
     // process tag to make it usable
 
-	Processtag(raw_tag_bytes, file_ptr, output_tag_bytes, output_cleanup_ptr);
+	Processtag(raw_tag_bytes, file_ptr, output_tag_bytes, output_cleanup_ptr, modules);
 	delete[] raw_tag_bytes; // cleanup the file read request
 }
 module_file* Module::ReturnResourceHeader(uint32_t tag_index, uint32_t index) {
@@ -253,7 +254,7 @@ uint64_t Module::resolve_datablock_offset(data_block* datar, tag_loading_offsets
 	_Out_tag = new runtime_tag(tag_data, chunk_resources, struct_resources, cleanup_ptr);
 	return output; // we only input non chunk resources
 } */
-void Module::Processtag(char* tag_bytes, module_file* file_header, char*& _Out_data, char*& _Out_cleanup_ptr) {
+void Module::Processtag(char* tag_bytes, module_file* file_header, char*& _Out_data, char*& _Out_cleanup_ptr, void* modules) {
 	uint64_t current_byte_offset = 0;
 	uint32_t current_resource_index = 0;
 
@@ -361,7 +362,7 @@ void Module::Processtag(char* tag_bytes, module_file* file_header, char*& _Out_d
 
 				char* resource_tag_ptr = nullptr;
 				char* resource_cleanup_ptr = nullptr; // TODO: ADD SOMETHING TO BEABLE TO CLEAN THIS UP!!!
-				GetTagProcessed(resource_tag_header, resource_tag_ptr, resource_cleanup_ptr);
+				GetTagProcessed(resource_tag_header, resource_tag_ptr, resource_cleanup_ptr, modules);
 				resource->content_ptr = resource_tag_ptr; // link this resource tag to our current tag
 			}
 			else { // regular resources also have structs inside the main file that reference them
@@ -389,14 +390,31 @@ void Module::Processtag(char* tag_bytes, module_file* file_header, char*& _Out_d
 		}
 		else _datarblock->content_ptr = nullptr;
 	}
-	/* fixup tag references
+	// fixup tag references
 	for (uint32_t c = 0; c < header->TagReferenceCount; c++)
 	{
-		tag_fixup_reference* current_struct = reinterpret_cast<tag_fixup_reference*> (&tag_bytes[offsets->tag_fixup_references_offset + (c * tag_fixup_reference_size)]);
+		tag_fixup_reference* current_tagref = reinterpret_cast<tag_fixup_reference*> (&tag_bytes[offsets->tag_fixup_references_offset + (c * tag_fixup_reference_size)]);
 
+		data_block* datar = reinterpret_cast<data_block*> (&tag_bytes[offsets->data_blocks_offset + (current_tagref->FieldBlock * data_block_size)]);
+		_basic_tagref* _tagref = reinterpret_cast<_basic_tagref*>(&runtime_bytes[resolve_datablock_offset(datar, offsets) + current_tagref->FieldOffset]);
 
+		if (current_tagref->DepdencyIndex != -1) {
+			// idk how we're supposed to get the tag bytes from down here		
+			tag_dependency* tag_dep = reinterpret_cast<tag_dependency*>(&tag_bytes[offsets->tag_dependencies_offset + (current_tagref->DepdencyIndex * tag_dependency_size)]);
+
+			ModuleManager* mod_manager = (ModuleManager*)modules;
+			try {
+				Tag* referenced_tag = mod_manager->OpenTag(tag_dep->GlobalID);
+				_tagref->content_ptr = referenced_tag->tag_data;
+			}
+			catch (exception ex) {
+				//ErrorLog::log_error("dependency tag could not be loaded: " + std::string(ex.what()));
+			}
+			_tagref->content_ptr = nullptr;
+		}
+		else _tagref->content_ptr = nullptr;
 	}
-	*/
+	
 	/*
 	TAG_OBJ_TYPE resulting_group = NONE;
 	switch (target_group){

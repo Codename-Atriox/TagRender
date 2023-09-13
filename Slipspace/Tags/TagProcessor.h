@@ -1,4 +1,5 @@
 #pragma once
+#include "../../Utilities/ErrorLog.h"
 
 #include "../Logic/RenderGeometry.h"
 
@@ -16,14 +17,14 @@
 
 class ModuleManager {
 public:
-
+    Graphics* gfx;
 public:
     ModuleManager();
 
     void OpenModule(string filename);
     void CloseModule(string filename);
     Tag* GetTag(uint32_t tagID); // gets from already open tags
-    Tag* OpenTag(uint32_t tagID, Graphics* gfx); // opens from open modules
+    Tag* OpenTag(uint32_t tagID); // opens from open modules
     void CloseTag(uint32_t tagID); // WHEN CLOSING TAG WE MUST CLEAR TAGID, SO GAMOBJECTS REALIZE THE TAG IS NON-EXISTANT // terrible idea
 
     Module* GetModule_AtIndex(uint32_t index);

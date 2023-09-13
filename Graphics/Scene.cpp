@@ -8,6 +8,7 @@ bool Scene::Init(HWND hwnd, int width, int height) {
 
 	if (!gfx.Initialize(hwnd, width, height))
 		return false;
+	Modules.gfx = &gfx;
 
 	camera.SetPosition(0.0f, 0.0f, -2.0f);
 	camera.SetProjectionValues(
