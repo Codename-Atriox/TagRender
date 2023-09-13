@@ -43,6 +43,11 @@ public:
 		tag_UI_groups_buffer[index * 5 + 3] = tag_group & 0xff;
 		tag_UI_groups_buffer[index * 5 + 4] = 0; // null terminator
 	}
+
+	// allocated space + null terminator
+	char* input_tagid = new char[9] {'0', '0', '0', '0', '0', '0', '0', '0', '\0' };
+	size_t input_size = 9; 
+	string input_output{"test"};
 	void render_module_window() {
 		ImGui::Begin("Modules");
 		if (ImGui::Button("Open Module")) {
@@ -55,6 +60,20 @@ public:
 		// loaded modules display
 		ImGui::Text("Indexed tags [%d]", modules->total_tags);
 		ImGui::Text("Active Modules [%d]", modules->open_modules);
+		ImGui::InputText("Target TagID", input_tagid, input_size);
+		ImGui::SameLine();
+		if (ImGui::Button("Open Tag")) {
+			string current_input = string(input_tagid, 8);
+			if (current_input.size() == 8) {
+				try {
+					uint32_t tagid = stoul(current_input, 0, 16);
+					modules->OpenTag((uint32_t)tagid, gfx);
+				}
+				catch (exception ex) {
+					// do nothing
+				}
+			}
+		}
 
 		for (int i = 0; i < modules->open_modules; i++) {
 			Module* menu_active_module = modules->GetModule_AtIndex(i);

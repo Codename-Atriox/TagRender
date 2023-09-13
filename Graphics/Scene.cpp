@@ -37,8 +37,8 @@ void Scene::RenderFrame()
 	//gfx.cb_ps_light.data.dynamicLightAttenuation_b = light.attenuation_b;
 	//gfx.cb_ps_light.data.dynamicLightAttenuation_c = light.attenuation_c;
 
-	//gfx.cb_ps_light.ApplyChanges();
-	//gfx.deviceContext->PSSetConstantBuffers(0, 1, gfx.cb_ps_light.GetAddressOf());
+	gfx.cb_ps_light.ApplyChanges();
+	gfx.deviceContext->PSSetConstantBuffers(0, 1, gfx.cb_ps_light.GetAddressOf());
 
 
 

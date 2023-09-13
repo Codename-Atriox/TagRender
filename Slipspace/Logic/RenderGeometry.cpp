@@ -92,20 +92,9 @@ void RenderGeometry::format_buffer(float*& buffer, uint32_t* source, rtgo::Raste
 		for (int i = 0; i < buffer_info->count; i++) {
 			uint32_t block1 = source[i*2];
 			uint32_t block2 = source[(i*2)+1];
-			/*
-			b1: 80E6 6411
-			b2: 0000 DA1F
-			r1 = 25617 / 65535 == 0.3908903639276722 == -0.2182192721446555
-
-			*/
-
-
-			float result1 = (((float)(block1 & 0xffff) / 0xffff) * 2.0f) - 1.0f;
-			float result2 = (((float)(block1 >> 16) / 0xffff) * 2.0f) - 1.0f;
-			float result3 = (((float)(block2 & 0xffff) / 0xffff) * 2.0f) - 1.0f;
-			buffer[(i * 3)] = result1;
-			buffer[(i * 3) + 1] = result2;
-			buffer[(i * 3) + 2] = result3;
+			buffer[(i * 3)] = (((float)(block1 & 0xffff) / 0xffff) * 2.0f) - 1.0f;
+			buffer[(i * 3) + 1] = (((float)(block1 >> 16) / 0xffff) * 2.0f) - 1.0f;
+			buffer[(i * 3) + 2] = (((float)(block2 & 0xffff) / 0xffff) * 2.0f) - 1.0f;
 			// unsure what we're supposed to do with the 4th short in the 8byte source thingo
 			
 		}
@@ -330,6 +319,7 @@ void RenderGeometry::render(Tag* tag, Graphics* gfx,
 	gfx->deviceContext->VSSetConstantBuffers(0, 1, gfx->cb_vs_vertexshader.GetAddressOf());
 	gfx->cb_vs_vertexshader.data.wvpMatrix = DirectX::XMMatrixIdentity() * worldMatrix * viewProjectionMatrix;
 	gfx->cb_vs_vertexshader.data.worldMatrix = DirectX::XMMatrixIdentity() * worldMatrix;
+	gfx->cb_vs_vertexshader.data.camera_position = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	// this data turns out to not be useful i think?
 	//if (render_geo->compression_info.count > 0) {
 	//	rtgo::s_compression_info* compression = render_geo->compression_info[0];

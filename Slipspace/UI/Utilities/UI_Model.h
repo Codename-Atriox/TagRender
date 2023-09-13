@@ -35,14 +35,11 @@ public:
 
 	void destroy() {
 		if (renderTargetTextureMap) {
-			renderTargetTextureMap->Release();
-			delete renderTargetTextureMap;}
+			renderTargetTextureMap->Release();}
 		if (renderTargetViewMap) {
-			renderTargetViewMap->Release();
-			delete renderTargetViewMap;}
+			renderTargetViewMap->Release();}
 		if (shaderResourceViewMap) {
-			shaderResourceViewMap->Release();
-			delete shaderResourceViewMap;}
+			shaderResourceViewMap->Release();}
 	}
 	void UpdateTexture(XMMATRIX projection) {
 		gfx->deviceContext->OMSetRenderTargets(1, &renderTargetViewMap, depthStencilView);

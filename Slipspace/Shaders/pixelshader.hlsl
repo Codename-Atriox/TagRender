@@ -48,8 +48,8 @@ float4 main(PS_INPUT input) : SV_TARGET
     //float3 sampleColor = objTexture.Sample(objSamplerState, input.inUV0);
     //float3 sampleColor = input.inColor;
     //float3 sampleColor = input.inWorldPos;
-    float3 sampleColor = input.inNormal; // 
-    //sampleColor = float3(0.5, 0.5, 0.5);
+    //float3 sampleColor = input.inNormal; // 
+    float3 sampleColor = float3(0.5, 0.5, 0.5);
     // AMBIENT LIGHTING
     float3 ambientLight = ambientLightcolor * ambientLightStrength;
     
@@ -79,6 +79,6 @@ float4 main(PS_INPUT input) : SV_TARGET
     
     
     
-    float3 finalColor = sampleColor; // * (ambientLight + directionalLight + specularLight);
+    float3 finalColor = sampleColor * (ambientLight + directionalLight + specularLight);
     return float4(finalColor, 1.0f); // we can add in alpha support once we make sure everything else works fine
 }
