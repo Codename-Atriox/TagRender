@@ -83,7 +83,7 @@ public:
 
 		XMMATRIX projec_matrix = mapView* mapProjection;
 
-		RenderGeometry::render(obj, gfx, worldMatrix, projec_matrix, mesh_index, lod_index);
+		RenderGeometry::render(obj, gfx, worldMatrix, projec_matrix, XMFLOAT3(0,0,0), mesh_index, lod_index);
 	}
 	void InitTexture(uint32_t width, uint32_t height) {
 		D3D11_TEXTURE2D_DESC textureDesc;

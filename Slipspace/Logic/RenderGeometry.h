@@ -25,6 +25,6 @@ public:
 	static void export_mesh();
 
 	static void render(Tag* tag, Graphics* gfx,
-		XMMATRIX& worldMatrix, XMMATRIX& viewProjectionMatrix,
+		XMMATRIX& worldMatrix, XMMATRIX& viewProjectionMatrix, XMFLOAT3 cam_position,
 		uint32_t mesh_index, uint32_t lod_index);
 };

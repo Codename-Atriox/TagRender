@@ -8,7 +8,7 @@ class RenderBSP {
 
 public:
 
-	static void Render(Tag* tag, Graphics* gfx, XMMATRIX projectionMatrix) {
+	static void Render(Tag* tag, Graphics* gfx, XMMATRIX projectionMatrix, XMFLOAT3 cam_pos) {
 		if (tag->tag_FourCC != Tag::sbsp)
 			throw exception("tag is not an sbsp but is attempted to render as one");
 
@@ -29,14 +29,14 @@ public:
 			// also get mesh index
 			uint32_t mesh_index = runtime_geo->Runtime_geo_mesh_index;
 
-			XMMATRIX worldMatrix = XMMatrixTranslation(runtime_geo->position.f1, runtime_geo->position.f2, runtime_geo->position.f3);
-								 //* XMMatrixRotationRollPitchYawFromVector() // XMLoadFloat3x3(&rotation)
-								 // * XMMatrixScaling(runtime_geo->scale.f1, runtime_geo->scale.f2, runtime_geo->scale.f3);
+			XMMATRIX worldMatrix = XMMatrixTranslation(runtime_geo->position.f1, runtime_geo->position.f2, runtime_geo->position.f3)
+									// *XMLoadFloat3x3(&rotation);
+								* XMMatrixScaling(runtime_geo->scale.f1, runtime_geo->scale.f2, runtime_geo->scale.f3);
 
 
 
 			// then render
-			RenderGeometry::render(geo_tag, gfx, worldMatrix, projectionMatrix, mesh_index, 0);
+			RenderGeometry::render(geo_tag, gfx, worldMatrix, projectionMatrix, cam_pos, mesh_index, 0);
 		}
 	}
 

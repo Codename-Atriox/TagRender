@@ -300,7 +300,7 @@ static void export_mesh() {
 }
 
 void RenderGeometry::render(Tag* tag, Graphics* gfx,
-	XMMATRIX& worldMatrix, XMMATRIX& viewProjectionMatrix,
+	XMMATRIX& worldMatrix, XMMATRIX& viewProjectionMatrix, XMFLOAT3 cam_position,
 	uint32_t mesh_index, uint32_t lod_index) {
 
 	rtgo::s_render_geometry* render_geo = RenderGeometry::get_s_render_geometry_ptr(tag);
@@ -320,7 +320,7 @@ void RenderGeometry::render(Tag* tag, Graphics* gfx,
 	gfx->deviceContext->VSSetConstantBuffers(0, 1, gfx->cb_vs_vertexshader.GetAddressOf());
 	gfx->cb_vs_vertexshader.data.wvpMatrix = DirectX::XMMatrixIdentity() * worldMatrix * viewProjectionMatrix;
 	gfx->cb_vs_vertexshader.data.worldMatrix = DirectX::XMMatrixIdentity() * worldMatrix;
-	gfx->cb_vs_vertexshader.data.camera_position = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	gfx->cb_vs_vertexshader.data.camera_position = cam_position;
 	// this data turns out to not be useful i think?
 	//if (render_geo->compression_info.count > 0) {
 	//	rtgo::s_compression_info* compression = render_geo->compression_info[0];

@@ -125,7 +125,7 @@ void Scene::RenderFrame()
 
 	// render loaded bsp if any
 	if (ui.active_bsp != nullptr)
-		RenderBSP::Render(ui.active_bsp, &gfx, camera.GetViewMatrix() * camera.GetProjectionMatrix());
+		RenderBSP::Render(ui.active_bsp, &gfx, camera.GetViewMatrix() * camera.GetProjectionMatrix(), camera.GetPositionFloat3());
 
 	//static float alpha = 0.5f;
 	{ // 
