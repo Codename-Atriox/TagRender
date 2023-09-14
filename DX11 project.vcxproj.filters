@@ -341,6 +341,12 @@
     <ClInclude Include="Utilities\ErrorLog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Slipspace\Logic\RenderBSP.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Slipspace\Tags\TagStructs\sbsp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Slipspace\Shaders\vertexshader.hlsl">

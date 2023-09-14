@@ -93,6 +93,7 @@ void RenderGeometry::format_buffer(float*& buffer, uint32_t* source, rtgo::Raste
 			uint32_t block1 = source[i*2];
 			uint32_t block2 = source[(i*2)+1];
 			buffer[(i * 3)] = (((float)(block1 & 0xffff) / 0xffff) * 2.0f) - 1.0f;
+			// im just going to swap the Y & Z so i can actually see the mesh upright
 			buffer[(i * 3) + 1] = (((float)(block1 >> 16) / 0xffff) * 2.0f) - 1.0f;
 			buffer[(i * 3) + 2] = (((float)(block2 & 0xffff) / 0xffff) * 2.0f) - 1.0f;
 			// unsure what we're supposed to do with the 4th short in the 8byte source thingo
@@ -119,9 +120,9 @@ void RenderGeometry::format_buffer(float*& buffer, uint32_t* source, rtgo::Raste
 		buffer = new float[buffer_info->count * output_length];
 		for (int i = 0; i < buffer_info->count; i++) {
 			uint32_t block = source[i];
-			buffer[(i * 3) + 2] = ((float)(block & 0x3ff) / 1023u - 0.5f) * 2;
+			buffer[(i * 3)] = ((float)(block & 0x3ff) / 1023u - 0.5f) * 2;
 			buffer[(i * 3) + 1] = ((float)((block >> 10) & 0x3ff) / 1023u - 0.5f) * 2;
-			buffer[(i * 3)] = ((float)((block >> 20) & 0x3ff) / 1023u - 0.5f) * 2;
+			buffer[(i * 3) + 2] = ((float)((block >> 20) & 0x3ff) / 1023u - 0.5f) * 2;
 			// no clue what the extra 2 bits are
 		}
 		return; }
@@ -400,7 +401,7 @@ void RenderGeometry::render(Tag* tag, Graphics* gfx,
 	DXGI_FORMAT index_format = (DXGI_FORMAT)0;
 	switch (index_buffer->stride) {
 	case 2:  index_format = DXGI_FORMAT::DXGI_FORMAT_R16_UINT; break;
-	case 4:  index_format = DXGI_FORMAT::DXGI_FORMAT_R32_UINT; throw exception("unexpected length"); break;
+	case 4:  index_format = DXGI_FORMAT::DXGI_FORMAT_R32_UINT; break;
 	default: throw exception("invalid index buffer stride (has to be either 2 or 4 bytes!!!)");
 	}
 

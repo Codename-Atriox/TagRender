@@ -356,9 +356,10 @@ void Module::Processtag(char* tag_bytes, module_file* file_header, char*& _Out_d
 				throw exception("tag has data on runtime_resource_handle! there should be no data here! investigate!!");
 			resource->runtime_resource_handle = current_resource_index;
 
-			if (resource->is_chunked_resource == 0) {
+			if (resource->is_chunked_resource == 0 && current_struct->Type != 4) {
 				// get resource file header & process it as a regular tag
 				module_file* resource_tag_header = ReturnResourceHeader(file_header, current_resource_index);
+				current_resource_index++; // we only increase the index when
 
 				char* resource_tag_ptr = nullptr;
 				char* resource_cleanup_ptr = nullptr; // TODO: ADD SOMETHING TO BEABLE TO CLEAN THIS UP!!!
@@ -372,7 +373,6 @@ void Module::Processtag(char* tag_bytes, module_file* file_header, char*& _Out_d
 				}
 				else resource->content_ptr = nullptr;
 			}
-			current_resource_index++;
 		}
 		else { // unknown
 			throw exception("unknown type thing!!");
@@ -409,8 +409,9 @@ void Module::Processtag(char* tag_bytes, module_file* file_header, char*& _Out_d
 			}
 			catch (exception ex) {
 				ErrorLog::log_error("dependency tag could not be loaded: " + std::string(ex.what()));
+				// this tool was NOT designed in mind of exception catching, HELLO MEMORY LEAKS!!!!
+				_tagref->content_ptr = nullptr;
 			}
-			_tagref->content_ptr = nullptr;
 		}
 		else _tagref->content_ptr = nullptr;
 	}

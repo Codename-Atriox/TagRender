@@ -13,6 +13,7 @@ private:
 	UI ui;
 	Graphics gfx; // so it can be accessed by
 
+
 	Timer fpsTimer;
 	int fpsCoutner = 0;
 	std::string fpsString = "FPS: null";

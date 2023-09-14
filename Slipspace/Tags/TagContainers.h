@@ -41,6 +41,9 @@ struct Tag {
         tag_cleanup_ptr = _clnup;
         source_module = smod;
         source_tag_index = sind;
+        // then we write this pointer into the tagdata slot that is typically reserved for the vtable i think
+        // this is so we can get the extra data about a tag, when reading tag references
+        *(void**)tag_data = this;
     }
     ~Tag() {
         delete[] tag_cleanup_ptr;

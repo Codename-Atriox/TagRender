@@ -123,6 +123,9 @@ void Scene::RenderFrame()
 	gfx.deviceContext->VSSetShader(gfx.vertexshader.GetShader(), NULL, 0);
 	gfx.deviceContext->PSSetShader(gfx.pixelshader.GetShader(), NULL, 0);
 
+	// render loaded bsp if any
+	if (ui.active_bsp != nullptr)
+		RenderBSP::Render(ui.active_bsp, &gfx, camera.GetViewMatrix() * camera.GetProjectionMatrix());
 
 	//static float alpha = 0.5f;
 	{ // 

@@ -245,6 +245,8 @@
     <ClInclude Include="Mouse\MouseEvent.h" />
     <ClInclude Include="RenderWindow.h" />
     <ClInclude Include="Graphics\Shaders.h" />
+    <ClInclude Include="Slipspace\Logic\RenderBSP.h" />
+    <ClInclude Include="Slipspace\Tags\TagStructs\sbsp.h" />
     <ClInclude Include="Utilities\ErrorLog.h" />
     <ClInclude Include="Slipspace\Logic\RenderGeometry.h" />
     <ClInclude Include="Slipspace\Scene\SlipScene.h" />

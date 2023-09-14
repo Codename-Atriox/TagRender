@@ -114,8 +114,8 @@ bool Graphics::InitializeDirectX(HWND hwnd)
 
 		// RASTERIZER SETUP
 		CD3D11_RASTERIZER_DESC rasterizerDesc(D3D11_DEFAULT);
-		rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_FRONT;
-		rasterizerDesc.FrontCounterClockwise = false;
+		//rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_FRONT;
+		//rasterizerDesc.FrontCounterClockwise = false;
 		hr = this->device->CreateRasterizerState(&rasterizerDesc, this->rasterizerState.GetAddressOf());
 		COM_ERROR_IF_FAILED(hr, "Failed to create rasterizer state");
 

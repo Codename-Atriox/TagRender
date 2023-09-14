@@ -1,5 +1,6 @@
 #pragma once
 #include "Utilities/UI_Model.h"
+#include "../Logic/RenderBSP.h"
 
 #include "../../Utilities/NFD/include/nfd.h"
 
@@ -10,6 +11,8 @@ private:
 	Graphics* gfx;
 	ModuleManager* modules;
 public:
+	Tag* active_bsp = nullptr;
+
 	void init(Graphics* gfx, ModuleManager* modules) {
 		this->gfx = gfx;
 		this->modules = modules;
@@ -74,13 +77,13 @@ public:
 		if (ImGui::Button("Open Tag")) {
 			string current_input = string(input_tagid, 8);
 			if (current_input.size() == 8) {
-				try {
+				//try {
 					uint32_t tagid = stoul(current_input, 0, 16);
 					modules->OpenTag((uint32_t)tagid);
-				}
-				catch (exception ex) {
+				//}
+				//catch (exception ex) {
 					// do nothing
-				}
+				//}
 			}
 		}
 
@@ -180,6 +183,16 @@ public:
 					}
 					else if (ImGui::Button("Close"))
 						models.RemoveWindow(active_tag);
+				} break;
+				case Tag::sbsp: {
+					ImGui::Text("BSP Geo");
+					ImGui::SameLine();
+					if (active_bsp != active_tag) {
+						if (ImGui::Button("View"))
+							active_bsp = active_tag;
+					}
+					else if (ImGui::Button("Close"))
+						active_bsp = nullptr;
 				} break;
 				default:
 					ImGui::Text("Tag");
