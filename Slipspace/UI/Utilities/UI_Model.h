@@ -223,10 +223,15 @@ public:
 			if (!ImGui::Begin(curr_window->obj->tagname.c_str(), &window_is_open) && window_is_open) {
 				ImGui::End();
 				ImGui::PopID();
+				continue;
+			}
+			if (!window_is_open) {
 				// basically just the remove window function but without the getting overhead
 				curr_window->destroy();
 				Windows.RemoveAt(i);
 				i--; // remember to go back an index
+				ImGui::End();
+				ImGui::PopID();
 				continue;
 			}
 			ImGui::Text("Meshes [%d]", RenderGeometry::get_mesh_count(curr_window->obj));

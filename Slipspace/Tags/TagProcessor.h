@@ -21,6 +21,7 @@ public:
 public:
     ModuleManager();
 
+    void OpenMapInfo(string filename);
     void OpenModule(string filename);
     void CloseModule(string filename);
     Tag* GetTag(uint32_t tagID); // gets from already open tags

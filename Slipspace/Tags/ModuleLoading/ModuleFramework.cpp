@@ -408,7 +408,7 @@ void Module::Processtag(char* tag_bytes, module_file* file_header, char*& _Out_d
 				_tagref->content_ptr = referenced_tag->tag_data;
 			}
 			catch (exception ex) {
-				//ErrorLog::log_error("dependency tag could not be loaded: " + std::string(ex.what()));
+				ErrorLog::log_error("dependency tag could not be loaded: " + std::string(ex.what()));
 			}
 			_tagref->content_ptr = nullptr;
 		}

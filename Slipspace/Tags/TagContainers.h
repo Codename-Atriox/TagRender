@@ -27,8 +27,13 @@ struct Tag {
     const static uint32_t levl = 1818588780;
 
     Tag(std::string name, uint32_t _4CC, uint32_t _ID, char* _data, char* _clnup, std::string smod, uint32_t sind) {
-        tagname_ext = StringHelper::GetFileNameFromPath(name);
-        tagname = StringHelper::GetFileWithoutExtension(tagname_ext);
+        if (name.starts_with("0x")) { // we didn't have a tagname, so we gave it an id instead
+            tagname_ext = "tag";
+            tagname = name;
+        }else {
+            tagname_ext = StringHelper::GetFileNameFromPath(name);
+            tagname = StringHelper::GetFileWithoutExtension(tagname_ext);
+        }
         tagpath = name;
         tag_FourCC = _4CC;
         tagID = _ID;

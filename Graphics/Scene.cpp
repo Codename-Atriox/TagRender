@@ -3,6 +3,7 @@
 
 bool Scene::Init(HWND hwnd, int width, int height) {
 	fpsTimer.Start();
+	error_display_timer.Start();
 
 	ui.init(&gfx, &Modules);
 
@@ -150,11 +151,27 @@ void Scene::RenderFrame()
 
 	// SETUP FPS COUNTER
 	fpsCoutner += 1;
-	if (fpsTimer.GetMilisecondsElapsed() > 1000.0)
-	{
+	if (fpsTimer.GetMilisecondsElapsed() > 1000.0){
 		fpsString = "FPS: " + std::to_string(fpsCoutner);
 		fpsCoutner = 0;
 		fpsTimer.Restart();
+	}
+	const int errors_onscreen_at_once = 10;
+	if (error_display_timer.GetMilisecondsElapsed() > 3000.0){
+		if (ErrorLog::log.Size() > error_index) {
+			error_display_timer.Restart();
+			current_error = "";
+			// run a loop to fetch the next 10 errors & print onscreen
+			for (int i = 0; i < errors_onscreen_at_once; i++) {
+				if (ErrorLog::log.Size() <= error_index)
+					break;
+				current_error += "Log: " + ErrorLog::log[error_index]->message + '\n';
+				error_index++;
+			}
+		}
+		else {
+			current_error = "";
+		}
 	}
 	// SETUP TEXT SPRITES
 	gfx.spriteBatch->Begin();
@@ -187,6 +204,14 @@ void Scene::RenderFrame()
 		StringHelper::StringToWide("speed:" + std::to_string(camera.speed)).c_str(), // text 
 		DirectX::XMFLOAT2(0, 60), // position 
 		DirectX::Colors::White, // color
+		0.0f, // rotation
+		DirectX::XMFLOAT2(0.0f, 0.0f), // origin
+		DirectX::XMFLOAT2(0.5f, 0.5f)); // scale
+	// draw error log
+	gfx.spriteFont->DrawString(gfx.spriteBatch.get(),
+		StringHelper::StringToWide(current_error).c_str(), // text 
+		DirectX::XMFLOAT2(0, 90), // position 
+		DirectX::Colors::Red, // color
 		0.0f, // rotation
 		DirectX::XMFLOAT2(0.0f, 0.0f), // origin
 		DirectX::XMFLOAT2(0.5f, 0.5f)); // scale

@@ -8,6 +8,65 @@ ModuleManager::ModuleManager()
 	unpacker = new Oodle();
 }
 
+void ModuleManager::OpenMapInfo(string filename) {
+    // we always assume the mapinfos are where 343 put them
+// so we can split the path to find the directory to the module files
+
+    string halo_infinite_path = filename.substr(0, filename.find("__cms__")); // filename.Split("__cms__")[0];
+
+    // open & process mapinfo file
+    // read the garbage
+
+    std::ifstream infile(filename);
+
+    //get length of file
+    infile.seekg(0, std::ios::end);
+    size_t length = infile.tellg();
+    infile.seekg(0, std::ios::beg);
+
+    //read file
+    char* bytes = new char[length];
+    infile.read(bytes, length);
+
+
+
+    //int name_length = bytes[3];
+
+    //int offset_to_name_size = 4 + name_length + 0xc;
+    //int path_length = bytes[offset_to_name_size];
+
+    //int offset_to_module_files = offset_to_name_size + 1 + path_length + 0x3c;
+
+    //int modules_count = bytes[offset_to_module_files];
+    //offset_to_module_files++;
+    // we are just going to find the first module and do the offsets from there
+    int first_offset = 0;
+    while (true) {
+        if (first_offset + 4 >= length)
+            throw exception("could not find matching pattern in mapinfo.");
+        if (*(uint32_t*)(bytes + first_offset) == 0x5C796E61u)
+            break;
+        first_offset++;
+    }
+    int modules_count = bytes[first_offset - 2];
+    int current_offset = first_offset - 1;
+    for (int i = 0; i < modules_count; i++) {
+        int string_length = bytes[current_offset];
+        current_offset++;
+        string module = string(bytes + current_offset, string_length);
+        // fixup name
+        if (module.starts_with("%(Platform)"))
+            module = "pc" + module.substr(11);
+
+        // then correct the path to be a real path
+
+        module = halo_infinite_path + "deploy\\" + module;
+        OpenModule(module);
+
+        current_offset += string_length;
+    }
+}
+
 void ModuleManager::OpenModule(string filename){
 	CloseModule(filename); // if this module is already open, reopen it
 

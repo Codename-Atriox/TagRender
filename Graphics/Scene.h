@@ -17,4 +17,7 @@ private:
 	int fpsCoutner = 0;
 	std::string fpsString = "FPS: null";
 
+	Timer error_display_timer;
+	int error_index = 0;
+	std::string current_error = "";
 };

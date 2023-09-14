@@ -27,6 +27,8 @@ public:
 	}
 	const char* module_load_filters = "module";
 	const char* module_load_defaultpath = "D:\\Programs\\Steam\\steamapps\\common\\Halo Infinite\\deploy";
+	const char* mapinfo_load_filters = "mapinfo";
+	const char* mapinfo_load_defaultpath = "D:\\Programs\\Steam\\steamapps\\common\\Halo Infinite\\__cms__\\rtx-new\\levels";
 
 
 	// ////////////// //
@@ -50,6 +52,13 @@ public:
 	string input_output{"test"};
 	void render_module_window() {
 		ImGui::Begin("Modules");
+		if (ImGui::Button("Open MapInfo")) {
+			char* outpath;
+			if (NFD_OpenDialog(mapinfo_load_filters, mapinfo_load_defaultpath, &outpath) == NFD_OKAY) {
+				modules->OpenMapInfo(string(outpath));
+				if (outpath) delete[] outpath;
+			}
+		}
 		if (ImGui::Button("Open Module")) {
 			char* outpath;
 			if (NFD_OpenDialog(module_load_filters, module_load_defaultpath, &outpath) == NFD_OKAY) {
@@ -124,7 +133,7 @@ public:
 	// /////////////////// //
 	// LOADED TAGS WINDOW //
 	// ///////////////// //
-	const uint32_t max_tags_onscreen_count = 5;
+	const uint32_t max_tags_onscreen_count = 50;
 	int32_t loaded_tag_index = 0;
 	void render_loaded_tags_window() {
 		ImGui::Begin("Tags");

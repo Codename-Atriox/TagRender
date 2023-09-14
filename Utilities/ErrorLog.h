@@ -16,7 +16,7 @@ public:
 		std::string timestamp;
 		std::string message;
 	};
-	static void log_error(std::string log_entry) {
+	static inline void log_error(std::string log_entry) {
 		std::time_t t = std::time(0);
 		std::tm now;
 		localtime_s(&now, &t);
@@ -30,5 +30,5 @@ public:
 						 + std::string(stringchars);
 		log.Append(new ErrorLog::error(time, log_entry));
 	};
-	static CTList<error> log;
+	static inline CTList<error> log;
 };
