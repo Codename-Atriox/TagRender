@@ -339,7 +339,7 @@ void Module::Processtag(char* tag_bytes, module_file* file_header, char*& _Out_d
 		data_block* datar = reinterpret_cast<data_block*> (&tag_bytes[offsets->data_blocks_offset + (current_struct->FieldBlock * data_block_size)]);
 
 		// we have to write the offset differently, depending on what type of struct this is
-		if (current_struct->Type == 1) { // struct or custom?
+		if (current_struct->Type == 1) { // struct or custom? // tagblock
 			_basic_tagblock* tagblock = reinterpret_cast<_basic_tagblock*>(&runtime_bytes[resolve_datablock_offset(datar, offsets) + current_struct->FieldOffset]);
 			if (current_struct->TargetIndex != -1) {
 				data_block* contained_datar = reinterpret_cast<data_block*> (&tag_bytes[offsets->data_blocks_offset + (current_struct->TargetIndex * data_block_size)]);
@@ -348,7 +348,7 @@ void Module::Processtag(char* tag_bytes, module_file* file_header, char*& _Out_d
 			else tagblock->content_ptr = nullptr;
 		}
 		// '4' because we dont really care what it is, just let us load
-		else if (current_struct->Type == 2 || current_struct->Type == 3 || current_struct->Type == 4) { // resource // not sure why we previously had type 3 as tagblock??
+		else if (current_struct->Type == 2 || current_struct->Type == 3) { // resource // not sure why we previously had type 3 as tagblock??
 			// we're not going to read external types right now
 			_basic_resource* resource = reinterpret_cast<_basic_resource*>(&runtime_bytes[resolve_datablock_offset(datar, offsets) + current_struct->FieldOffset]);
 			// use the handle as an index to the resource
@@ -373,6 +373,10 @@ void Module::Processtag(char* tag_bytes, module_file* file_header, char*& _Out_d
 				}
 				else resource->content_ptr = nullptr;
 			}
+		}
+		else if (current_struct->Type == 4)
+		{
+			// do nothing, type 4 is for some reason just a reference to an inlined struct? struct defs should only refer to tagblocks??
 		}
 		else { // unknown
 			throw exception("unknown type thing!!");
