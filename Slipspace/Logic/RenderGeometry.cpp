@@ -76,7 +76,9 @@ void RenderGeometry::format_buffer(float*& buffer, uint32_t* source, rtgo::Raste
 		output_length = 4; 
 		output_stride = 16;
 		break;
-	default: throw exception("unsupported vertex buffer usage format!!");
+	default: 
+		return;
+		throw exception("unsupported vertex buffer usage format!!");
 	}
 	buffer_info->d3dbuffer.stride = output_stride;
 
@@ -120,7 +122,7 @@ void RenderGeometry::format_buffer(float*& buffer, uint32_t* source, rtgo::Raste
 		buffer = new float[buffer_info->count * output_length];
 		for (int i = 0; i < buffer_info->count; i++) {
 			uint32_t block = source[i];
-			buffer[(i * 3)] = ((float)(block & 0x3ff) / 1023u - 0.5f) * 2;
+			buffer[(i * 3)] = ((float)(block & 0x3ff) / 1023u - 0.5f) * 2; 
 			buffer[(i * 3) + 1] = ((float)((block >> 10) & 0x3ff) / 1023u - 0.5f) * 2;
 			buffer[(i * 3) + 2] = ((float)((block >> 20) & 0x3ff) / 1023u - 0.5f) * 2;
 			// no clue what the extra 2 bits are
@@ -233,7 +235,8 @@ void RenderGeometry::build_buffers(Tag* tag, Graphics* gfx, Module* modules) {
 		// test whether usage & format are compatible
 		format_buffer(formatted_buffer, (uint32_t*)source_ptr, vert_buffer, buffer_size);
 		if (formatted_buffer == nullptr)
-			throw exception("failed to format vertex buffer!! (could be unsupported vertex buffer type)");
+			continue;
+			//throw exception("failed to format vertex buffer!! (could be unsupported vertex buffer type)");
 
 		D3D11_BUFFER_DESC vertexBufferDesc;
 		ZeroMemory(&vertexBufferDesc, sizeof(vertexBufferDesc)); // do we even need to do this?

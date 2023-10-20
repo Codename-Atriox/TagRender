@@ -252,11 +252,13 @@ public:
 					hr = DirectX::Decompress(image->GetImages(), image->GetImageCount(), image->GetMetadata(), DXGI_FORMAT_R8G8B8A8_UNORM, decompressedImage);
 					if (FAILED(hr))
 						return;
-				} else if (!is_exportable_format(image->GetMetadata().format)) { // BC bitmaps should always convert to that format anyway, so they shouldn't need to convert
+				} else{ // if (!is_exportable_format(image->GetMetadata().format)) { // BC bitmaps should always convert to that format anyway, so they shouldn't need to convert
 					hr = DirectX::Convert(image->GetImages(), image->GetImageCount(), image->GetMetadata(), DXGI_FORMAT_R8G8B8A8_UNORM, DirectX::TEX_FILTER_DEFAULT, DirectX::TEX_THRESHOLD_DEFAULT, decompressedImage);
 					if (FAILED(hr))
 						return;
-				}
+				}/* else {
+					decompressedImage(image);
+				}*/
 				// for the codec version, it aligns with our enum when we plus 1
 				hr = DirectX::SaveToWICFile(*decompressedImage.GetImage(0, 0, 0), DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(DirectX::WICCodecs(type + 1)), wide_export_path.c_str());
 				if (FAILED(hr))
@@ -347,6 +349,19 @@ public:
 						lods = 1;
 					lods += bitm_resource->streamingData.count;
 					ImGui::Text("LODs [%d]", lods);
+					if (ImGui::Button("Export All")) {
+						char* outpath;
+						if (NFD_SaveDialog(formats[PNG], NULL, &outpath) == NFD_OKAY && outpath) {
+							for (int b_index = 0; b_index < bitmap_header->bitmaps.count; b_index++) {
+								BitmapResource* current_image = modules->BITM_GetTexture(open_bitmap, gfx->device.Get(), b_index, false);
+								if (current_image != nullptr) {
+									export_bitmap_resource(&current_image->scratch_image, string(outpath) + "_" + to_string(b_index), PNG);
+								}
+							}
+							delete[] outpath;
+						}
+					}
+						
 					if (!multi_image) ImGui::DragInt("Active MIP", &open_bitmap->preview_1, 0.1f, 0, bitmap_header->bitmaps.count - 1);
 					// then present the actual image
 					if (curr_bitmap->type == BitmapType::_2D_texture) {
